@@ -1,18 +1,18 @@
 {
   "university": "University of Engineering and Technology",
   "department": "Department of Computer Science",
-  "title": "Assignment",
-  "subtitle": "Subject",
+  "title": "Assignment Name",
+  "subtitle": "Subject Name",
   "submittedby": [
     {
-      "name": "Abdul Rahman",
-      "roll": "2023-CS-725"
+      "name": "Student Name",
+      "roll": "Roll Number"
     }
   ],
-  "submittedto": "Prof. ",
+  "submittedto": "Instructor Name",
   "enableTitlePage": true,
   "enableContentPage": false,
-  "enableLastPageCredits": false,
   "enableFootnotesAtEnd": false,
-  "enableThatsAllPage": true
+  "enableThatsAllPage": false,
+  "enableLastPageCredits": false
 }
