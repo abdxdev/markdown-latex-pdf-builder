@@ -72,13 +72,11 @@ After running these commands, TinyTeX, Pygments, and Notes Maker will be install
 
 1. Open VS Code and press `Ctrl + Shift + P`.
 2. Search for **Preferences: Open User Settings (JSON)** and open it.
-3. Add this to your `settings.json` file:
+3. Add this to the bottom of your `settings.json` file just before the closing `}`:
 
 ```json
-{
-  "command-runner.commands": {
+"command-runner.commands": {
     "Build LaTeX Document": "python \"$env:APPDATA\\notes-maker-main\\script.py\" \"${file}\""
-  }
 }
 ```
 
@@ -95,7 +93,7 @@ After running these commands, TinyTeX, Pygments, and Notes Maker will be install
 
 A PDF will be generated in the same folder as your Markdown file.
 A `.json` file with document metadata will also be created.
-You can delete the `_build_markdown` folder after the PDF is generated.
+You can delete the `_build_markdown` folder after the PDF is finalized.
 
 ---
 
