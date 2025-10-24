@@ -91,8 +91,8 @@ After running these commands, TinyTeX, Pygments, and Notes Maker will be install
 3. Add your content.
 4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**.
 
-A PDF will be generated in the same folder as your Markdown file.
-A `.json` file with document metadata will also be created.
+A PDF will be generated in the same folder as your Markdown file.  
+A `.json` file with document metadata will also be created.  
 You can delete the `_build_markdown` folder after the PDF is finalized.
 
 ---
@@ -107,7 +107,7 @@ Run this command to open it in VS Code:
 code $env:APPDATA\notes-maker-main\default.json
 ```
 
-Edit values such as the university name, department, title, and other settings.
+Edit values such as the university name, department, title, and other settings.  
 The next time you generate a document, it will use the updated defaults.
 
 ---
