@@ -1,0 +1,16 @@
+{
+  "title": "Assignment",
+  "subtitle": "Subject",
+  "submittedby": [
+    {
+      "name": "Abdul Rahman",
+      "roll": "2023-CS-725"
+    }
+  ],
+  "submittedto": "Prof. ",
+  "enableTitlePage": true,
+  "enableContentPage": false,
+  "enableLastPageCredits": false,
+  "enableFootnotesAtEnd": false,
+  "enableThatsAllPage": true
+}

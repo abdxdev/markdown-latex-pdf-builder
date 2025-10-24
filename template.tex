@@ -1,0 +1,381 @@
+% University Assignment Template with Markdown Support
+% lualatex --shell-escape -synctex=1 -interaction=nonstopmode -file-line-error file.tex
+% Note: --shell-escape is required for minted package to work with Pygments
+
+\documentclass[5pt,a4paper]{article}
+
+% Essential packages
+\usepackage{fontspec}
+\usepackage[margin=1in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{titling}
+\usepackage{tocloft}
+\usepackage{titletoc}
+\usepackage{adjustbox}
+\usepackage{etoolbox}
+\usepackage[most]{tcolorbox}
+\usepackage[cache=true,cachedir=.]{minted}
+\usepackage[contentBlocks,rawAttribute,texMathDollars,pipeTables,html,fencedCode,hybrid]{markdown}
+\usepackage{endnotes}
+\usepackage[bottom,hang]{footmisc}
+\usepackage[none]{hyphenat}
+\sloppy
+
+% Configure inline code style
+\definecolor{inlineCodeBg}{RGB}{246,248,250}
+\definecolor{inlineCodeFg}{RGB}{36,41,47}
+% Background for Markdown blockquotes
+\definecolor{quoteBg}{RGB}{246,248,250}
+% Footnote styling colors
+\definecolor{footnoteRuleColor}{RGB}{180,180,180}
+\definecolor{footnoteNumColor}{RGB}{100,100,100}
+
+% Styled blockquote environment using tcolorbox (no zref dependency)
+\newtcolorbox{mdblockquote}{
+  enhanced,
+  frame hidden,
+  colback=quoteBg,
+  borderline west={0pt}{0pt}{gray!40},
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt,
+  boxsep=0pt,
+  sharp corners
+}
+
+\newcommand{\inlinecode}[1]{%
+    \begingroup
+    \setlength{\fboxsep}{2pt}%
+    \colorbox{inlineCodeBg}{\ttfamily\scriptsize\color{inlineCodeFg}#1}%
+    \endgroup   
+}
+
+% Define code block background color
+\definecolor{codeBlockBg}{RGB}{246,248,250}
+\definecolor{codeBlockBorder}{RGB}{208,215,222}
+
+% Set up markdown package to use our inline code style for backticks
+\markdownSetup{
+    rendererPrototypes={
+        codeSpan = {\inlinecode{#1}},
+        link = {\href{#2}{#1}},
+        % Wrap block quotes in a gray box
+        blockQuoteBegin = {\begin{mdblockquote}},
+        blockQuoteEnd = {\end{mdblockquote}},        % Render HTML <br> tags as line breaks
+        % Using \\ with \arraybackslash to work in table cells
+        inlineHtmlTag = {%
+            \ifstrequal{#1}{<br>}{\newline\noindent}{%
+                \ifstrequal{#1}{<br/>}{\newline\noindent}{%
+                    \ifstrequal{#1}{<br />}{\newline\noindent}{#1}%
+                }%
+            }%
+        },
+        % Configure fenced code blocks to use our custom command with tcolorbox
+        % Parameters: #1=file path, #2=infostring (raw), #3=language name (processed)
+        inputFencedCode = {%
+            \begin{tcolorbox}[
+                colback=codeBlockBg,
+                colframe=codeBlockBorder,
+                boxrule=0pt,
+                arc=3pt,
+                left=5pt,
+                right=5pt,
+                top=5pt,
+                bottom=5pt,
+                breakable
+            ]%
+            \edef\templang{#3}%
+            \ifx\templang\empty
+                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
+            \else
+                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}%
+            \fi
+            \end{tcolorbox}%
+        }
+    },
+    % Enable fenced code blocks
+    fencedCode = true
+}
+
+% Configure JetBrains Mono font
+\setmonofont{JetBrainsMonoNL}[
+    Path=fonts/,
+    Extension=.ttf,
+    UprightFont=*-Regular
+]
+
+% Configure hyperlinks
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=cyan
+}
+
+% Configure minted for clean styling (using default or friendly style)
+\setminted{
+    frame=none,
+    breaklines=true,
+    fontsize=\footnotesize,
+    linenos=false,
+    style=default
+}
+
+% Custom commands for cover page
+\newcommand{\university}{University of Engineering and Technology}
+\newcommand{\department}{Department of Computer Science}
+\newcommand{\coursename}{@@SUBTITLE@@}
+\newcommand{\assignmenttitle}{@@TITLE@@}
+\newcommand{\submittedto}{@@SUBMITTEDTO@@}
+\newcommand{\submissioninfo}[1]{
+    \begin{tabular}{@{}ll@{}}
+    #1
+    \end{tabular}
+}
+
+\newif\ifenabletitlepage
+\enabletitlepagetrue
+@@ENABLE_TITLE_PAGE@@
+
+% Flag to enable/disable content page; controlled via script placeholder
+\newif\ifenablecontentpage
+\enablecontentpagetrue
+% If metadata has enableContentPage: false, the script leaves this blank
+@@ENABLE_CONTENT_PAGE@@
+
+% Flag to enable/disable last page credits; controlled via script placeholder
+\newif\ifenablelastpagecredits
+\enablelastpagecreditstrue
+% If metadata has enableLastPageCredits: false, the script leaves this blank
+@@ENABLE_LAST_PAGE_CREDITS@@
+
+% Flag to enable/disable footnotes at end of document (true = endnotes, false = page footnotes)
+\newif\ifenablefootnotesatend
+\enablefootnotesatendfalse
+% If metadata has enableFootnotesAtEnd: true, the script should add \enablefootnotesatendtrue
+@@ENABLE_FOOTNOTES_AT_END@@
+
+% Flag to enable/disable "That's all for now" page
+\newif\ifenablethatsall
+\enablethatsalltrue
+% If metadata has enableThatsAllPage: false, the script leaves this blank
+@@ENABLE_THATS_ALL_PAGE@@
+
+% Configure footnote/endnote behavior based on flag
+\ifenablefootnotesatend
+    % Convert footnotes to endnotes
+    \let\footnote=\endnote
+    \renewcommand{\notesname}{References}
+    
+    % Format endnote numbers and spacing (no superscript, within margins)
+    \makeatletter
+    \renewcommand{\enoteformat}{%
+        \noindent
+        \makebox[2em][l]{\@theenmark.}\hspace{0.3em}%
+    }    \makeatother
+      % Customize endnotes section appearance to match Contents style
+    \renewcommand{\enoteheading}{%
+        \thispagestyle{empty}
+        \begin{center}
+        {\Huge\bfseries\color{black}\notesname}
+        \end{center}
+        \vspace{\cftaftertoctitleskip}
+    }
+    
+    % Set spacing between endnotes
+    \renewcommand{\enotesize}{\normalsize}
+    
+    % Add spacing between endnotes
+    \def\enotesize{\normalsize}
+    \patchcmd{\theendnotes}{\par}{\par\vspace{0.8em}}{}{}
+\else
+    % Configure page footnotes styling (footmisc handles bottom placement)
+    \makeatletter
+    % Custom footnote rule - elegant, colored, and centered
+    \renewcommand{\footnoterule}{%
+        \kern-3pt
+        {\color{footnoteRuleColor}\hrule width 3in height 0.8pt}
+        \kern 2.5pt
+    }
+    
+    % Spacing between multiple footnotes
+    \setlength{\footnotesep}{1.2em}
+    
+    % Hang indent amount for wrapped footnote text
+    \setlength{\footnotemargin}{1.5em}
+    
+    % Custom footnote mark style - small, colored numbers in brackets
+    \renewcommand{\@makefnmark}{%
+        \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}%
+    }
+    
+    % Redefine footnote text formatting for better appearance
+    \long\def\@makefntext#1{%
+        \parindent 0em%
+        \noindent
+        \makebox[0pt][r]{%
+            \hspace{-1.5em}%
+            {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}%
+            \hspace{0.5em}%
+        }%
+        {\footnotesize#1}%
+    }
+    
+    % Make footnote text slightly smaller and more refined
+    \renewcommand{\footnotesize}{\fontsize{9}{11}\selectfont}
+    \makeatother
+\fi
+
+% Customize Table of Contents
+\renewcommand{\cfttoctitlefont}{\Huge\bfseries\color{black}}
+\renewcommand{\cftbeforetoctitleskip}{20pt}
+\renewcommand{\cftaftertoctitleskip}{30pt}
+\renewcommand{\cftsecfont}{\Large\bfseries\color{black}}
+\renewcommand{\cftsubsecfont}{\large\color{black}}
+\renewcommand{\cftsubsubsecfont}{\normalsize\color{black}}
+\renewcommand{\cftsecpagefont}{\Large\color{black}}
+\renewcommand{\cftsubsecpagefont}{\large\color{black}}
+\renewcommand{\cftsubsubsecpagefont}{\normalsize\color{black}}
+\renewcommand{\cftsecleader}{\hspace{1em}}
+\renewcommand{\cftsubsecleader}{\hspace{1em}}
+\renewcommand{\cftsubsubsecleader}{\hspace{1em}}
+\setlength{\cftbeforesecskip}{15pt}
+\setlength{\cftbeforesubsecskip}{8pt}
+\setlength{\cftbeforesubsubsecskip}{5pt}
+
+% Style section titles in TOC
+\titlecontents{section}[2em]
+    {\addvspace{1.2pc}\large\bfseries\color{black}}
+    {\contentslabel[\thecontentslabel]{2em}}
+    {}
+    {\hfill\thecontentspage}[\vspace{0.5pc}]
+
+\titlecontents{subsection}[4em]
+    {\addvspace{0.8pc}\normalsize\color{black}}
+    {\contentslabel[\thecontentslabel]{2.5em}}
+    {}
+    {\hfill\thecontentspage}
+
+\titlecontents{subsubsection}[6em]
+    {\addvspace{0.5pc}\small\color{black}}
+    {\contentslabel[\thecontentslabel]{3em}}
+    {}
+    {\hfill\thecontentspage}
+
+% Create decorative line under TOC title
+\renewcommand{\contentsname}{%
+    \vspace{-20pt}%
+    \centerline{\Huge\bfseries\color{black}{Contents}}%
+    \vspace{10pt}%
+    \centerline{\rule{0.5\textwidth}{1pt}}%
+    \vspace{15pt}%
+}
+
+% Create custom title page
+\renewcommand{\maketitle}{%
+    \begin{titlepage}
+        \centering
+        \vspace*{-1cm}
+        % University Logo
+        \includegraphics[width=3cm]{uni-logo.pdf}\par
+        \vspace{0.5cm}
+        {\large\scshape \university\par}
+        {\normalsize\scshape \department\par}
+        \vspace{1.5cm}
+        {\LARGE\bfseries \assignmenttitle\par}
+        \vspace{0.3cm}
+        {\color{gray}\rule{0.6\textwidth}{0.4pt}\par}
+        \vspace{0.5cm}
+        {\large{\coursename}\par}
+        \vfill
+        {
+            \large
+            \textbf{Submitted By}\par
+            \vspace{0.3cm}
+            \submissioninfo{
+                @@AUTHORS@@
+            }
+        }
+        \vfill
+        {
+            \large
+            \textbf{Submitted To}\par
+            \vspace{0.3cm}
+            \submittedto\par
+        }
+        \vfill
+        {\large @@DATE@@\par}
+    \end{titlepage}
+    \clearpage
+}
+
+\begin{document}
+\ifenabletitlepage
+\thispagestyle{empty}
+\maketitle
+\fi
+
+\ifenablecontentpage
+\renewcommand{\contentsname}{\centerline{Contents}}
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+\fi
+
+\fancyhf{}% clear all
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[LO,RE]{\leftmark}
+\renewcommand{\sectionmark}[1]{\markboth{\thesection\ #1}{}}% set left mark to section title
+\renewcommand{\subsectionmark}[1]{}% ignore subsections so they don't override right mark
+
+% Activate fancy page style after title (title page stays empty)
+\pagestyle{fancy}
+
+% Auto-scale all tables so they never overflow the text width
+\AtBeginEnvironment{tabular}{\begin{adjustbox}{max width=\textwidth}}
+\AtEndEnvironment{tabular}{\end{adjustbox}}
+% Auto-scale all images to fit text width
+\let\oldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,#1]{#2}}
+
+\markdownInput{@@INPUT_FILE@@}
+
+% Print endnotes if footnotes at end is enabled
+\ifenablefootnotesatend
+\clearpage
+\theendnotes
+\fi
+
+% "That's all for now" page (only if enabled)
+\ifenablethatsall
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+    {\Huge\bfseries --- That's all for now ---}
+\end{center}
+\vspace*{\fill}
+\fi
+
+% Last page credits (only if enabled) - placed at bottom of last page
+\ifenablelastpagecredits
+\vfill
+\begin{center}
+    \footnotesize
+    Carefully crafted by abd using luatex \\
+    Visit: \href{https://abd-dev.studio/blogs/how-i-create-assignments-and-notes}{abd-dev.studio/blogs/how-i-create-assignments-and-notes} for more information \\
+    Report errors at Email: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} \\
+    or WhatsApp: \href{https://wa.me/923124996133}{+92 312 4996133} \\
+\end{center}
+\fi
+
+
+\end{document}
