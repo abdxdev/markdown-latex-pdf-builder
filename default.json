@@ -13,6 +13,5 @@
   "enableTitlePage": true,
   "enableContentPage": false,
   "enableFootnotesAtEnd": false,
-  "enableThatsAllPage": false,
-  "enableLastPageCredits": false
+  "enableThatsAllPage": false
 }
