@@ -22,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 import re
 
-PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@ENABLE_TITLE_PAGE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@"]
+PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@ENABLE_TITLE_PAGE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
 
 
@@ -76,21 +76,24 @@ def build_authors(meta: dict) -> str:
 def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     content = tex_path.read_text(encoding="utf-8")
     authors_block = build_authors(meta)
+    
+    # Get all values directly from meta without any hardcoded defaults
+    # If a key is missing, it should have been set in default.json when the file was created
     to_value = meta.get("submittedto", "")
 
-    enable_title = bool(meta.get("enableTitlePage", True))
+    enable_title = bool(meta.get("enableTitlePage"))
     first_page_toggle = "\\enabletitlepagetrue" if enable_title else "\\enabletitlepagefalse"
 
-    enable_content = bool(meta.get("enableContentPage", True))
+    enable_content = bool(meta.get("enableContentPage"))
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
 
-    enable_credits = bool(meta.get("enableLastPageCredits", True))
+    enable_credits = bool(meta.get("enableLastPageCredits"))
     last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"
 
-    enable_footnotes_at_end = bool(meta.get("enableFootnotesAtEnd", False))
+    enable_footnotes_at_end = bool(meta.get("enableFootnotesAtEnd"))
     footnotes_at_end_toggle = "\\enablefootnotesatendtrue" if enable_footnotes_at_end else "\\enablefootnotesatendfalse"
 
-    enable_thats_all = bool(meta.get("enableThatsAllPage", True))
+    enable_thats_all = bool(meta.get("enableThatsAllPage"))
     thats_all_toggle = "\\enablethatsalltrue" if enable_thats_all else "\\enablethatsallfalse"
 
     mapping = {
@@ -105,6 +108,8 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@ENABLE_LAST_PAGE_CREDITS@@": last_page_credits_toggle,
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
         "@@ENABLE_THATS_ALL_PAGE@@": thats_all_toggle,
+        "@@UNIVERSITY@@": meta.get("university", ""),
+        "@@DEPARTMENT@@": meta.get("department", ""),
     }
     for ph in PLACEHOLDERS:
         val = mapping.get(ph, "")
