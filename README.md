@@ -143,4 +143,4 @@ Remove-Item "$env:APPDATA\main.zip"
 
 #### Step 2: Reinstall LaTeX packages
 
-Install latex packages from step 4 of the installation section.
+Install latex packages from [step 4](#step-4-install-latex-packages) of the installation section.
