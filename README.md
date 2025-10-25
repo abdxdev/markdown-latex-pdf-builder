@@ -1,4 +1,4 @@
-[Windows](README.md) | [Linux](README-LINUX.md)
+Windows | [Linux](README-LINUX.md)
 
 # Automated LaTeX Document Builder
 
