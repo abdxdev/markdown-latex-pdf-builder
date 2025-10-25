@@ -91,12 +91,12 @@ New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts
 2. Search for **Preferences: Open User Settings (JSON)** and open it.
 3. Add this to the bottom of your `settings.json` file just before the closing `}`:
 
-```json
-// ...other settings...,
-"command-runner.commands": {
-    "Build LaTeX Document": "python \"$env:APPDATA\\notes-maker-main\\script.py\" \"${file}\""
-}
-```
+   ```json
+   // ...other settings...,
+   "command-runner.commands": {
+       "Build LaTeX Document": "python \"$env:APPDATA\\notes-maker-main\\script.py\" \"${file}\""
+   }
+   ```
 
 4. Save the file.
 
