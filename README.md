@@ -1,6 +1,6 @@
-# Notes Maker — Automated LaTeX Document Builder
+# Automated LaTeX Document Builder
 
-Notes Maker lets you convert Markdown files into formatted LaTeX PDFs directly from VS Code. This guide explains how to install and use it.
+Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs automatically.
 
 ---
 
@@ -34,37 +34,54 @@ Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName
 
 ## Installation
 
-Open PowerShell as Administrator and run these commands:
+Open PowerShell and run these commands:
+
+#### Step 1: Set security protocol
 
 ```powershell
-# Set security protocol
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+```
 
-# Download and install TinyTeX
+#### Step 2: Download and install TinyTeX
+
+```powershell
 Invoke-WebRequest -Uri "https://yihui.org/tinytex/install-windows.bat" -OutFile "install-tinytex.bat"
 .\install-tinytex.bat
 Remove-Item install-tinytex.bat
+```
 
-# Add TinyTeX to PATH
+#### Step 3: Add TinyTeX to PATH
+
+```powershell
 $env:Path += ";$env:APPDATA\TinyTeX\bin\windows"
+```
 
-# Install required LaTeX packages
-tlmgr install adjustbox amsfonts amsmath booktabs endnotes etoolbox fancyhdr float fontspec footmisc geometry hyperref hyphenat markdown minted tcolorbox titling tocloft xcolor
+#### Step 4: Install LaTeX packages
 
-# Install Pygments
+```powershell
+tlmgr install adjustbox amsfonts amsmath booktabs endnotes etoolbox fancyhdr float fontspec footmisc geometry hyperref hyphenat markdown minted tcolorbox tikzfill titlesec titling tocloft xcolor
+```
+
+#### Step 5: Install Pygments
+
+```powershell
 pip install Pygments
+```
 
-# Download Notes Maker
+#### Step 6: Download Notes Maker
+
+```powershell
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
 Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
 Remove-Item "$env:APPDATA\main.zip"
+```
 
-# Install JetBrains Mono font
+#### Step 7: Install JetBrains Mono font
+
+```powershell
 Copy-Item "$env:APPDATA\notes-maker-main\fonts\JetBrainsMonoNL-Regular.ttf" "$env:LOCALAPPDATA\Microsoft\Windows\Fonts\" -Force
 New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name "JetBrains Mono NL Regular (TrueType)" -Value "JetBrainsMonoNL-Regular.ttf" -PropertyType String -Force
 ```
-
-After running these commands, TinyTeX, Pygments, and Notes Maker will be installed.
 
 ---
 
@@ -75,6 +92,7 @@ After running these commands, TinyTeX, Pygments, and Notes Maker will be install
 3. Add this to the bottom of your `settings.json` file just before the closing `}`:
 
 ```json
+// ...other settings...,
 "command-runner.commands": {
     "Build LaTeX Document": "python \"$env:APPDATA\\notes-maker-main\\script.py\" \"${file}\""
 }
@@ -90,10 +108,10 @@ After running these commands, TinyTeX, Pygments, and Notes Maker will be install
 2. Create a new Markdown file (for example, `report.md`).
 3. Add your content.
 4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**.
+5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date.
+6. Re-run the build command to generate the updated PDF from step 4.
 
-A PDF will be generated in the same folder as your Markdown file.  
-A `.json` file with document metadata will also be created.  
-You can delete the `_build_markdown` folder after the PDF is finalized.
+> You may delete the build folder (`_build_report` in this case) after the PDF is finalized.
 
 ---
 
