@@ -34,13 +34,7 @@ Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName
 
 Open PowerShell and run these commands:
 
-#### Step 1: Set security protocol
-
-```powershell
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-```
-
-#### Step 2: Download and install TinyTeX
+#### Step 1: Download and install TinyTeX
 
 ```powershell
 Invoke-WebRequest -Uri "https://yihui.org/tinytex/install-windows.bat" -OutFile "install-tinytex.bat"
@@ -48,25 +42,25 @@ Invoke-WebRequest -Uri "https://yihui.org/tinytex/install-windows.bat" -OutFile 
 Remove-Item install-tinytex.bat
 ```
 
-#### Step 3: Add TinyTeX to PATH
+#### Step 2: Add TinyTeX to PATH
 
 ```powershell
 $env:Path += ";$env:APPDATA\TinyTeX\bin\windows"
 ```
 
-#### Step 4: Install LaTeX packages
+#### Step 3: Install LaTeX packages
 
 ```powershell
 tlmgr install adjustbox amsfonts amsmath booktabs endnotes etoolbox fancyhdr float fontspec footmisc geometry hyperref hyphenat markdown minted tcolorbox tikzfill titlesec titling tocloft xcolor
 ```
 
-#### Step 5: Install Pygments
+#### Step 4: Install Pygments
 
 ```powershell
 pip install Pygments
 ```
 
-#### Step 6: Download Notes Maker
+#### Step 5: Download Notes Maker
 
 ```powershell
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
@@ -74,7 +68,7 @@ Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
 Remove-Item "$env:APPDATA\main.zip"
 ```
 
-#### Step 7: Install JetBrains Mono font
+#### Step 6: Install JetBrains Mono font
 
 ```powershell
 Copy-Item "$env:APPDATA\notes-maker-main\fonts\JetBrainsMonoNL-Regular.ttf" "$env:LOCALAPPDATA\Microsoft\Windows\Fonts\" -Force
@@ -83,7 +77,7 @@ New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts
 
 ## VS Code Setup
 
-1. Open VS Code and press `Ctrl + Shift + P`.
+1. Open VS Code =and= press `Ctrl + Shift + P`.
 2. Search for **Preferences: Open User Settings (JSON)** and open it.
 3. Add this to the bottom of your `settings.json` file just before the closing `}`:
 
@@ -100,10 +94,10 @@ New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts
 
 1. Open any folder in VS Code.
 2. Create a new Markdown file (for example, `report.md`).
-3. Add your content.
+3. Add your content. Visit the [Markdown Guide](https://www.markdownguide.org/) for syntax help.
 4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**.
 5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date.
-6. Re-run the build command to generate the updated PDF from step 4.
+6. Re-run the build command from step 4 to generate the updated PDF.
 
 > You may delete the build folder (`_build_report` in this case) after the PDF is finalized.
 
@@ -145,4 +139,4 @@ Remove-Item "$env:APPDATA\main.zip"
 
 #### Step 2: Reinstall LaTeX packages
 
-Install latex packages from [step 4](#step-4-install-latex-packages) of the installation section.
+Install latex packages from [step 3](#step-3-install-latex-packages) of the installation section.
