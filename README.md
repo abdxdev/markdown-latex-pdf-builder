@@ -132,9 +132,15 @@ Replace the existing `uni-logo.pdf` file with your logo file (use the same name)
 
 To update Notes Maker, run these commands in PowerShell:
 
+#### Step 1: Remove old version and download the latest
+
 ```powershell
 Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
 Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
 Remove-Item "$env:APPDATA\main.zip"
 ```
+
+#### Step 2: Reinstall LaTeX packages
+
+Install latex packages from step 4 of the installation section.
