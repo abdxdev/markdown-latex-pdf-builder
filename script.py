@@ -88,9 +88,9 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
 
     enable_credits = bool(meta.get("enableLastPageCredits", False))
-    last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"
-
-    enable_footnotes_at_end = bool(meta.get("enableFootnotesAtEnd"))
+    last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"    
+    
+    enable_footnotes_at_end = bool(meta.get("moveFootnotesToEnd"))
     footnotes_at_end_toggle = "\\enablefootnotesatendtrue" if enable_footnotes_at_end else "\\enablefootnotesatendfalse"
 
     enable_thats_all = bool(meta.get("enableThatsAllPage"))

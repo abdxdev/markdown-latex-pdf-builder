@@ -12,6 +12,6 @@
   "submittedto": "Instructor Name",
   "enableTitlePage": true,
   "enableContentPage": false,
-  "enableFootnotesAtEnd": false,
+  "moveFootnotesToEnd": false,
   "enableThatsAllPage": false
 }

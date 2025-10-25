@@ -2,8 +2,6 @@
 
 Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs automatically.
 
----
-
 ## Prerequisites
 
 Before starting, make sure you have the following:
@@ -29,8 +27,6 @@ code --version
 ```
 
 Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName=edonet.vscode-command-runner) extension for VS Code.
-
----
 
 ## Installation
 
@@ -83,8 +79,6 @@ Copy-Item "$env:APPDATA\notes-maker-main\fonts\JetBrainsMonoNL-Regular.ttf" "$en
 New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name "JetBrains Mono NL Regular (TrueType)" -Value "JetBrainsMonoNL-Regular.ttf" -PropertyType String -Force
 ```
 
----
-
 ## VS Code Setup
 
 1. Open VS Code and press `Ctrl + Shift + P`.
@@ -100,8 +94,6 @@ New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts
 
 4. Save the file.
 
----
-
 ## Usage
 
 1. Open any folder in VS Code.
@@ -112,8 +104,6 @@ New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts
 6. Re-run the build command to generate the updated PDF from step 4.
 
 > You may delete the build folder (`_build_report` in this case) after the PDF is finalized.
-
----
 
 ## Changing Default Values
 
@@ -128,8 +118,6 @@ code $env:APPDATA\notes-maker-main\default.json
 Edit values such as the university name, department, title, and other settings.  
 The next time you generate a document, it will use the updated defaults.
 
----
-
 ## Changing the University Logo
 
 To replace the default logo, open the script directory:
@@ -139,3 +127,14 @@ explorer $env:APPDATA\notes-maker-main\
 ```
 
 Replace the existing `uni-logo.pdf` file with your logo file (use the same name).
+
+## Updating Notes Maker
+
+To update Notes Maker, run these commands in PowerShell:
+
+```powershell
+Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
+wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
+Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
+Remove-Item "$env:APPDATA\main.zip"
+```
