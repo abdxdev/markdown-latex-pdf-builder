@@ -1,3 +1,5 @@
+[Windows](README.md) | [Linux](README-LINUX.md)
+
 # Automated LaTeX Document Builder
 
 Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs automatically.
