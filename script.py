@@ -245,6 +245,22 @@ def escape_signs(content: str, to_escape: list[str]) -> str:
     return content
 
 
+def normalize_language_identifiers(content: str) -> str:
+    lang_map = {
+        'jsonc': 'json',
+        'tsx': 'typescript',
+        'jsx': 'javascript',
+        'vue': 'html',
+        'svelte': 'html',
+        'astro': 'html',
+    }
+    
+    for unsupported, supported in lang_map.items():
+        content = re.sub(rf'```{unsupported}\b', f'```{supported}', content)
+
+    return content
+
+
 def detect_portrait_diagram(mermaid_code: str) -> bool:
     code_lower = mermaid_code.lower().strip()
 
@@ -307,7 +323,13 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     mmdc_cmd = find_mmdc_command()
     if mmdc_cmd is None:
         Logger.warning("Mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
-        return content
+
+        def mermaid_to_text(match):
+            mermaid_code = match.group(1).strip()
+            return f"```text\n{mermaid_code}\n```"
+        
+        pattern = r"```mermaid\n(.*?)\n```"
+        return re.sub(pattern, mermaid_to_text, content, flags=re.DOTALL)
 
     # Count total mermaid diagrams for progress tracking
     total_diagrams = len(re.findall(r'```mermaid\n(.*?)\n```', content, flags=re.DOTALL))
@@ -460,10 +482,11 @@ def main():
                 pass
 
     shutil.copy(template_tex, build_dir / "template.tex")
-
+    
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = convert_markdown_footnotes_to_latex(md_content)
     md_content = process_mermaid_diagrams(md_content, build_dir)
+    md_content = normalize_language_identifiers(md_content)
 
     md_content = re.sub(r"==([^=]+)==", r"\\mdhighlight{\1}", md_content)
     md_content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", md_content)
