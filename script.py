@@ -21,6 +21,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 import re
+import hashlib
+import tempfile
+import os
 
 PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@ENABLE_TITLE_PAGE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
@@ -30,23 +33,42 @@ class BuildError(Exception):
     pass
 
 
+class Logger:
+    COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}  # Blue  # Green  # Yellow  # Red  # Reset
+
+    @classmethod
+    def info(cls, msg: str):
+        print(f"{cls.COLORS['INFO']}[INFO]{cls.COLORS['RESET']} {msg}")
+
+    @classmethod
+    def success(cls, msg: str):
+        print(f"{cls.COLORS['SUCCESS']}[SUCCESS]{cls.COLORS['RESET']} {msg}")
+
+    @classmethod
+    def warning(cls, msg: str):
+        print(f"{cls.COLORS['WARNING']}[WARNING]{cls.COLORS['RESET']} {msg}")
+
+    @classmethod
+    def error(cls, msg: str):
+        print(f"{cls.COLORS['ERROR']}[ERROR]{cls.COLORS['RESET']} {msg}")
+
+
 def log(msg: str):
-    print(f"[INFO] {msg}")
+    Logger.info(msg)
 
 
 def err(msg: str):
-    print(f"[ERROR] {msg}")
+    Logger.error(msg)
 
 
 def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
     meta_path = md_dir / f"{md_base}.json"
     if not meta_path.exists():
-        log(f"{md_base}.json not found. Creating default.")
         default = json.load(open(script_root / "default.json"))
         default["date"] = datetime.now().strftime("%B %d, %Y")
         meta_path.write_text(json.dumps(default, indent=2), encoding="utf-8")
-    else:
-        log(f"{md_base}.json exists. Using existing file.")
+        Logger.warning(f"Created default {md_base}.json")
+
     try:
         raw = meta_path.read_text(encoding="utf-8-sig")
         data = json.loads(raw)
@@ -76,7 +98,7 @@ def build_authors(meta: dict) -> str:
 def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     content = tex_path.read_text(encoding="utf-8")
     authors_block = build_authors(meta)
-    
+
     # Get all values directly from meta without any hardcoded defaults
     # If a key is missing, it should have been set in default.json when the file was created
     to_value = meta.get("submittedto", "")
@@ -88,8 +110,8 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
 
     enable_credits = bool(meta.get("enableLastPageCredits", False))
-    last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"    
-    
+    last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"
+
     enable_footnotes_at_end = bool(meta.get("moveFootnotesToEnd"))
     footnotes_at_end_toggle = "\\enablefootnotesatendtrue" if enable_footnotes_at_end else "\\enablefootnotesatendfalse"
 
@@ -111,11 +133,11 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@UNIVERSITY@@": meta.get("university", ""),
         "@@DEPARTMENT@@": meta.get("department", ""),
     }
+
     for ph in PLACEHOLDERS:
         val = mapping.get(ph, "")
         content = content.replace(ph, val)
     tex_path.write_text(content, encoding="utf-8")
-    log("Injected metadata into template.tex")
 
 
 def run_lualatex(build_dir: Path):
@@ -128,11 +150,9 @@ def run_lualatex(build_dir: Path):
         "template.tex",
     ]
 
-    # Run LuaLaTeX twice for minted package to work properly
-    # First pass: Extract code snippets and generate syntax-highlighted files
-    # Second pass: Include the generated highlighted code in the PDF
+    Logger.info("Compiling LaTeX document...")
+    
     for pass_num in range(1, 3):
-        log(f"Running LuaLaTeX compile (pass {pass_num}/2)...")
         try:
             proc = subprocess.run(
                 cmd,
@@ -143,16 +163,16 @@ def run_lualatex(build_dir: Path):
                 encoding="utf-8",
                 check=False,
             )
-        except FileNotFoundError as e:  # noqa: BLE001
+        except FileNotFoundError as e:
             raise BuildError("lualatex not found in PATH.") from e
 
-        # Only print output on second pass to reduce clutter
-        if pass_num == 2:
-            print(proc.stdout)
-
-        # Store the return code from the final pass
         if pass_num == 2:
             final_returncode = proc.returncode
+            output = proc.stdout
+            
+            # Only print output if there are errors or warnings
+            if final_returncode != 0 or "warning" in output.lower() or "error" in output.lower():
+                print(output)
 
     pdf_path = build_dir / "template.pdf"
     produced = pdf_path.exists()
@@ -160,28 +180,26 @@ def run_lualatex(build_dir: Path):
 
 
 def find_markdown_images(md_path: Path) -> list[Path]:
-    """Extract local image paths from markdown (basic patterns: ![](), HTML <img src>, and reference style)."""
     text = md_path.read_text(encoding="utf-8", errors="ignore")
     candidates: set[str] = set()
-    # Inline image syntax ![alt](path "title")
+
     for m in re.finditer(r"!\[[^\]]*\]\(([^)]+)\)", text):
         raw = m.group(1).strip()
-        # Remove optional title after space unless path is quoted
         if raw.startswith("<") and raw.endswith(">"):
             raw = raw[1:-1]
         if (raw.startswith('"') and raw.endswith('"')) or (raw.startswith("'") and raw.endswith("'")):
             raw = raw[1:-1]
-        # Separate title part
         if " " in raw and not any(raw.startswith(q) for q in ('"', "'")):
             raw = raw.split(" ")[0]
         candidates.add(raw)
-    # HTML <img src="...">
+
     for m in re.finditer(r'<img[^>]*?src=["\']([^"\']+)["\']', text, re.IGNORECASE):
         candidates.add(m.group(1).strip())
-    # Reference style: [id]: path  (only treat if extension looks like image)
+
     for m in re.finditer(r"^\s*\[[^\]]+\]:\s*(\S+)", text, re.MULTILINE):
         target = m.group(1).strip()
         candidates.add(target)
+
     paths: list[Path] = []
     for c in candidates:
         if not c or "://" in c or c.startswith("data:") or c.startswith("#"):
@@ -193,45 +211,196 @@ def find_markdown_images(md_path: Path) -> list[Path]:
 
 
 def convert_markdown_footnotes_to_latex(content: str) -> str:
-    """Convert markdown footnotes to LaTeX \\footnote{} commands.
-
-    Handles both reference-style [^label] and inline ^[content] footnotes.
-    """
-    # Step 1: Extract all footnote definitions [^label]: content
     footnote_defs = {}
 
     def extract_definition(match):
         label = match.group(1)
-        # Capture everything until the next blank line or another footnote definition
         content = match.group(2).strip()
         footnote_defs[label] = content
-        return ""  # Remove the definition from text
+        return ""
 
-    # Match [^label]: content (can span multiple lines until next blank line)
     content = re.sub(r"^\[(\^[^\]]+)\]:\s*(.+?)(?=\n\s*\n|\n\s*\[|\Z)", extract_definition, content, flags=re.MULTILINE | re.DOTALL)
 
-    # Step 2: Replace inline footnotes ^[content] with \footnote{content}
     def replace_inline(match):
         footnote_content = match.group(1)
         return f"\\footnote{{{footnote_content}}}"
 
     content = re.sub(r"\^\[([^\]]+)\]", replace_inline, content)
 
-    # Step 3: Replace reference-style footnotes [^label] with \footnote{content}
     def replace_reference(match):
         label = match.group(1)
         if label in footnote_defs:
             footnote_content = footnote_defs[label]
             return f"\\footnote{{{footnote_content}}}"
-        return match.group(0)  # Keep as-is if definition not found
+        return match.group(0)
 
     content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
 
     return content
 
 
-def escape_percent(content: str):
-    return content.replace("%", "\\%")
+def escape_signs(content: str, to_escape: list[str]) -> str:
+    for sign in to_escape:
+        content = content.replace(sign, f"\\{sign}")
+    return content
+
+
+def detect_portrait_diagram(mermaid_code: str) -> bool:
+    code_lower = mermaid_code.lower().strip()
+
+    portrait_indicators = ["graph td", "graph tb", "flowchart td", "flowchart tb", "sequencediagram", "journey", "gitgraph", "mindmap"]
+
+    for indicator in portrait_indicators:
+        if indicator in code_lower:
+            return True
+
+    vertical_arrows = len(re.findall(r"-->", code_lower)) + len(re.findall(r"->>", code_lower)) + len(re.findall(r"->", code_lower))
+
+    horizontal_indicators = len(re.findall(r"graph lr", code_lower)) + len(re.findall(r"flowchart lr", code_lower))
+
+    if horizontal_indicators > 0:
+        return False
+
+    if vertical_arrows > 2:
+        return True
+
+    return False
+
+
+def find_mmdc_command():
+    try:
+        result = subprocess.run(["mmdc", "--version"], capture_output=True, text=True, check=False)
+        if result.returncode == 0:
+            return "mmdc"
+    except FileNotFoundError:
+        pass
+
+    npm_bin_paths = []
+    try:
+        npm_result = subprocess.run(["npm", "config", "get", "prefix"], capture_output=True, text=True, check=False)
+        if npm_result.returncode == 0:
+            npm_prefix = npm_result.stdout.strip()
+            if os.name == "nt":
+                npm_bin_paths.extend([os.path.join(npm_prefix, "mmdc.cmd"), os.path.join(npm_prefix, "node_modules", ".bin", "mmdc.cmd")])
+            else:
+                npm_bin_paths.extend([os.path.join(npm_prefix, "bin", "mmdc"), os.path.join(npm_prefix, "lib", "node_modules", ".bin", "mmdc")])
+    except FileNotFoundError:
+        pass
+
+    if os.name == "nt":
+        user_home = os.path.expanduser("~")
+        npm_bin_paths.extend([os.path.join(user_home, "AppData", "Roaming", "npm", "mmdc.cmd"), os.path.join(user_home, "AppData", "Local", "npm", "mmdc.cmd")])
+    else:
+        npm_bin_paths.extend(["/usr/local/bin/mmdc", "/usr/bin/mmdc"])
+
+    for path in npm_bin_paths:
+        if os.path.exists(path):
+            return path
+
+    return None
+
+
+def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
+    if "```mermaid" not in content:
+        return content
+
+    mmdc_cmd = find_mmdc_command()
+    if mmdc_cmd is None:
+        Logger.warning("Mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
+        return content
+
+    # Count total mermaid diagrams for progress tracking
+    total_diagrams = len(re.findall(r'```mermaid\n(.*?)\n```', content, flags=re.DOTALL))
+    if total_diagrams > 0:
+        Logger.info(f"Processing {total_diagrams} Mermaid diagram(s)...")
+    
+    diagram_counter = 0
+
+    def replace_mermaid_block(match):
+        nonlocal diagram_counter
+        diagram_counter += 1
+        mermaid_code = match.group(1).strip()
+
+        # Create a hash of the mermaid code for caching
+        diagram_hash = hashlib.md5(mermaid_code.encode("utf-8")).hexdigest()[:12]
+        image_name = f"mermaid_{diagram_hash}.png"
+        image_path = build_dir / image_name
+        if not image_path.exists():
+            try:
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".mmd", delete=False, encoding="utf-8") as temp_file:
+                    temp_file.write(mermaid_code)
+                    temp_mmd_path = Path(temp_file.name)
+
+                is_portrait = detect_portrait_diagram(mermaid_code)
+
+                config_content = {"theme": "neutral", "themeVariables": {"background": "#ffffff", "primaryColor": "#ffffff"}}
+
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as config_file:
+                    json.dump(config_content, config_file, indent=2)
+                    temp_config_path = Path(config_file.name)
+
+                if is_portrait:
+                    css_content = """
+                    .mermaid {
+                        max-width: 800px !important;
+                        max-height: 800px !important;
+                        width: 800px !important;
+                        height: 800px !important;
+                    }
+                    svg {
+                        max-width: 800px !important;
+                        max-height: 800px !important;
+                        width: 800px !important;
+                        height: 800px !important;
+                    }
+                    """
+                    viewport_width, viewport_height = 800, 800
+                else:
+                    css_content = """
+                    .mermaid {
+                        max-width: 1000px !important;
+                        max-height: 600px !important;
+                        width: 1000px !important;
+                        height: 600px !important;
+                    }
+                    svg {
+                        max-width: 1000px !important;
+                        max-height: 600px !important;
+                        width: 1000px !important;
+                        height: 600px !important;
+                    }
+                    """
+                    viewport_width, viewport_height = 1000, 600
+
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".css", delete=False, encoding="utf-8") as css_file:
+                    css_file.write(css_content)
+                    temp_css_path = Path(css_file.name)
+
+                cmd = [mmdc_cmd, "-i", str(temp_mmd_path), "-o", str(image_path), "-t", "neutral", "-b", "white", "-c", str(temp_config_path), "--cssFile", str(temp_css_path), "--scale", "2", "--width", str(viewport_width), "--height", str(viewport_height)]
+
+                result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+
+                temp_mmd_path.unlink()
+                temp_config_path.unlink()
+                temp_css_path.unlink()
+                if result.returncode != 0 or not image_path.exists():
+                    Logger.warning(f"Failed to generate Mermaid diagram {diagram_counter}/{total_diagrams}")
+                    return f"```text\n{mermaid_code}\n```"
+                else:
+                    Logger.success(f"Generated Mermaid diagram {diagram_counter}/{total_diagrams}: {image_name}")
+
+            except Exception:
+                Logger.warning(f"Error processing Mermaid diagram {diagram_counter}/{total_diagrams}")
+                return f"```text\n{mermaid_code}\n```"
+        else:
+            Logger.info(f"Using cached Mermaid diagram {diagram_counter}/{total_diagrams}: {image_name}")
+        
+        return f"![Mermaid Diagram]({image_name})"
+
+    pattern = r"```mermaid\n(.*?)\n```"
+    processed_content = re.sub(pattern, replace_mermaid_block, content, flags=re.DOTALL)
+
+    return processed_content
 
 
 def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
@@ -245,13 +414,12 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
         except ValueError:
             # Image outside markdown dir; flatten
             rel = Path(img.name)
-        dest = build_dir / rel
+            dest = build_dir / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         if not dest.exists():
             try:
                 shutil.copy(img, dest)
-                log(f"Copied image: {rel}")
-            except Exception as e:  # noqa: BLE001
+            except Exception as e:
                 err(f"Failed to copy image {img}: {e}")
 
 
@@ -280,35 +448,40 @@ def main():
 
     logo = script_root / "uni-logo.pdf"
     fonts_dir = script_root / "fonts"
-
     build_dir = md_dir / f"_build_{md_base}"
     if not build_dir.exists():
         build_dir.mkdir()
-        log(f"Created build directory: {build_dir}")
-    else:
-        log(f"Using existing build directory (cache): {build_dir}")  # Overwrite core files each run to keep cache valid
+
     for stale in [build_dir / "template.tex", build_dir / md_path.name, build_dir / f"{md_base}.json"]:
         if stale.exists():
             try:
                 stale.unlink()
             except Exception:
-                pass  # Copy resources (do not remove entire cache like fonts/ or other LaTeX aux files)
+                pass
+
     shutil.copy(template_tex, build_dir / "template.tex")
 
-    # Preprocess markdown: convert markdown footnotes to LaTeX footnotes
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = convert_markdown_footnotes_to_latex(md_content)
-    md_content = escape_percent(md_content)
+    md_content = process_mermaid_diagrams(md_content, build_dir)
+
+    md_content = re.sub(r"==([^=]+)==", r"\\mdhighlight{\1}", md_content)
+    md_content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", md_content)
+    md_content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", md_content)
+    md_content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", md_content)
+    md_content = re.sub(r"^(\s*)- \[x\](.*)$", r"\1- \\mdcheckboxchecked{}\2", md_content, flags=re.MULTILINE)
+    md_content = re.sub(r"^(\s*)- \[ \](.*)$", r"\1- \\mdcheckboxunchecked{}\2", md_content, flags=re.MULTILINE)
+
+    md_content = escape_signs(md_content, ["%", "&"])
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
-    log("Preprocessed markdown: converted footnotes to LaTeX format")
 
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
     if logo.exists():
         shutil.copy(logo, build_dir / logo.name)
     if fonts_dir.exists() and not (build_dir / "fonts").exists():
-        shutil.copytree(fonts_dir, build_dir / "fonts")  # Copy images referenced in markdown
-    copy_image_assets(md_path, build_dir, md_dir)
+        shutil.copytree(fonts_dir, build_dir / "fonts")
 
+    copy_image_assets(md_path, build_dir, md_dir)
     replace_placeholders(md_path, build_dir / "template.tex", meta)
 
     try:
@@ -326,11 +499,9 @@ def main():
                 pass
         shutil.move(str(pdf_path), target_pdf)
         if rc != 0:
-            err(f"LuaLaTeX exited with code {rc} but PDF was produced and saved: {target_pdf}")
-            log("Done with warnings.")
-            sys.exit(0)
-        log(f"PDF generated: {target_pdf}")
-        log("Done.")
+            Logger.warning(f"LuaLaTeX exited with code {rc} but PDF was produced: {target_pdf}")
+        else:
+            Logger.success(f"PDF generated: {target_pdf}")
         sys.exit(0)
     else:
         err(f"LuaLaTeX failed (exit code {rc}) and no PDF produced.")

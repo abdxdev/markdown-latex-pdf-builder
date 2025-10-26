@@ -30,6 +30,16 @@ code --version
 
 Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName=edonet.vscode-command-runner) extension for VS Code.
 
+### Node Package Manager (Optional, for Mermaid diagrams)
+
+Download and install Node.js from [nodejs.org](https://nodejs.org/).
+
+Check installation:
+
+```powershell
+node --version; npm --version
+```
+
 ## Installation
 
 Open PowerShell and run these commands:
@@ -51,7 +61,7 @@ $env:Path += ";$env:APPDATA\TinyTeX\bin\windows"
 #### Step 3: Install LaTeX packages
 
 ```powershell
-tlmgr install adjustbox amsfonts amsmath booktabs endnotes etoolbox fancyhdr float fontspec footmisc geometry hyperref hyphenat markdown minted tcolorbox tikzfill titlesec titling tocloft xcolor
+tlmgr install adjustbox amsfonts amsmath booktabs csvsimple endnotes etoolbox fancyhdr float fontspec footmisc geometry grfext hyperref hyphenat lineno listings lua-ul luaotfload markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote xcolor
 ```
 
 #### Step 4: Install Pygments
@@ -75,9 +85,15 @@ Copy-Item "$env:APPDATA\notes-maker-main\fonts\JetBrainsMonoNL-Regular.ttf" "$en
 New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name "JetBrains Mono NL Regular (TrueType)" -Value "JetBrainsMonoNL-Regular.ttf" -PropertyType String -Force
 ```
 
+#### Step 7 (Optional): Install Mermaid CLI for diagram support
+
+```powershell
+npm install -g @mermaid-js/mermaid-cli
+```
+
 ## VS Code Setup
 
-1. Open VS Code =and= press `Ctrl + Shift + P`.
+1. Open VS Code and press `Ctrl + Shift + P`.
 2. Search for **Preferences: Open User Settings (JSON)** and open it.
 3. Add this to the bottom of your `settings.json` file just before the closing `}`:
 

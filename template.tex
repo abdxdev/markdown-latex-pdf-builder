@@ -1,6 +1,6 @@
 % lualatex --shell-escape -synctex=1 -interaction=nonstopmode -file-line-error file.tex
 
-\documentclass[5pt,a4paper]{article}
+\documentclass[a4paper,twoside]{article}
 
 % Essential packages
 \usepackage{fontspec}
@@ -20,10 +20,13 @@
 \usepackage{etoolbox}
 \usepackage[most]{tcolorbox}
 \usepackage[cache=true,cachedir=.]{minted}
-\usepackage[contentBlocks,rawAttribute,texMathDollars,pipeTables,html,fencedCode,hybrid]{markdown}
+\usepackage[contentBlocks,rawAttribute,texMathDollars,pipeTables,html,fencedCode,strikeThrough,superscripts,subscripts,inlineNotes,definitionLists]{markdown}
 \usepackage{endnotes}
+\usepackage[normalem]{ulem}
+\usepackage{soul}
 \usepackage[bottom,hang]{footmisc}
 \usepackage[none]{hyphenat}
+\usepackage{titlesec}
 \sloppy
 
 % Configure inline code style
@@ -34,6 +37,9 @@
 % Footnote styling colors
 \definecolor{footnoteRuleColor}{RGB}{180,180,180}
 \definecolor{footnoteNumColor}{RGB}{100,100,100}
+% Highlighting and strikethrough colors
+\definecolor{highlightBg}{RGB}{255,255,0} % Yellow highlight
+\definecolor{strikethroughColor}{RGB}{128,128,128} % Gray for strikethrough
 
 % Styled blockquote environment using tcolorbox (no zref dependency)
 \newtcolorbox{mdblockquote}{
@@ -56,6 +62,24 @@
     \endgroup   
 }
 
+% Custom commands for markdown extensions  
+\newcommand{\mdstrikethrough}[1]{\textcolor{gray}{\sout{#1}}}
+\newcommand{\mdhighlight}[1]{\colorbox{highlightBg}{#1}}
+
+% Checkbox commands using TikZ for better visual appearance - medium square size
+\newcommand{\mdcheckboxchecked}{%
+    \makebox[2.2em][l]{%
+        \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) -- (0.7ex,0.5ex) -- (1.5ex,1.3ex);}% 
+        \hspace{0.2em}% 
+    }% 
+}
+\newcommand{\mdcheckboxunchecked}{% 
+    \makebox[2.2em][l]{% 
+        \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex);}% 
+        \hspace{0.2em}% 
+    }% 
+}
+
 % Define code block background color
 \definecolor{codeBlockBg}{RGB}{246,248,250}
 \definecolor{codeBlockBorder}{RGB}{208,215,222}
@@ -67,16 +91,20 @@
         link = {\href{#2}{#1}},
         % Wrap block quotes in a gray box
         blockQuoteBegin = {\begin{mdblockquote}},
-        blockQuoteEnd = {\end{mdblockquote}},        % Render HTML <br> tags as line breaks
-        % Using \\ with \arraybackslash to work in table cells
+        blockQuoteEnd = {\end{mdblockquote}},        % Render HTML tags (mainly <br> tags)
         inlineHtmlTag = {%
             \ifstrequal{#1}{<br>}{\newline\noindent}{%
                 \ifstrequal{#1}{<br/>}{\newline\noindent}{%
-                    \ifstrequal{#1}{<br />}{\newline\noindent}{#1}%
-                }%
-            }%
-        },
-        % Configure fenced code blocks to use our custom command with tcolorbox
+                    \ifstrequal{#1}{<br />}{\newline\noindent}{#1}% 
+                }% 
+            }% 
+        },        % Strikethrough text support
+        strikeThrough = {\mdstrikethrough{#1}},
+        % Superscript and subscript support
+        superscript = {\textsuperscript{#1}},
+        subscript = {\textsubscript{#1}},
+        % Mark/highlight support (using == syntax if available)
+        mark = {\mdhighlight{#1}},        % Configure fenced code blocks to use our custom command with tcolorbox
         % Parameters: #1=file path, #2=infostring (raw), #3=language name (processed)
         inputFencedCode = {%
             \begin{tcolorbox}[
@@ -89,17 +117,38 @@
                 top=5pt,
                 bottom=5pt,
                 breakable
-            ]%
-            \edef\templang{#3}%
+            ]% 
+            \edef\templang{#3}% 
             \ifx\templang\empty
-                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
+                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}% 
             \else
-                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}%
+                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}% 
             \fi
-            \end{tcolorbox}%
-        }
-    },
-    % Enable fenced code blocks
+            \end{tcolorbox}% 
+        },
+        % Configure indented code blocks (4 spaces) to use the same styling as fenced code blocks
+        % Parameters: #1=file path
+        inputVerbatim = {%
+            \begin{tcolorbox}[
+                colback=codeBlockBg,
+                colframe=codeBlockBorder,
+                boxrule=0pt,
+                arc=3pt,
+                left=5pt,
+                right=5pt,
+                top=5pt,
+                bottom=5pt,
+                breakable
+            ]% 
+            \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}% 
+            \end{tcolorbox}% 
+        },
+        % Definition list styling
+        dlBegin = {\begin{description}},
+        dlEnd = {\end{description}},
+        dlItem = {\item[#1]},
+        dlItemEnd = {}    
+    },    % Enable fenced code blocks (indented code blocks handled by inputVerbatim renderer)
     fencedCode = true
 }
 
@@ -177,7 +226,7 @@
     \makeatletter
     \renewcommand{\enoteformat}{%
         \noindent
-        \makebox[2em][l]{\@theenmark.}\hspace{0.3em}%
+        \makebox[2em][l]{\@theenmark.}\hspace{0.3em}% 
     }    \makeatother
       % Customize endnotes section appearance to match Contents style
     \renewcommand{\enoteheading}{%
@@ -212,19 +261,19 @@
     
     % Custom footnote mark style - small, colored numbers in brackets
     \renewcommand{\@makefnmark}{%
-        \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}%
+        \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}% 
     }
     
     % Redefine footnote text formatting for better appearance
     \long\def\@makefntext#1{%
-        \parindent 0em%
+        \parindent 0em% 
         \noindent
         \makebox[0pt][r]{%
-            \hspace{-1.5em}%
-            {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}%
-            \hspace{0.5em}%
-        }%
-        {\footnotesize#1}%
+            \hspace{-1.5em}% 
+            {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}% 
+            \hspace{0.5em}% 
+        }% 
+        {\footnotesize#1}% 
     }
     
     % Make footnote text slightly smaller and more refined
@@ -315,6 +364,30 @@
     \clearpage
 }
 
+% Configure section formatting to ensure proper spacing and line breaks
+\titleformat{\section}
+  {\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries}{\thesubsubsection}{1em}{}
+\titleformat{\paragraph}
+  {\normalsize\bfseries}{\theparagraph}{1em}{}
+\titleformat{\subparagraph}
+  {\normalsize\bfseries}{\thesubparagraph}{1em}{}
+
+% Configure spacing around sections
+\titlespacing*{\section}
+  {0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+\titlespacing*{\subsection}
+  {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\subsubsection}
+  {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titlespacing*{\paragraph}
+  {0pt}{3.25ex plus 1ex minus .2ex}{1em}
+\titlespacing*{\subparagraph}
+  {0pt}{3.25ex plus 1ex minus .2ex}{1em}
+
 \begin{document}
 \ifenabletitlepage
 \thispagestyle{empty}
@@ -368,10 +441,10 @@
 \vfill
 \begin{center}
     \footnotesize
-    Carefully crafted by abd using luatex \\
-    Visit: \href{https://abd-dev.studio/blogs/how-i-create-assignments-and-notes}{abd-dev.studio/blogs/how-i-create-assignments-and-notes} for more information \\
-    Report errors at Email: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} \\
-    or WhatsApp: \href{https://wa.me/923124996133}{+92 312 4996133} \\
+    Carefully crafted by abd using luatex \\ 
+    Visit: \href{https://abd-dev.studio/blogs/how-i-create-assignments-and-notes}{abd-dev.studio/blogs/how-i-create-assignments-and-notes} for more information \\ 
+    Report errors at Email: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} \\ 
+    or WhatsApp: \href{https://wa.me/923124996133}{+92 312 4996133} \\ 
 \end{center}
 \fi
 
