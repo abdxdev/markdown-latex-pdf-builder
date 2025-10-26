@@ -436,7 +436,8 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
         except ValueError:
             # Image outside markdown dir; flatten
             rel = Path(img.name)
-            dest = build_dir / rel
+        
+        dest = build_dir / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         if not dest.exists():
             try:
