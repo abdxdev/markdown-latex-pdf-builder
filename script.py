@@ -496,7 +496,7 @@ def main():
     md_content = re.sub(r"^(\s*)- \[x\](.*)$", r"\1- \\mdcheckboxchecked{}\2", md_content, flags=re.MULTILINE)
     md_content = re.sub(r"^(\s*)- \[ \](.*)$", r"\1- \\mdcheckboxunchecked{}\2", md_content, flags=re.MULTILINE)
 
-    md_content = escape_signs(md_content, ["%", "&"])
+    md_content = escape_signs(md_content, ["%"])
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
 
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
