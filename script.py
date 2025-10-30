@@ -25,8 +25,14 @@ import hashlib
 import tempfile
 import os
 
+# Template placeholders that get replaced with metadata values
 PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@ENABLE_TITLE_PAGE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
+
+# Supported image file extensions for asset copying
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
+
+# Flag to suppress markdown hybrid deprecation warning when it's the only output
+SUPPRESS_HYBRID_WARNING = True
 
 
 class BuildError(Exception):
@@ -34,7 +40,9 @@ class BuildError(Exception):
 
 
 class Logger:
-    COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}  # Blue  # Green  # Yellow  # Red  # Reset
+    """Colored console logging utility."""
+
+    COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}
 
     @classmethod
     def info(cls, msg: str):
@@ -62,6 +70,7 @@ def err(msg: str):
 
 
 def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
+    """Load metadata JSON file, creating default if missing."""
     meta_path = md_dir / f"{md_base}.json"
     if not meta_path.exists():
         default = json.load(open(script_root / "default.json"))
@@ -79,6 +88,7 @@ def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> di
 
 
 def build_authors(meta: dict) -> str:
+    """Build LaTeX table rows for authors from metadata."""
     authors = meta.get("submittedby") or []
     if not isinstance(authors, list):
         return ""
@@ -96,11 +106,10 @@ def build_authors(meta: dict) -> str:
 
 
 def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
+    """Replace template placeholders with metadata values."""
     content = tex_path.read_text(encoding="utf-8")
     authors_block = build_authors(meta)
 
-    # Get all values directly from meta without any hardcoded defaults
-    # If a key is missing, it should have been set in default.json when the file was created
     to_value = meta.get("submittedto", "")
 
     enable_title = bool(meta.get("enableTitlePage"))
@@ -151,7 +160,7 @@ def run_lualatex(build_dir: Path):
     ]
 
     Logger.info("Compiling LaTeX document...")
-    
+
     for pass_num in range(1, 3):
         try:
             proc = subprocess.run(
@@ -247,40 +256,18 @@ def escape_signs(content: str, to_escape: list[str]) -> str:
 
 def normalize_language_identifiers(content: str) -> str:
     lang_map = {
-        'jsonc': 'json',
-        'tsx': 'typescript',
-        'jsx': 'javascript',
-        'vue': 'html',
-        'svelte': 'html',
-        'astro': 'html',
+        "jsonc": "json",
+        "tsx": "typescript",
+        "jsx": "javascript",
+        "vue": "html",
+        "svelte": "html",
+        "astro": "html",
     }
-    
+
     for unsupported, supported in lang_map.items():
-        content = re.sub(rf'```{unsupported}\b', f'```{supported}', content)
+        content = re.sub(rf"```{unsupported}\b", f"```{supported}", content)
 
     return content
-
-
-def detect_portrait_diagram(mermaid_code: str) -> bool:
-    code_lower = mermaid_code.lower().strip()
-
-    portrait_indicators = ["graph td", "graph tb", "flowchart td", "flowchart tb", "sequencediagram", "journey", "gitgraph", "mindmap"]
-
-    for indicator in portrait_indicators:
-        if indicator in code_lower:
-            return True
-
-    vertical_arrows = len(re.findall(r"-->", code_lower)) + len(re.findall(r"->>", code_lower)) + len(re.findall(r"->", code_lower))
-
-    horizontal_indicators = len(re.findall(r"graph lr", code_lower)) + len(re.findall(r"flowchart lr", code_lower))
-
-    if horizontal_indicators > 0:
-        return False
-
-    if vertical_arrows > 2:
-        return True
-
-    return False
 
 
 def find_mmdc_command():
@@ -327,25 +314,24 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
         def mermaid_to_text(match):
             mermaid_code = match.group(1).strip()
             return f"```text\n{mermaid_code}\n```"
-        
+
         pattern = r"```mermaid\n(.*?)\n```"
         return re.sub(pattern, mermaid_to_text, content, flags=re.DOTALL)
 
     # Count total mermaid diagrams for progress tracking
-    total_diagrams = len(re.findall(r'```mermaid\n(.*?)\n```', content, flags=re.DOTALL))
+    total_diagrams = len(re.findall(r"```mermaid\n(.*?)\n```", content, flags=re.DOTALL))
     if total_diagrams > 0:
         Logger.info(f"Processing {total_diagrams} Mermaid diagram(s)...")
-    
+
     diagram_counter = 0
 
     def replace_mermaid_block(match):
         nonlocal diagram_counter
         diagram_counter += 1
         mermaid_code = match.group(1).strip()
-
         # Create a hash of the mermaid code for caching
         diagram_hash = hashlib.md5(mermaid_code.encode("utf-8")).hexdigest()[:12]
-        image_name = f"mermaid_{diagram_hash}.png"
+        image_name = f"mermaid_{diagram_hash}.pdf"
         image_path = build_dir / image_name
         if not image_path.exists():
             try:
@@ -353,58 +339,30 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
                     temp_file.write(mermaid_code)
                     temp_mmd_path = Path(temp_file.name)
 
-                is_portrait = detect_portrait_diagram(mermaid_code)
-
                 config_content = {"theme": "neutral", "themeVariables": {"background": "#ffffff", "primaryColor": "#ffffff"}}
 
                 with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as config_file:
                     json.dump(config_content, config_file, indent=2)
                     temp_config_path = Path(config_file.name)
 
-                if is_portrait:
-                    css_content = """
-                    .mermaid {
-                        max-width: 800px !important;
-                        max-height: 800px !important;
-                        width: 800px !important;
-                        height: 800px !important;
-                    }
-                    svg {
-                        max-width: 800px !important;
-                        max-height: 800px !important;
-                        width: 800px !important;
-                        height: 800px !important;
-                    }
-                    """
-                    viewport_width, viewport_height = 800, 800
-                else:
-                    css_content = """
-                    .mermaid {
-                        max-width: 1000px !important;
-                        max-height: 600px !important;
-                        width: 1000px !important;
-                        height: 600px !important;
-                    }
-                    svg {
-                        max-width: 1000px !important;
-                        max-height: 600px !important;
-                        width: 1000px !important;
-                        height: 600px !important;
-                    }
-                    """
-                    viewport_width, viewport_height = 1000, 600
-
-                with tempfile.NamedTemporaryFile(mode="w", suffix=".css", delete=False, encoding="utf-8") as css_file:
-                    css_file.write(css_content)
-                    temp_css_path = Path(css_file.name)
-
-                cmd = [mmdc_cmd, "-i", str(temp_mmd_path), "-o", str(image_path), "-t", "neutral", "-b", "white", "-c", str(temp_config_path), "--cssFile", str(temp_css_path), "--scale", "2", "--width", str(viewport_width), "--height", str(viewport_height)]
+                cmd = [
+                    mmdc_cmd,
+                    "-i",
+                    str(temp_mmd_path),
+                    "-o",
+                    str(image_path),
+                    "-t",
+                    "neutral",
+                    "-b",
+                    "white",
+                    "-c",
+                    str(temp_config_path),
+                ]
 
                 result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
                 temp_mmd_path.unlink()
                 temp_config_path.unlink()
-                temp_css_path.unlink()
                 if result.returncode != 0 or not image_path.exists():
                     Logger.warning(f"Failed to generate Mermaid diagram {diagram_counter}/{total_diagrams}")
                     return f"```text\n{mermaid_code}\n```"
@@ -416,13 +374,43 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
                 return f"```text\n{mermaid_code}\n```"
         else:
             Logger.info(f"Using cached Mermaid diagram {diagram_counter}/{total_diagrams}: {image_name}")
-        
+
         return f"![Mermaid Diagram]({image_name})"
 
     pattern = r"```mermaid\n(.*?)\n```"
     processed_content = re.sub(pattern, replace_mermaid_block, content, flags=re.DOTALL)
 
     return processed_content
+
+
+def apply_markdown_formatting_math_safe(content: str) -> str:
+    """Apply markdown formatting while protecting LaTeX math blocks from modification."""
+    # Find and temporarily replace math blocks
+    math_blocks = []
+
+    def store_math_block(match):
+        math_blocks.append(match.group(0))
+        return f"__MATH_PLACEHOLDER_{len(math_blocks)-1}__"
+
+    # Protect display math blocks ($$...$$) first - they can span multiple lines
+    content = re.sub(r"\$\$.*?\$\$", store_math_block, content, flags=re.DOTALL)
+
+    # Protect inline math blocks ($...$) - single line only
+    content = re.sub(r"\$[^$\n]+\$", store_math_block, content)
+
+    # Now safely apply formatting to non-math content
+    content = re.sub(r"==([^=\n]+)==", r"\\mdhighlight{\1}", content)
+    content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
+    content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", content)
+    content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
+    # content = re.sub(r"^(\s*)- \[x\](.*)$", r"\1- \\mdcheckboxchecked{}\2", content, flags=re.MULTILINE)
+    # content = re.sub(r"^(\s*)- \[ \](.*)$", r"\1- \\mdcheckboxunchecked{}\2", content, flags=re.MULTILINE)
+
+    # Restore protected math blocks
+    for i, math_block in enumerate(math_blocks):
+        content = content.replace(f"__MATH_PLACEHOLDER_{i}__", math_block)
+
+    return content
 
 
 def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
@@ -436,7 +424,7 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
         except ValueError:
             # Image outside markdown dir; flatten
             rel = Path(img.name)
-        
+
         dest = build_dir / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         if not dest.exists():
@@ -483,19 +471,12 @@ def main():
                 pass
 
     shutil.copy(template_tex, build_dir / "template.tex")
-    
+
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = convert_markdown_footnotes_to_latex(md_content)
     md_content = process_mermaid_diagrams(md_content, build_dir)
     md_content = normalize_language_identifiers(md_content)
-
-    md_content = re.sub(r"==([^=]+)==", r"\\mdhighlight{\1}", md_content)
-    md_content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", md_content)
-    md_content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", md_content)
-    md_content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", md_content)
-    md_content = re.sub(r"^(\s*)- \[x\](.*)$", r"\1- \\mdcheckboxchecked{}\2", md_content, flags=re.MULTILINE)
-    md_content = re.sub(r"^(\s*)- \[ \](.*)$", r"\1- \\mdcheckboxunchecked{}\2", md_content, flags=re.MULTILINE)
-
+    md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = escape_signs(md_content, ["%"])
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
 

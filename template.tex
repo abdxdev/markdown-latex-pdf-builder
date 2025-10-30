@@ -20,7 +20,20 @@
 \usepackage{etoolbox}
 \usepackage[most]{tcolorbox}
 \usepackage[cache=true,cachedir=.]{minted}
-\usepackage[contentBlocks,rawAttribute,texMathDollars,pipeTables,html,fencedCode,strikeThrough,superscripts,subscripts,inlineNotes,definitionLists,hybrid]{markdown}
+\usepackage[
+    contentBlocks,
+    rawAttribute,
+    texMathDollars,
+    pipeTables,
+    fencedCode,
+    strikeThrough,
+    superscripts,
+    subscripts,
+    inlineNotes,
+    definitionLists,
+    hybrid,
+    taskLists,
+]{markdown}
 \usepackage{endnotes}
 \usepackage[normalem]{ulem}
 \usepackage{soul}
@@ -63,7 +76,7 @@
 }
 
 % Custom commands for markdown extensions  
-\newcommand{\mdstrikethrough}[1]{\textcolor{gray}{\sout{#1}}}
+\newcommand{\mdstrikethrough}[1]{\sout{#1}}
 \newcommand{\mdhighlight}[1]{\colorbox{highlightBg}{#1}}
 
 % Checkbox commands using TikZ for better visual appearance - medium square size
@@ -98,7 +111,8 @@
                     \ifstrequal{#1}{<br />}{\newline\noindent}{#1}% 
                 }% 
             }% 
-        },        % Strikethrough text support
+        },
+        % Strikethrough text support
         strikeThrough = {\mdstrikethrough{#1}},
         % Superscript and subscript support
         superscript = {\textsuperscript{#1}},
@@ -149,7 +163,7 @@
         dlItem = {\item[#1]},
         dlItemEnd = {}    
     },    % Enable fenced code blocks (indented code blocks handled by inputVerbatim renderer)
-    fencedCode = true
+    fencedCode = true,
 }
 
 % Configure JetBrains Mono font
