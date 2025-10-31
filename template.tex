@@ -82,7 +82,7 @@
 % Checkbox commands using TikZ for better visual appearance - medium square size
 \newcommand{\mdcheckboxchecked}{%
     \makebox[2.2em][l]{%
-        \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) -- (0.7ex,0.5ex) -- (1.5ex,1.3ex);}% 
+        \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) to (0.7ex,0.5ex) to (1.5ex,1.3ex);}% 
         \hspace{0.2em}% 
     }% 
 }
@@ -133,11 +133,11 @@
                 breakable
             ]% 
             \edef\templang{#3}% 
-            \ifx\templang\empty
+            \ifx\templang\empty%
                 \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}% 
-            \else
+            \else%
                 \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}% 
-            \fi
+            \fi%
             \end{tcolorbox}% 
         },
         % Configure indented code blocks (4 spaces) to use the same styling as fenced code blocks
@@ -205,38 +205,38 @@
     \end{tabular}
 }
 
-\newif\ifenabletitlepage
-\enabletitlepagetrue
+\newif\ifenabletitlepage%
+\enabletitlepagetrue%
 @@ENABLE_TITLE_PAGE@@
 
 % Flag to enable/disable content page; controlled via script placeholder
-\newif\ifenablecontentpage
-\enablecontentpagetrue
+\newif\ifenablecontentpage%
+\enablecontentpagetrue%
 % If metadata has enableContentPage: false, the script leaves this blank
 @@ENABLE_CONTENT_PAGE@@
 
 % Flag to enable/disable last page credits; controlled via script placeholder
-\newif\ifenablelastpagecredits
-\enablelastpagecreditstrue
+\newif\ifenablelastpagecredits%
+\enablelastpagecreditstrue%
 % If metadata has enableLastPageCredits: false, the script leaves this blank
 @@ENABLE_LAST_PAGE_CREDITS@@
 
 % Flag to enable/disable footnotes at end of document (true = endnotes, false = page footnotes)
-\newif\ifenablefootnotesatend
-\enablefootnotesatendfalse
+\newif\ifenablefootnotesatend%
+\enablefootnotesatendfalse%
 % If metadata has enableFootnotesAtEnd: true, the script should add \enablefootnotesatendtrue
 @@ENABLE_FOOTNOTES_AT_END@@
 
 % Flag to enable/disable "That's all for now" page
-\newif\ifenablethatsall
-\enablethatsalltrue
+\newif\ifenablethatsall%
+\enablethatsalltrue%
 % If metadata has enableThatsAllPage: false, the script leaves this blank
 @@ENABLE_THATS_ALL_PAGE@@
 
 % Configure footnote/endnote behavior based on flag
-\ifenablefootnotesatend
+\ifenablefootnotesatend%
     % Convert footnotes to endnotes
-    \let\footnote=\endnote
+    \let\footnote=\endnote%
     \renewcommand{\notesname}{References}
     
     % Format endnote numbers and spacing (no superscript, within margins)
@@ -426,6 +426,9 @@
 
 % Activate fancy page style after title (title page stays empty)
 \pagestyle{fancy}
+
+% Prevent vertical stretching of content on short pages
+\raggedbottom
 
 % Auto-scale all tables so they never overflow the text width
 \AtBeginEnvironment{tabular}{\begin{adjustbox}{max width=\textwidth}}
