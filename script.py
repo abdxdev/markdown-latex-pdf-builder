@@ -40,25 +40,40 @@ class BuildError(Exception):
 
 
 class Logger:
-    """Colored console logging utility."""
+    """Colored console logging utility with single-line overwriting."""
 
     COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}
+    _last_length = 0
 
     @classmethod
-    def info(cls, msg: str):
-        print(f"{cls.COLORS['INFO']}[INFO]{cls.COLORS['RESET']} {msg}")
+    def _print(cls, msg: str, persist: bool = False):
+        """Print message, optionally overwriting previous line."""
+        # Pad message to clear previous longer messages
+        padding = max(0, cls._last_length - len(msg))
+        padded_msg = msg + " " * padding
+        cls._last_length = len(msg)
+        
+        if persist:
+            print(f"\r{padded_msg}")
+            cls._last_length = 0
+        else:
+            print(f"\r{padded_msg}", end="", flush=True)
 
     @classmethod
-    def success(cls, msg: str):
-        print(f"{cls.COLORS['SUCCESS']}[SUCCESS]{cls.COLORS['RESET']} {msg}")
+    def info(cls, msg: str, persist: bool = False):
+        cls._print(f"{cls.COLORS['INFO']}[INFO]{cls.COLORS['RESET']} {msg}", persist)
 
     @classmethod
-    def warning(cls, msg: str):
-        print(f"{cls.COLORS['WARNING']}[WARNING]{cls.COLORS['RESET']} {msg}")
+    def success(cls, msg: str, persist: bool = True):
+        cls._print(f"{cls.COLORS['SUCCESS']}[SUCCESS]{cls.COLORS['RESET']} {msg}", persist)
 
     @classmethod
-    def error(cls, msg: str):
-        print(f"{cls.COLORS['ERROR']}[ERROR]{cls.COLORS['RESET']} {msg}")
+    def warning(cls, msg: str, persist: bool = True):
+        cls._print(f"{cls.COLORS['WARNING']}[WARNING]{cls.COLORS['RESET']} {msg}", persist)
+
+    @classmethod
+    def error(cls, msg: str, persist: bool = True):
+        cls._print(f"{cls.COLORS['ERROR']}[ERROR]{cls.COLORS['RESET']} {msg}", persist)
 
 
 def log(msg: str):
@@ -76,7 +91,7 @@ def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> di
         default = json.load(open(script_root / "default.json"))
         default["date"] = datetime.now().strftime("%B %d, %Y")
         meta_path.write_text(json.dumps(default, indent=2), encoding="utf-8")
-        Logger.warning(f"Created default {md_base}.json")
+        Logger.warning(f"Created {md_base}.json")
 
     try:
         raw = meta_path.read_text(encoding="utf-8-sig")
@@ -159,10 +174,11 @@ def run_lualatex(build_dir: Path):
         "template.tex",
     ]
 
-    Logger.info("Compiling LaTeX document...")
+    Logger.info("Compiling LaTeX...")
 
     for pass_num in range(1, 3):
         try:
+            Logger.info(f"Pass {pass_num}/2...", persist=False)
             proc = subprocess.run(
                 cmd,
                 cwd=build_dir,
@@ -173,15 +189,29 @@ def run_lualatex(build_dir: Path):
                 check=False,
             )
         except FileNotFoundError as e:
-            raise BuildError("lualatex not found in PATH.") from e
-
+            raise BuildError("lualatex not found") from e
         if pass_num == 2:
             final_returncode = proc.returncode
             output = proc.stdout
-            
-            # Only print output if there are errors or warnings
-            if final_returncode != 0 or "warning" in output.lower() or "error" in output.lower():
-                print(output)
+
+            # Filter out the hybrid deprecation warning if it's the only warning
+            lines = output.split("\n")
+            filtered_lines = []
+            skip_next = False
+
+            for i, line in enumerate(lines):
+                if "Package markdown Warning: The `hybrid` option has been soft-deprecated." in line:
+                    skip_next = True
+                    continue
+                if skip_next and line.strip() and not line.strip().startswith("("):
+                    skip_next = False
+                if not skip_next:
+                    filtered_lines.append(line)
+
+            filtered_output = "\n".join(filtered_lines)
+
+            if final_returncode != 0 or "warning" in filtered_output.lower() or "error" in filtered_output.lower():
+                print(filtered_output)
 
     pdf_path = build_dir / "template.pdf"
     produced = pdf_path.exists()
@@ -271,34 +301,18 @@ def normalize_language_identifiers(content: str) -> str:
 
 
 def find_mmdc_command():
-    try:
-        result = subprocess.run(["mmdc", "--version"], capture_output=True, text=True, check=False)
-        if result.returncode == 0:
-            return "mmdc"
-    except FileNotFoundError:
-        pass
+    """Return path to mermaid-cli (mmdc) if available in PATH.
 
-    npm_bin_paths = []
-    try:
-        npm_result = subprocess.run(["npm", "config", "get", "prefix"], capture_output=True, text=True, check=False)
-        if npm_result.returncode == 0:
-            npm_prefix = npm_result.stdout.strip()
-            if os.name == "nt":
-                npm_bin_paths.extend([os.path.join(npm_prefix, "mmdc.cmd"), os.path.join(npm_prefix, "node_modules", ".bin", "mmdc.cmd")])
-            else:
-                npm_bin_paths.extend([os.path.join(npm_prefix, "bin", "mmdc"), os.path.join(npm_prefix, "lib", "node_modules", ".bin", "mmdc")])
-    except FileNotFoundError:
-        pass
-
+    Simplified to rely on PATH discovery for cross-platform support.
+    """
+    candidates = ["mmdc"]
     if os.name == "nt":
-        user_home = os.path.expanduser("~")
-        npm_bin_paths.extend([os.path.join(user_home, "AppData", "Roaming", "npm", "mmdc.cmd"), os.path.join(user_home, "AppData", "Local", "npm", "mmdc.cmd")])
-    else:
-        npm_bin_paths.extend(["/usr/local/bin/mmdc", "/usr/bin/mmdc"])
+        candidates.insert(0, "mmdc.cmd")
 
-    for path in npm_bin_paths:
-        if os.path.exists(path):
-            return path
+    for cmd in candidates:
+        found = shutil.which(cmd)
+        if found:
+            return found
 
     return None
 
@@ -317,11 +331,10 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
 
         pattern = r"```mermaid\n(.*?)\n```"
         return re.sub(pattern, mermaid_to_text, content, flags=re.DOTALL)
-
     # Count total mermaid diagrams for progress tracking
     total_diagrams = len(re.findall(r"```mermaid\n(.*?)\n```", content, flags=re.DOTALL))
     if total_diagrams > 0:
-        Logger.info(f"Processing {total_diagrams} Mermaid diagram(s)...")
+        Logger.info(f"Processing {total_diagrams} Mermaid diagram(s)...", persist=False)
 
     diagram_counter = 0
 
@@ -364,16 +377,16 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
                 temp_mmd_path.unlink()
                 temp_config_path.unlink()
                 if result.returncode != 0 or not image_path.exists():
-                    Logger.warning(f"Failed to generate Mermaid diagram {diagram_counter}/{total_diagrams}")
+                    Logger.warning(f"Failed {diagram_counter}/{total_diagrams}")
                     return f"```text\n{mermaid_code}\n```"
                 else:
-                    Logger.success(f"Generated Mermaid diagram {diagram_counter}/{total_diagrams}: {image_name}")
+                    Logger.info(f"Generated {diagram_counter}/{total_diagrams}", persist=False)
 
             except Exception:
-                Logger.warning(f"Error processing Mermaid diagram {diagram_counter}/{total_diagrams}")
+                Logger.warning(f"Error {diagram_counter}/{total_diagrams}")
                 return f"```text\n{mermaid_code}\n```"
         else:
-            Logger.info(f"Using cached Mermaid diagram {diagram_counter}/{total_diagrams}: {image_name}")
+            Logger.info(f"Cached {diagram_counter}/{total_diagrams}", persist=False)
 
         return f"![Mermaid Diagram]({image_name})"
 
@@ -504,9 +517,9 @@ def main():
                 pass
         shutil.move(str(pdf_path), target_pdf)
         if rc != 0:
-            Logger.warning(f"LuaLaTeX exited with code {rc} but PDF was produced: {target_pdf}")
+            Logger.warning(f"Exit {rc}, PDF: {target_pdf}")
         else:
-            Logger.success(f"PDF generated: {target_pdf}")
+            Logger.success(f"PDF: {target_pdf}")
         sys.exit(0)
     else:
         err(f"LuaLaTeX failed (exit code {rc}) and no PDF produced.")

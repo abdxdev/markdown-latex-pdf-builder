@@ -43,6 +43,7 @@ node --version; npm --version
 ## Installation
 
 Open PowerShell and run these commands:
+_Do NOT run as Administrator_
 
 #### Step 1: Download and install TinyTeX
 
@@ -52,25 +53,19 @@ Invoke-WebRequest -Uri "https://yihui.org/tinytex/install-windows.bat" -OutFile 
 Remove-Item install-tinytex.bat
 ```
 
-#### Step 2: Add TinyTeX to PATH
-
-```powershell
-$env:Path += ";$env:APPDATA\TinyTeX\bin\windows"
-```
-
-#### Step 3: Install LaTeX packages
+#### Step 2: Install LaTeX packages
 
 ```powershell
 tlmgr install adjustbox amsfonts amsmath booktabs csvsimple endnotes etoolbox fancyhdr float fontspec footmisc geometry grfext hyperref hyphenat lineno listings lua-ul luaotfload markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote xcolor
 ```
 
-#### Step 4: Install Pygments
+#### Step 3: Install Pygments
 
 ```powershell
 pip install Pygments
 ```
 
-#### Step 5: Download Notes Maker
+#### Step 4: Download Notes Maker
 
 ```powershell
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
@@ -78,14 +73,14 @@ Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
 Remove-Item "$env:APPDATA\main.zip"
 ```
 
-#### Step 6: Install JetBrains Mono font
+<!-- #### Step 6: Install JetBrains Mono font
 
 ```powershell
 Copy-Item "$env:APPDATA\notes-maker-main\fonts\JetBrainsMonoNL-Regular.ttf" "$env:LOCALAPPDATA\Microsoft\Windows\Fonts\" -Force
 New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name "JetBrains Mono NL Regular (TrueType)" -Value "JetBrainsMonoNL-Regular.ttf" -PropertyType String -Force
-```
+``` -->
 
-#### Step 7 (Optional): Install Mermaid CLI for diagram support
+#### Step 5 (Optional): Install Mermaid CLI for diagram support
 
 ```powershell
 npm install -g @mermaid-js/mermaid-cli
@@ -155,4 +150,4 @@ Remove-Item "$env:APPDATA\main.zip"
 
 #### Step 2: Reinstall LaTeX packages
 
-Install latex packages from [step 3](#step-3-install-latex-packages) of the installation section.
+Install latex packages from [step 2](#step-2-install-latex-packages) of the installation section.
