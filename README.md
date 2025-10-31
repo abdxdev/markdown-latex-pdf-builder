@@ -43,7 +43,7 @@ node --version; npm --version
 ## Installation
 
 Open PowerShell and run these commands:
-_Do NOT run as Administrator_
+> _Do NOT run as Administrator_
 
 #### Step 1: Download and install TinyTeX
 
