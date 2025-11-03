@@ -61,10 +61,12 @@ Invoke-WebRequest -Uri "https://yihui.org/tinytex/install-windows.bat" -OutFile 
 .\install-tinytex.bat
 Remove-Item install-tinytex.bat
 ```
+
 #### Step 2: Add TinyTeX to PATH
 
 ```powershell
-$env:Path += ";$env:USERPROFILE\AppData\Local\TinyTeX\bin\win32"
+$env:Path += ";C:\tools\TinyTeX\bin\windows"
+tlmgr path add
 ```
 
 #### Step 3: Install LaTeX packages
@@ -166,3 +168,19 @@ Remove-Item "$env:APPDATA\main.zip"
 #### Step 2: Reinstall LaTeX packages
 
 Install latex packages from [step 3](#step-3-install-latex-packages) of the installation section.
+
+## Uninstallation
+
+#### Step 1: Remove TinyTeX
+
+```powershell
+tlmgr path remove
+rd /s /q "%APPDATA%\TinyTeX"
+```
+
+#### Step 2: Remove Notes Maker
+
+```powershell
+Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
+```
+## Troubleshooting
