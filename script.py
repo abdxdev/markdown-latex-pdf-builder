@@ -454,7 +454,6 @@ def process_github_alerts(content: str) -> str:
     for alert_type, latex_env in alert_types.items():
         # Match the alert header and all subsequent lines starting with >
         pattern = rf'^>\s*\[!{alert_type}\]\s*\n((?:>.*\n?)*)'
-        
         def replace_alert(match):
             content_lines = match.group(1)
             # Remove the leading > and optional space from each line
@@ -468,7 +467,8 @@ def process_github_alerts(content: str) -> str:
             
             alert_content = '\n'.join(processed_lines).strip()
             
-            return f'\\begin{{{latex_env}}}\n{alert_content}\n\\end{{{latex_env}}}\n'
+            # Use raw latex blocks so markdown processes content normally
+            return f'`````{{=latex}}\n\\begin{{{latex_env}}}\n`````\n\n{alert_content}\n\n`````{{=latex}}\n\\end{{{latex_env}}}\n`````\n'
         
         content = re.sub(pattern, replace_alert, content, flags=re.MULTILINE)
     
@@ -561,7 +561,6 @@ def main():
                 pass
 
     shutil.copy(template_tex, build_dir / "template.tex")
-
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = convert_markdown_footnotes_to_latex(md_content)
     md_content = process_mermaid_diagrams(md_content, build_dir)

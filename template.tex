@@ -95,9 +95,11 @@
 \definecolor{alertCautionBg}{RGB}{255,226,221}
 \definecolor{alertCautionBorder}{RGB}{255,103,79}
 
-% Alert box environments
+% Alert box environments - using simpler tcolorbox without overlay to avoid nesting issues
+% These will be triggered by special comment markers inserted by the Lua filter
 \newtcolorbox{mdalertnote}{
   enhanced,
+  breakable,
   colback=alertNoteBg,
   colframe=alertNoteBorder,
   boxrule=1pt,
@@ -113,6 +115,7 @@
 
 \newtcolorbox{mdalerttip}{
   enhanced,
+  breakable,
   colback=alertTipBg,
   colframe=alertTipBorder,
   boxrule=1pt,
@@ -128,6 +131,7 @@
 
 \newtcolorbox{mdalertimportant}{
   enhanced,
+  breakable,
   colback=alertImportantBg,
   colframe=alertImportantBorder,
   boxrule=1pt,
@@ -143,6 +147,7 @@
 
 \newtcolorbox{mdalertwarning}{
   enhanced,
+  breakable,
   colback=alertWarningBg,
   colframe=alertWarningBorder,
   boxrule=1pt,
@@ -158,6 +163,7 @@
 
 \newtcolorbox{mdalertcaution}{
   enhanced,
+  breakable,
   colback=alertCautionBg,
   colframe=alertCautionBorder,
   boxrule=1pt,

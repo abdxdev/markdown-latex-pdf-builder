@@ -183,4 +183,3 @@ rd /s /q "%APPDATA%\TinyTeX"
 ```powershell
 Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
 ```
-## Troubleshooting
