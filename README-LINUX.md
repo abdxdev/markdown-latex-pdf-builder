@@ -10,12 +10,12 @@ Before starting, make sure you have the following:
 
 ### Python 3.7+
 
-Download and install it from [python.org/downloads](https://www.python.org/downloads/).
+Download and install it from [python.org](https://www.python.org/downloads/).
 
 Check installation:
 
 ```bash
-python --version; pip --version
+python --version; python -m pip --version
 ```
 
 ### Visual Studio Code
@@ -30,6 +30,16 @@ code --version
 
 Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName=edonet.vscode-command-runner) extension for VS Code.
 
+### Node Package Manager (optional, for Mermaid diagrams)
+
+Download and install Node.js from [nodejs.org](https://nodejs.org/en/download).
+
+Check installation:
+
+```bash
+node --version; npm --version
+```
+
 ## Installation
 
-_Comming Soon..._
+_Comming soon..._

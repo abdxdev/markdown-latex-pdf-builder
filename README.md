@@ -30,7 +30,7 @@ code --version
 
 Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName=edonet.vscode-command-runner) extension for VS Code.
 
-### Node Package Manager (Optional, for Mermaid diagrams)
+### Node Package Manager (optional, for Mermaid diagrams)
 
 Download and install Node.js from [nodejs.org](https://nodejs.org/en/download).
 
@@ -52,7 +52,7 @@ node --version; npm --version
 Open PowerShell (Terminal on Windows 11) and run these commands:
 
 > [!CAUTION]
-> Do NOT run as Administrator
+> Do not run as Administrator
 
 #### Step 1: Download and install TinyTeX
 
