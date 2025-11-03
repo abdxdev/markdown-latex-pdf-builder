@@ -496,8 +496,8 @@ def main():
     if not template_tex.exists():
         err(f"Template template.tex not found at {template_tex}")
         sys.exit(1)
-
     logo = script_root / "uni-logo.pdf"
+    credit_sign = script_root / "credit-sign.pdf"
     fonts_dir = script_root / "fonts"
     build_dir = md_dir / f"_build_{md_base}"
     if not build_dir.exists():
@@ -520,10 +520,11 @@ def main():
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = escape_signs(md_content, ["%"])
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
-
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
     if logo.exists():
         shutil.copy(logo, build_dir / logo.name)
+    if credit_sign.exists():
+        shutil.copy(credit_sign, build_dir / credit_sign.name)
     if fonts_dir.exists() and not (build_dir / "fonts").exists():
         shutil.copytree(fonts_dir, build_dir / "fonts")
 
