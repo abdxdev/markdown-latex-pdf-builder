@@ -396,6 +396,35 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     return processed_content
 
 
+def process_keyboard_shortcuts(content: str) -> str:
+    """Convert [[KEY]] and [[KEY1] + [KEY2]] syntax to LaTeX keyboard shortcut commands."""
+    
+    def convert_shortcut(match):
+        captured = match.group(1)
+        shortcut_content = '[' + captured + ']'
+        parts = re.findall(r'\[([^\]]+)\]|(\s*[\+\-]\s*)', shortcut_content)
+        
+        latex_parts = []
+        for key, separator in parts:
+            if key:
+                latex_parts.append(f"\\kbdkey{{{key}}}")
+            elif separator:
+                sep = separator.strip()
+                if sep == '+':
+                    latex_parts.append("\\kbdplus")
+                elif sep == '-':
+                    latex_parts.append("\\kbdminus")
+                else:
+                    latex_parts.append(separator)
+        
+        joined_latex = ''.join(latex_parts)
+        return f"\\kbdshortcut{{{joined_latex}}}"
+
+    content = re.sub(r'\[\[(.*?)\]\]', convert_shortcut, content)
+    
+    return content
+
+
 def apply_markdown_formatting_math_safe(content: str) -> str:
     """Apply markdown formatting while protecting LaTeX math blocks from modification."""
     # Find and temporarily replace math blocks
@@ -416,8 +445,6 @@ def apply_markdown_formatting_math_safe(content: str) -> str:
     content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
     content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", content)
     content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
-    # content = re.sub(r"^(\s*)- \[x\](.*)$", r"\1- \\mdcheckboxchecked{}\2", content, flags=re.MULTILINE)
-    # content = re.sub(r"^(\s*)- \[ \](.*)$", r"\1- \\mdcheckboxunchecked{}\2", content, flags=re.MULTILINE)
 
     # Restore protected math blocks
     for i, math_block in enumerate(math_blocks):
@@ -489,6 +516,7 @@ def main():
     md_content = convert_markdown_footnotes_to_latex(md_content)
     md_content = process_mermaid_diagrams(md_content, build_dir)
     md_content = normalize_language_identifiers(md_content)
+    md_content = process_keyboard_shortcuts(md_content)
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = escape_signs(md_content, ["%"])
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")

@@ -51,8 +51,7 @@
 \definecolor{footnoteRuleColor}{RGB}{180,180,180}
 \definecolor{footnoteNumColor}{RGB}{100,100,100}
 % Highlighting and strikethrough colors
-\definecolor{highlightBg}{RGB}{255,255,0} % Yellow highlight
-\definecolor{strikethroughColor}{RGB}{128,128,128} % Gray for strikethrough
+\definecolor{highlightBg}{RGB}{255,255,152} % Yellow highlight
 
 % Styled blockquote environment using tcolorbox (no zref dependency)
 \newtcolorbox{mdblockquote}{
@@ -79,19 +78,49 @@
 \newcommand{\mdstrikethrough}[1]{\sout{#1}}
 \newcommand{\mdhighlight}[1]{\colorbox{highlightBg}{#1}}
 
+% Keyboard shortcut styling (realistic keyboard keys with rounded corners and 3D effect)
+\definecolor{keyBg}{RGB}{245,245,245}
+\definecolor{keyBorder}{RGB}{160,160,160}
+\definecolor{keyBottomBorder}{RGB}{100,100,100}
+
+% Keyboard key styling using tcolorbox for rounded corners and thick bottom
+\newtcbox{\kbdkeybox}{
+    on line,
+    arc=2pt,
+    colback=keyBg,
+    colframe=keyBorder,
+    boxrule=0.5pt,
+    left=3pt,
+    right=3pt,
+    top=2pt,
+    bottom=2pt,
+    boxsep=0pt,
+    before upper={\small\ttfamily},
+}
+
+\newcommand{\kbdkey}[1]{\kbdkeybox{#1}}
+\newcommand{\kbdplus}{\,{\small +}\,}
+\newcommand{\kbdminus}{\,{\small -}\,}
+\newcommand{\kbdshortcut}[1]{#1}
+
 % Checkbox commands using TikZ for better visual appearance - medium square size
 \newcommand{\mdcheckboxchecked}{%
-    \makebox[2.2em][l]{%
-        \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) to (0.7ex,0.5ex) to (1.5ex,1.3ex);}% 
-        \hspace{0.2em}% 
-    }% 
+    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) to (0.7ex,0.5ex) to (1.5ex,1.3ex);}% 
+    \hspace{0.4em}% 
 }
 \newcommand{\mdcheckboxunchecked}{% 
-    \makebox[2.2em][l]{% 
-        \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex);}% 
-        \hspace{0.2em}% 
-    }% 
+    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex);}% 
+    \hspace{0.4em}% 
 }
+\newcommand{\mdcheckboxpartial}{% 
+    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \fill[gray] (0.4ex,0.4ex) rectangle (1.4ex,1.4ex);}% 
+    \hspace{0.4em}% 
+}
+
+% Override default markdown task list renderers to use our custom checkboxes
+\renewcommand{\markdownRendererTickedBox}{\mdcheckboxchecked}
+\renewcommand{\markdownRendererUntickedBox}{\mdcheckboxunchecked}
+\renewcommand{\markdownRendererHalfTickedBox}{\mdcheckboxpartial}
 
 % Define code block background color
 \definecolor{codeBlockBg}{RGB}{246,248,250}
