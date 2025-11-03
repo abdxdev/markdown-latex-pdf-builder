@@ -10,7 +10,7 @@ Before starting, make sure you have the following:
 
 ### Python 3.7+
 
-Download and install it from [python.org/downloads](https://www.python.org/downloads/).
+Download and install it from [python.org](https://www.python.org/downloads/).
 
 Check installation:
 
@@ -32,7 +32,7 @@ Install the [Command Runner](https://marketplace.visualstudio.com/items?itemName
 
 ### Node Package Manager (Optional, for Mermaid diagrams)
 
-Download and install Node.js from [nodejs.org](https://nodejs.org/).
+Download and install Node.js from [nodejs.org](https://nodejs.org/en/download).
 
 Check installation:
 
@@ -40,9 +40,18 @@ Check installation:
 node --version; npm --version
 ```
 
+> [!NOTE]
+> If you're having trouble running `npm --version`, you may need to change the execution policy. Run this command:
+>
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
+
 ## Installation
 
-Open PowerShell and run these commands:
+Open PowerShell (Terminal on Windows 11) and run these commands:
+
+> [!CAUTION]
 > _Do NOT run as Administrator_
 
 #### Step 1: Download and install TinyTeX
