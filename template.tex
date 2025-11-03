@@ -83,6 +83,94 @@
 \definecolor{keyBorder}{RGB}{160,160,160}
 \definecolor{keyBottomBorder}{RGB}{100,100,100}
 
+% Alert/Callout box colors (GitHub-style alerts)
+\definecolor{alertNoteBg}{RGB}{221,244,255}
+\definecolor{alertNoteBorder}{RGB}{84,174,255}
+\definecolor{alertTipBg}{RGB}{223,251,223}
+\definecolor{alertTipBorder}{RGB}{87,171,90}
+\definecolor{alertImportantBg}{RGB}{233,221,255}
+\definecolor{alertImportantBorder}{RGB}{165,113,255}
+\definecolor{alertWarningBg}{RGB}{255,237,185}
+\definecolor{alertWarningBorder}{RGB}{228,160,0}
+\definecolor{alertCautionBg}{RGB}{255,226,221}
+\definecolor{alertCautionBorder}{RGB}{255,103,79}
+
+% Alert box environments
+\newtcolorbox{mdalertnote}{
+  enhanced,
+  colback=alertNoteBg,
+  colframe=alertNoteBorder,
+  boxrule=1pt,
+  left=13pt,
+  right=10pt,
+  top=26pt,
+  bottom=10pt,
+  boxsep=0pt,
+  sharp corners,
+  borderline west={3pt}{0pt}{alertNoteBorder},
+  overlay={\node[anchor=north west,font=\bfseries,text=alertNoteBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {NOTE};}
+}
+
+\newtcolorbox{mdalerttip}{
+  enhanced,
+  colback=alertTipBg,
+  colframe=alertTipBorder,
+  boxrule=1pt,
+  left=13pt,
+  right=10pt,
+  top=26pt,
+  bottom=10pt,
+  boxsep=0pt,
+  sharp corners,
+  borderline west={3pt}{0pt}{alertTipBorder},
+  overlay={\node[anchor=north west,font=\bfseries,text=alertTipBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {TIP};}
+}
+
+\newtcolorbox{mdalertimportant}{
+  enhanced,
+  colback=alertImportantBg,
+  colframe=alertImportantBorder,
+  boxrule=1pt,
+  left=13pt,
+  right=10pt,
+  top=26pt,
+  bottom=10pt,
+  boxsep=0pt,
+  sharp corners,
+  borderline west={3pt}{0pt}{alertImportantBorder},
+  overlay={\node[anchor=north west,font=\bfseries,text=alertImportantBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {IMPORTANT};}
+}
+
+\newtcolorbox{mdalertwarning}{
+  enhanced,
+  colback=alertWarningBg,
+  colframe=alertWarningBorder,
+  boxrule=1pt,
+  left=13pt,
+  right=10pt,
+  top=26pt,
+  bottom=10pt,
+  boxsep=0pt,
+  sharp corners,
+  borderline west={3pt}{0pt}{alertWarningBorder},
+  overlay={\node[anchor=north west,font=\bfseries,text=alertWarningBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {WARNING};}
+}
+
+\newtcolorbox{mdalertcaution}{
+  enhanced,
+  colback=alertCautionBg,
+  colframe=alertCautionBorder,
+  boxrule=1pt,
+  left=13pt,
+  right=10pt,
+  top=26pt,
+  bottom=10pt,
+  boxsep=0pt,
+  sharp corners,
+  borderline west={3pt}{0pt}{alertCautionBorder},
+  overlay={\node[anchor=north west,font=\bfseries,text=alertCautionBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {CAUTION};}
+}
+
 % Keyboard key styling using tcolorbox for rounded corners and thick bottom
 \newtcbox{\kbdkeybox}{
     on line,
@@ -133,7 +221,7 @@
         link = {\href{#3}{#1}},
         % Wrap block quotes in a gray box
         blockQuoteBegin = {\begin{mdblockquote}},
-        blockQuoteEnd = {\end{mdblockquote}},        % Render HTML tags (mainly <br> tags)
+        blockQuoteEnd = {\end{mdblockquote}},
         inlineHtmlTag = {%
             \ifstrequal{#1}{<br>}{\newline\noindent}{%
                 \ifstrequal{#1}{<br/>}{\newline\noindent}{%

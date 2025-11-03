@@ -425,6 +425,56 @@ def process_keyboard_shortcuts(content: str) -> str:
     return content
 
 
+def process_github_alerts(content: str) -> str:
+    """Convert GitHub-style alert blocks to LaTeX alert environments.
+    
+    Converts:
+    > [!NOTE]
+    > Content here
+    
+    To:
+    \\begin{mdalertnote}
+    Content here
+    \\end{mdalertnote}
+    """
+    alert_types = {
+        'NOTE': 'mdalertnote',
+        'TIP': 'mdalerttip',
+        'IMPORTANT': 'mdalertimportant',
+        'WARNING': 'mdalertwarning',
+        'CAUTION': 'mdalertcaution',
+    }
+    
+    # Pattern to match alert blocks:
+    # > [!TYPE]
+    # > content lines...
+    # > more content...
+    # (until we hit a line that doesn't start with >)
+    
+    for alert_type, latex_env in alert_types.items():
+        # Match the alert header and all subsequent lines starting with >
+        pattern = rf'^>\s*\[!{alert_type}\]\s*\n((?:>.*\n?)*)'
+        
+        def replace_alert(match):
+            content_lines = match.group(1)
+            # Remove the leading > and optional space from each line
+            processed_lines = []
+            for line in content_lines.split('\n'):
+                stripped = line.lstrip('>')
+                if stripped.startswith(' '):
+                    stripped = stripped[1:]
+                if stripped:  # Only add non-empty lines
+                    processed_lines.append(stripped)
+            
+            alert_content = '\n'.join(processed_lines).strip()
+            
+            return f'\\begin{{{latex_env}}}\n{alert_content}\n\\end{{{latex_env}}}\n'
+        
+        content = re.sub(pattern, replace_alert, content, flags=re.MULTILINE)
+    
+    return content
+
+
 def apply_markdown_formatting_math_safe(content: str) -> str:
     """Apply markdown formatting while protecting LaTeX math blocks from modification."""
     # Find and temporarily replace math blocks
@@ -517,6 +567,7 @@ def main():
     md_content = process_mermaid_diagrams(md_content, build_dir)
     md_content = normalize_language_identifiers(md_content)
     md_content = process_keyboard_shortcuts(md_content)
+    md_content = process_github_alerts(md_content)
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = escape_signs(md_content, ["%"])
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
