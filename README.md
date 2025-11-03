@@ -15,7 +15,7 @@ Download and install it from [python.org](https://www.python.org/downloads/).
 Check installation:
 
 ```powershell
-python --version; pip --version
+python --version; python -m pip --version
 ```
 
 ### Visual Studio Code
@@ -52,7 +52,7 @@ node --version; npm --version
 Open PowerShell (Terminal on Windows 11) and run these commands:
 
 > [!CAUTION]
-> _Do NOT run as Administrator_
+> Do NOT run as Administrator
 
 #### Step 1: Download and install TinyTeX
 
@@ -61,20 +61,25 @@ Invoke-WebRequest -Uri "https://yihui.org/tinytex/install-windows.bat" -OutFile 
 .\install-tinytex.bat
 Remove-Item install-tinytex.bat
 ```
+#### Step 2: Add TinyTeX to PATH
 
-#### Step 2: Install LaTeX packages
+```powershell
+$env:Path += ";$env:USERPROFILE\AppData\Local\TinyTeX\bin\win32"
+```
+
+#### Step 3: Install LaTeX packages
 
 ```powershell
 tlmgr install adjustbox amsfonts amsmath booktabs csvsimple endnotes etoolbox fancyhdr float fontspec footmisc geometry grfext hyperref hyphenat lineno listings lua-ul luaotfload markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote xcolor
 ```
 
-#### Step 3: Install Pygments
+#### Step 4: Install Pygments
 
 ```powershell
-pip install Pygments
+python -m pip install Pygments
 ```
 
-#### Step 4: Download Notes Maker
+#### Step 5: Download Notes Maker
 
 ```powershell
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
@@ -89,7 +94,7 @@ Copy-Item "$env:APPDATA\notes-maker-main\fonts\JetBrainsMonoNL-Regular.ttf" "$en
 New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts" -Name "JetBrains Mono NL Regular (TrueType)" -Value "JetBrainsMonoNL-Regular.ttf" -PropertyType String -Force
 ``` -->
 
-#### Step 5 (Optional): Install Mermaid CLI for diagram support
+#### Step 6 (Optional): Install Mermaid CLI for diagram support
 
 ```powershell
 npm install -g @mermaid-js/mermaid-cli
@@ -119,6 +124,7 @@ npm install -g @mermaid-js/mermaid-cli
 5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date.
 6. Re-run the build command from step 4 to generate the updated PDF.
 
+> [!NOTE]
 > You may delete the build folder (`_build_report` in this case) after the PDF is finalized.
 
 ## Changing Default Values
@@ -159,4 +165,4 @@ Remove-Item "$env:APPDATA\main.zip"
 
 #### Step 2: Reinstall LaTeX packages
 
-Install latex packages from [step 2](#step-2-install-latex-packages) of the installation section.
+Install latex packages from [step 3](#step-3-install-latex-packages) of the installation section.
