@@ -17,7 +17,7 @@ Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs au
 
 Before starting, make sure you have the following:
 
-### Python 3.7+
+### Python
 
 Download and install it from [python.org](https://www.python.org/downloads/). Preferably, between versions 3.10 and 3.13 inclusive.
 
@@ -71,6 +71,7 @@ Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDAT
 Remove-Item "$env:TEMP\TinyTeX.zip"
 $Tlmgr = "$env:APPDATA\TinyTeX\bin\windows\tlmgr.bat"
 Invoke-Expression "${Tlmgr} path add"
+Invoke-Expression "${Tlmgr} option repository ctan"
 Invoke-Expression "${Tlmgr} postaction install script xetex"
 ```
 
