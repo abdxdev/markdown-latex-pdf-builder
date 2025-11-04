@@ -57,7 +57,6 @@ Open PowerShell (Terminal on Windows 11) and run these commands:
 #### Step 1: Download and install TinyTeX
 
 ```powershell
-$ErrorActionPreference = 'Stop'
 wget "https://github.com/rstudio/tinytex-releases/releases/download/daily/TinyTeX-1.zip" -OutFile "$env:TEMP\TinyTeX.zip"
 Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDATA
 Remove-Item "$env:TEMP\TinyTeX.zip"
@@ -82,7 +81,7 @@ python -m pip install Pygments
 
 ```powershell
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
-Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
+Expand-Archive -Force -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
 Remove-Item "$env:APPDATA\main.zip"
 ```
 
@@ -169,7 +168,8 @@ Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
 ```
 
 > [!NOTE]
-> You may want to end task edge in Task Manager if it is running, as it may lock some files.
+> Microsoft Edge may lock certain files related to the uninstallation process if it is running in the background.  
+> To avoid issues, open Task Manager, locate "Microsoft Edge" under the "Processes" tab, and select "End Task" before proceeding.
 
 #### Step 2: Remove Notes Maker
 
