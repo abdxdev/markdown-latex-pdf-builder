@@ -4,6 +4,15 @@ Windows | [Linux](README-LINUX.md)
 
 Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs automatically.
 
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [VS Code Setup](#vs-code-setup)
+- [Usage](#usage)
+- [Changing Default Values](#changing-default-values)
+- [Changing the University Logo](#changing-the-university-logo)
+- [Updating Notes Maker](#updating-notes-maker)
+- [Uninstallation](#uninstallation)
+
 ## Prerequisites
 
 Before starting, make sure you have the following:
