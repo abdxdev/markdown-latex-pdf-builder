@@ -1,4 +1,4 @@
-% lualatex --shell-escape -synctex=1 -interaction=nonstopmode -file-line-error file.tex
+
 
 \documentclass[a4paper,twoside]{article}
 
@@ -67,10 +67,10 @@
   sharp corners
 }
 
-\newcommand{\inlinecode}[1]{%
+\newcommand{\inlinecode}[1]{
     \begingroup
-    \setlength{\fboxsep}{2pt}%
-    \colorbox{inlineCodeBg}{\ttfamily\scriptsize\color{inlineCodeFg}#1}%
+    \setlength{\fboxsep}{2pt}
+    \colorbox{inlineCodeBg}{\ttfamily\scriptsize\color{inlineCodeFg}#1}
     \endgroup   
 }
 
@@ -228,21 +228,18 @@
         link = {\href{#3}{#1}},
         blockQuoteBegin = {\begin{mdblockquote}},
         blockQuoteEnd = {\end{mdblockquote}},
-        inlineHtmlTag = {%
-            \ifstrequal{#1}{<br>}{\newline\noindent}{%
-                \ifstrequal{#1}{<br/>}{\newline\noindent}{%
-                    \ifstrequal{#1}{<br />}{\newline\noindent}{#1}% 
-                }% 
-            }% 
+        inlineHtmlTag = {
+            \ifstrequal{#1}{<br>}{\newline\noindent}{
+                \ifstrequal{#1}{<br/>}{\newline\noindent}{
+                    \ifstrequal{#1}{<br />}{\newline\noindent}{#1}
+                }
+            }
         },
-        
         strikeThrough = {\mdstrikethrough{#1}},
-        
         superscript = {\textsuperscript{#1}},
-        subscript = {\textsubscript{#1}},
-        inputFencedCode = {%
-            \edef\templang{#3}% 
-            \ifx\templang\empty%
+        subscript = {\textsubscript{#1}},        inputFencedCode = {%
+            \edef\templang{#3}%
+            \ifx\templang\empty
                 \begin{tcolorbox}[
                     colback=codeBlockBg,
                     colframe=codeBlockBorder,
@@ -253,12 +250,14 @@
                     top=5pt,
                     bottom=5pt,
                     breakable
-                ]% 
-                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}% 
-                \end{tcolorbox}% 
-            \else%                % Check if language is "output" for special first-line highlighting
+                ]%
+                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
+                \end{tcolorbox}%
+            \else
                 \def\outputlang{output}%
-                \ifx\templang\outputlang%
+                \ifx\templang\outputlang
+                    {%
+                    \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{outputCommandFg}##1}\else##1\fi}%
                     \begin{tcolorbox}[
                         enhanced,
                         colback=codeBlockBg,
@@ -271,10 +270,11 @@
                         bottom=5pt,
                         breakable,
                         overlay={\node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#3};}
-                    ]% 
-                    {\def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{outputCommandFg}##1}\else##1\fi}\inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}}% 
+                    ]%
+                    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
                     \end{tcolorbox}%
-                \else%
+                    }%
+                \else
                     \begin{tcolorbox}[
                         enhanced,
                         colback=codeBlockBg,
@@ -287,15 +287,13 @@
                         bottom=5pt,
                         breakable,
                         overlay={\node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#3};}
-                    ]% 
-                    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}% 
-                    \end{tcolorbox}% 
-                \fi%
-            \fi%
+                    ]%
+                    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}%
+                    \end{tcolorbox}%
+                \fi
+            \fi
         },
-        % Configure indented code blocks (4 spaces) to use the same styling as fenced code blocks
-        % Parameters: #1=file path
-        inputVerbatim = {%
+        inputVerbatim = {
             \begin{tcolorbox}[
                 colback=codeBlockBg,
                 colframe=codeBlockBorder,
@@ -306,11 +304,9 @@
                 top=5pt,
                 bottom=5pt,
                 breakable
-            ]% 
-            \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}% 
-            \end{tcolorbox}% 
+            ]            \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}
+            \end{tcolorbox}
         },
-        
         dlBegin = {\begin{description}},
         dlEnd = {\end{description}},
         dlItem = {\item[#1]},
@@ -358,41 +354,41 @@
     \end{tabular}
 }
 
-\newif\ifenabletitlepage%
-\enabletitlepagetrue%
+\newif\ifenabletitlepage
+\enabletitlepagetrue
 @@ENABLE_TITLE_PAGE@@
 
 
-\newif\ifenablecontentpage%
-\enablecontentpagetrue%
+\newif\ifenablecontentpage
+\enablecontentpagetrue
 
 @@ENABLE_CONTENT_PAGE@@
 
 
-\newif\ifenablelastpagecredits%
-\enablelastpagecreditstrue%
+\newif\ifenablelastpagecredits
+\enablelastpagecreditstrue
 
 @@ENABLE_LAST_PAGE_CREDITS@@
 
 
-\newif\ifenablefootnotesatend%
-\enablefootnotesatendfalse%
+\newif\ifenablefootnotesatend
+\enablefootnotesatendfalse
 
 @@ENABLE_FOOTNOTES_AT_END@@
 
 
-\newif\ifenablethatsall%
-\enablethatsalltrue%
+\newif\ifenablethatsall
+\enablethatsalltrue
 
 @@ENABLE_THATS_ALL_PAGE@@
 
 
-\ifenablefootnotesatend%
+\ifenablefootnotesatend
     
-    \let\footnote=\endnote%
+    \let\footnote=\endnote
     \renewcommand{\notesname}{References}
     
-    % Format endnote numbers and spacing (no superscript, within margins)
+    
     \makeatletter
     \renewcommand{\enoteformat}{
         \noindent
@@ -414,7 +410,7 @@
     \def\enotesize{\normalsize}
     \patchcmd{\theendnotes}{\par}{\par\vspace{0.8em}}{}{}
 \else
-    % Configure page footnotes styling (footmisc handles bottom placement)
+    
     \makeatletter
     
     \renewcommand{\footnoterule}{
@@ -438,12 +434,12 @@
     \long\def\@makefntext#1{
         \parindent 0em
         \noindent
-        \makebox[0pt][r]{%
-            \hspace{-1.5em}% 
-            {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}% 
-            \hspace{0.5em}% 
-        }% 
-        {\footnotesize#1}% 
+        \makebox[0pt][r]{
+            \hspace{-1.5em}
+            {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
+            \hspace{0.5em}
+        }
+        {\footnotesize#1}
     }
     
     
@@ -487,13 +483,13 @@
     {}
     {\hfill\thecontentspage}
 
-% Create decorative line under TOC title
-\renewcommand{\contentsname}{%
-    \vspace{-20pt}%
-    \centerline{\Huge\bfseries\color{black}{Contents}}%
-    \vspace{10pt}%
-    \centerline{\rule{0.5\textwidth}{1pt}}%
-    \vspace{15pt}%
+
+\renewcommand{\contentsname}{
+    \vspace{-20pt}
+    \centerline{\Huge\bfseries\color{black}{Contents}}
+    \vspace{10pt}
+    \centerline{\rule{0.5\textwidth}{1pt}}
+    \vspace{15pt}
 }
 
 
@@ -559,46 +555,46 @@
   {0pt}{3.25ex plus 1ex minus .2ex}{1em}
 
 \begin{document}
-\ifenabletitlepage%
+\ifenabletitlepage
 \thispagestyle{empty}
 \maketitle
 \fi
 
-\ifenablecontentpage%
+\ifenablecontentpage
 \renewcommand{\contentsname}{\centerline{Contents}}
 \tableofcontents
 \thispagestyle{empty}
 \clearpage
 \fi
 
-\fancyhf{}% clear all
+\fancyhf{}
 \fancyhead[LE,RO]{\thepage}
 \fancyhead[LO,RE]{\leftmark}
-\renewcommand{\sectionmark}[1]{\markboth{\thesection\ #1}{}}% set left mark to section title
-\renewcommand{\subsectionmark}[1]{}% ignore subsections so they don't override right mark
+\renewcommand{\sectionmark}[1]{\markboth{\thesection\ #1}{}}
+\renewcommand{\subsectionmark}[1]{}
 
 \pagestyle{fancy}
 
 
-\raggedbottom%
+\raggedbottom
 
 
 \AtBeginEnvironment{tabular}{\begin{adjustbox}{max width=\textwidth}}
 \AtEndEnvironment{tabular}{\end{adjustbox}}
 
-\let\oldincludegraphics\includegraphics%
+\let\oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,#1]{#2}}
 
 \markdownInput{@@INPUT_FILE@@}
 
 
-\ifenablefootnotesatend%
+\ifenablefootnotesatend
 \clearpage
-\theendnotes%
+\theendnotes
 \fi
 
 
-\ifenablethatsall%
+\ifenablethatsall
 \clearpage
 \thispagestyle{empty}
 \vspace*{\fill}
@@ -609,14 +605,14 @@
 \fi
 
 
-\ifenablelastpagecredits%
+\ifenablelastpagecredits
 \vfill
 \begin{center}
     \includegraphics[width=2.5cm]{credit-sign.pdf}\par
     \footnotesize
     Carefully crafted by abd using luatex \\ 
     Visit: \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} for more information \\ 
-    % Visit: \href{https://abd-dev.studio/blogs/how-i-create-assignments-and-notes}{abd-dev.studio/blogs/how-i-create-assignments-and-notes} for more information \\ 
+    
     Report errors at Email: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} \\ 
     or WhatsApp: \href{https://wa.me/923124996133}{+92 312 4996133} \\ 
 \end{center}
