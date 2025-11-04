@@ -58,17 +58,11 @@ Open PowerShell (Terminal on Windows 11) and run these commands:
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-
 wget "https://github.com/rstudio/tinytex-releases/releases/download/daily/TinyTeX-1.zip" -OutFile "$env:TEMP\TinyTeX.zip"
 Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDATA
 Remove-Item "$env:TEMP\TinyTeX.zip"
-
 $Tlmgr = "$env:APPDATA\TinyTeX\bin\windows\tlmgr.bat"
 Invoke-Expression "${Tlmgr} path add"
-if (!$env:CI) {
-  Invoke-Expression "${Tlmgr} option repository ctan"
-}
-# GH issue #313
 Invoke-Expression "${Tlmgr} postaction install script xetex"
 ```
 
