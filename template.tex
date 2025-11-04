@@ -237,7 +237,15 @@
         },
         strikeThrough = {\mdstrikethrough{#1}},
         superscript = {\textsuperscript{#1}},
-        subscript = {\textsubscript{#1}},        inputFencedCode = {%
+        subscript = {\textsubscript{#1}},
+        image = {%
+            \begin{figure}[H]%
+            \centering%
+            \includegraphics{#3}%
+            \ifx\empty#4\empty\else\caption{#4}\fi%
+            \end{figure}%
+        },
+        inputFencedCode = {%
             \edef\templang{#3}%
             \ifx\templang\empty
                 \begin{tcolorbox}[
@@ -309,7 +317,7 @@
         },
         dlBegin = {\begin{description}},
         dlEnd = {\end{description}},
-        dlItem = {\item[#1]},
+        dlItem = {\item[#1]\mbox{}\newline},
         dlItemEnd = {}    
     },    
     fencedCode = true,
@@ -540,7 +548,7 @@
 \titleformat{\paragraph}
   {\normalsize\bfseries}{\theparagraph}{1em}{}
 \titleformat{\subparagraph}
-  {\normalsize\bfseries}{\thesubparagraph}{1em}{}
+  {\small\bfseries}{\thesubparagraph}{1em}{}
 
 
 \titlespacing*{\section}

@@ -52,7 +52,7 @@ class Logger:
         padding = max(0, cls._last_length - len(msg))
         padded_msg = msg + " " * padding
         cls._last_length = len(msg)
-        
+
         if persist:
             print(f"\r{padded_msg}")
             cls._last_length = 0
@@ -250,6 +250,9 @@ def find_markdown_images(md_path: Path) -> list[Path]:
 
 
 def convert_markdown_footnotes_to_latex(content: str) -> str:
+    # Protect code and math blocks
+    content, protected_blocks = protect_code_and_math_blocks(content)
+
     footnote_defs = {}
 
     def extract_definition(match):
@@ -275,12 +278,43 @@ def convert_markdown_footnotes_to_latex(content: str) -> str:
 
     content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
 
+    # Restore protected blocks
+    content = restore_protected_blocks(content, protected_blocks)
+
     return content
 
 
 def escape_signs(content: str, to_escape: list[str]) -> str:
+    """Escape special characters while protecting code blocks and raw latex blocks."""
+    # Protect code blocks, math blocks, and raw latex blocks
+    protected_blocks = []
+
+    def store_protected_block(match):
+        protected_blocks.append(match.group(0))
+        return f"__ESCAPE_PROTECTED_{len(protected_blocks)-1}__"
+
+    # Protect raw latex blocks (pandoc syntax)
+    content = re.sub(r"`+\{=latex\}.*?`+", store_protected_block, content, flags=re.DOTALL)
+
+    # Protect fenced code blocks (4+ backticks, then 3 backticks)
+    content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
+    content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
+
+    # Protect inline code
+    content = re.sub(r"`[^`\n]+`", store_protected_block, content)
+
+    # Protect math blocks
+    content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
+    content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
+
+    # Now escape the signs
     for sign in to_escape:
         content = content.replace(sign, f"\\{sign}")
+
+    # Restore protected blocks
+    for i, block in enumerate(protected_blocks):
+        content = content.replace(f"__ESCAPE_PROTECTED_{i}__", block)
+
     return content
 
 
@@ -321,6 +355,17 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     if "```mermaid" not in content:
         return content
 
+    # Protect code blocks that are NOT mermaid (like ```markdown blocks containing mermaid examples)
+    protected_blocks = []
+
+    def store_non_mermaid_block(match):
+        protected_blocks.append(match.group(0))
+        return f"__PROTECTED_CODE_BLOCK_{len(protected_blocks)-1}__"
+
+    # Protect multi-backtick code blocks (4+ backticks) which contain code examples
+    # Use .*? instead of [^`]*? to match content that includes backticks
+    content = re.sub(r"````+.*?````+", store_non_mermaid_block, content, flags=re.DOTALL)
+
     mmdc_cmd = find_mmdc_command()
     if mmdc_cmd is None:
         Logger.warning("Mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
@@ -330,7 +375,13 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
             return f"```text\n{mermaid_code}\n```"
 
         pattern = r"```mermaid\n(.*?)\n```"
-        return re.sub(pattern, mermaid_to_text, content, flags=re.DOTALL)
+        content = re.sub(pattern, mermaid_to_text, content, flags=re.DOTALL)
+
+        # Restore protected blocks
+        for i, block in enumerate(protected_blocks):
+            content = content.replace(f"__PROTECTED_CODE_BLOCK_{i}__", block)
+
+        return content
     # Count total mermaid diagrams for progress tracking
     total_diagrams = len(re.findall(r"```mermaid\n(.*?)\n```", content, flags=re.DOTALL))
     if total_diagrams > 0:
@@ -387,118 +438,166 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
                 return f"```text\n{mermaid_code}\n```"
         else:
             Logger.info(f"Cached {diagram_counter}/{total_diagrams}", persist=False)
-
         return f"![Mermaid Diagram]({image_name})"
 
     pattern = r"```mermaid\n(.*?)\n```"
     processed_content = re.sub(pattern, replace_mermaid_block, content, flags=re.DOTALL)
+
+    # Restore protected blocks
+    for i, block in enumerate(protected_blocks):
+        processed_content = processed_content.replace(f"__PROTECTED_CODE_BLOCK_{i}__", block)
 
     return processed_content
 
 
 def process_keyboard_shortcuts(content: str) -> str:
     """Convert [[KEY]] and [[KEY1] + [KEY2]] syntax to LaTeX keyboard shortcut commands."""
-    
+
+    # Protect code and math blocks
+    content, protected_blocks = protect_code_and_math_blocks(content)
+
     def convert_shortcut(match):
         captured = match.group(1)
-        shortcut_content = '[' + captured + ']'
-        parts = re.findall(r'\[([^\]]+)\]|(\s*[\+\-]\s*)', shortcut_content)
-        
+        shortcut_content = "[" + captured + "]"
+        parts = re.findall(r"\[([^\]]+)\]|(\s*[\+\-]\s*)", shortcut_content)
+
         latex_parts = []
         for key, separator in parts:
             if key:
                 latex_parts.append(f"\\kbdkey{{{key}}}")
             elif separator:
                 sep = separator.strip()
-                if sep == '+':
+                if sep == "+":
                     latex_parts.append("\\kbdplus")
-                elif sep == '-':
+                elif sep == "-":
                     latex_parts.append("\\kbdminus")
                 else:
                     latex_parts.append(separator)
-        
-        joined_latex = ''.join(latex_parts)
+
+        joined_latex = "".join(latex_parts)
         return f"\\kbdshortcut{{{joined_latex}}}"
 
-    content = re.sub(r'\[\[(.*?)\]\]', convert_shortcut, content)
-    
+    content = re.sub(r"\[\[(.*?)\]\]", convert_shortcut, content)
+
+    # Restore protected blocks
+    content = restore_protected_blocks(content, protected_blocks)
+
     return content
 
 
 def process_github_alerts(content: str) -> str:
     """Convert GitHub-style alert blocks to LaTeX alert environments.
-    
+
     Converts:
     > [!NOTE]
     > Content here
-    
-    To:
-    \\begin{mdalertnote}
-    Content here
-    \\end{mdalertnote}
+
+    To a format that will be post-processed into LaTeX environments.
     """
-    alert_types = {
-        'NOTE': 'mdalertnote',
-        'TIP': 'mdalerttip',
-        'IMPORTANT': 'mdalertimportant',
-        'WARNING': 'mdalertwarning',
-        'CAUTION': 'mdalertcaution',
-    }
+    # Protect code blocks first so we don't process alerts inside them
+    content, protected_blocks = protect_code_and_math_blocks(content)
     
+    alert_types = {
+        "NOTE": "mdalertnote",
+        "TIP": "mdalerttip",
+        "IMPORTANT": "mdalertimportant",
+        "WARNING": "mdalertwarning",
+        "CAUTION": "mdalertcaution",
+    }
+
     # Pattern to match alert blocks:
     # > [!TYPE]
     # > content lines...
     # > more content...
     # (until we hit a line that doesn't start with >)
-    
+
+    alert_counter = [0]  # Use list to make it mutable in nested function
+
     for alert_type, latex_env in alert_types.items():
         # Match the alert header and all subsequent lines starting with >
-        pattern = rf'^>\s*\[!{alert_type}\]\s*\n((?:>.*\n?)*)'
+        pattern = rf"^>\s*\[!{alert_type}\]\s*\n((?:>.*\n?)*)"
+
         def replace_alert(match):
             content_lines = match.group(1)
             # Remove the leading > and optional space from each line
             processed_lines = []
-            for line in content_lines.split('\n'):
-                stripped = line.lstrip('>')
-                if stripped.startswith(' '):
+            for line in content_lines.split("\n"):
+                stripped = line.lstrip(">")
+                if stripped.startswith(" "):
                     stripped = stripped[1:]
                 if stripped:  # Only add non-empty lines
                     processed_lines.append(stripped)
-            
-            alert_content = '\n'.join(processed_lines).strip()
-            
-            # Use raw latex blocks so markdown processes content normally
-            return f'`````{{=latex}}\n\\begin{{{latex_env}}}\n`````\n\n{alert_content}\n\n`````{{=latex}}\n\\end{{{latex_env}}}\n`````\n'
-        
+            alert_content = "\n".join(processed_lines).strip()
+
+            # Use unique placeholders that won't be processed by markdown
+            alert_id = alert_counter[0]
+            alert_counter[0] += 1
+            return f"__ALERT_BEGIN_{alert_id}_{latex_env}__\n\n{alert_content}\n\n__ALERT_END_{alert_id}_{latex_env}__\n"
+
         content = re.sub(pattern, replace_alert, content, flags=re.MULTILINE)
+
+    # Restore protected blocks
+    content = restore_protected_blocks(content, protected_blocks)
     
     return content
 
 
-def apply_markdown_formatting_math_safe(content: str) -> str:
-    """Apply markdown formatting while protecting LaTeX math blocks from modification."""
-    # Find and temporarily replace math blocks
-    math_blocks = []
+def post_process_alerts(content: str) -> str:
+    """Convert alert placeholders to raw LaTeX blocks after markdown processing."""
+    # Replace begin markers
+    content = re.sub(r"__ALERT_BEGIN_\d+_([a-z]+)__", lambda m: f"```{{=latex}}\n\\begin{{{m.group(1)}}}\n```", content)
+    # Replace end markers
+    content = re.sub(r"__ALERT_END_\d+_([a-z]+)__", lambda m: f"```{{=latex}}\n\\end{{{m.group(1)}}}\n```", content)
+    return content
 
-    def store_math_block(match):
-        math_blocks.append(match.group(0))
-        return f"__MATH_PLACEHOLDER_{len(math_blocks)-1}__"
 
-    # Protect display math blocks ($$...$$) first - they can span multiple lines
-    content = re.sub(r"\$\$.*?\$\$", store_math_block, content, flags=re.DOTALL)
+def protect_code_and_math_blocks(content: str) -> tuple[str, list[str]]:
+    """Temporarily replace code blocks and math blocks with placeholders.
+    Returns the modified content and a list of protected blocks."""
+    protected_blocks = []
+
+    def store_protected_block(match):
+        protected_blocks.append(match.group(0))
+        return f"__PROTECTED_PLACEHOLDER_{len(protected_blocks)-1}__"
+
+    # Protect fenced code blocks (```...```) and (````...````) - must be done before inline code
+    # Match 4 or more backticks first, then 3 backticks
+    content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
+    content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
+
+    # Protect inline code blocks (`...`)
+    content = re.sub(r"`[^`\n]+`", store_protected_block, content)
+
+    # Protect display math blocks ($$...$$)
+    content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
 
     # Protect inline math blocks ($...$) - single line only
-    content = re.sub(r"\$[^$\n]+\$", store_math_block, content)
+    content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
 
-    # Now safely apply formatting to non-math content
+    return content, protected_blocks
+
+
+def restore_protected_blocks(content: str, protected_blocks: list[str]) -> str:
+    """Restore protected blocks from placeholders."""
+    for i, protected_block in enumerate(protected_blocks):
+        content = content.replace(f"__PROTECTED_PLACEHOLDER_{i}__", protected_block)
+    return content
+
+
+def apply_markdown_formatting_math_safe(content: str) -> str:
+    """Apply markdown formatting while protecting LaTeX math blocks and code blocks from modification."""
+
+    # Protect code and math blocks
+    content, protected_blocks = protect_code_and_math_blocks(content)
+
+    # Now safely apply formatting to non-protected content
     content = re.sub(r"==([^=\n]+)==", r"\\mdhighlight{\1}", content)
     content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
     content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", content)
     content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
 
-    # Restore protected math blocks
-    for i, math_block in enumerate(math_blocks):
-        content = content.replace(f"__MATH_PLACEHOLDER_{i}__", math_block)
+    # Restore protected blocks
+    content = restore_protected_blocks(content, protected_blocks)
 
     return content
 
@@ -559,7 +658,6 @@ def main():
                 stale.unlink()
             except Exception:
                 pass
-
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = convert_markdown_footnotes_to_latex(md_content)
@@ -569,6 +667,7 @@ def main():
     md_content = process_github_alerts(md_content)
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = escape_signs(md_content, ["%"])
+    md_content = post_process_alerts(md_content)
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
     if logo.exists():
