@@ -59,7 +59,7 @@ Open PowerShell (Terminal on Windows 11) and run these commands:
 ```powershell
 $ErrorActionPreference = 'Stop'
 
-curl.exe -Lo "$env:TEMP\TinyTeX.zip" "https://github.com/rstudio/tinytex-releases/releases/download/daily/TinyTeX-1.zip"
+wget "https://github.com/rstudio/tinytex-releases/releases/download/daily/TinyTeX-1.zip" -OutFile "$env:TEMP\TinyTeX.zip"
 Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDATA
 Remove-Item "$env:TEMP\TinyTeX.zip"
 
@@ -171,8 +171,11 @@ Install latex packages from [step 2](#step-2-install-latex-packages) of the inst
 
 ```powershell
 tlmgr path remove
-Remove-Item "C:\tools\TinyTeX" -Recurse -Force
+Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
 ```
+
+> [!NOTE]
+> You may want to end task edge in Task Manager if it is running, as it may lock some files.
 
 #### Step 2: Remove Notes Maker
 
