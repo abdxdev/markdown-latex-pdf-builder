@@ -392,6 +392,7 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     def replace_mermaid_block(match):
         nonlocal diagram_counter
         diagram_counter += 1
+        
         mermaid_code = match.group(1).strip()
         # Create a hash of the mermaid code for caching
         diagram_hash = hashlib.md5(mermaid_code.encode("utf-8")).hexdigest()[:12]
@@ -421,6 +422,7 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
                     "white",
                     "-c",
                     str(temp_config_path),
+                    "--pdfFit",
                 ]
 
                 result = subprocess.run(cmd, capture_output=True, text=True, check=False)

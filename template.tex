@@ -241,7 +241,7 @@
         image = {%
             \begin{figure}[H]%
             \centering%
-            \includegraphics{#3}%
+            \includegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio]{#3}%
             \ifx\empty#4\empty\else\caption{#4}\fi%
             \end{figure}%
         },
@@ -591,7 +591,7 @@
 \AtEndEnvironment{tabular}{\end{adjustbox}}
 
 \let\oldincludegraphics\includegraphics
-\renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,#1]{#2}}
+\renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio,#1]{#2}}
 
 \markdownInput{@@INPUT_FILE@@}
 
