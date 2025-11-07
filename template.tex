@@ -652,6 +652,19 @@
         \end{tcolorbox}
     \end{center}
     \vspace*{\fill}
+    
+    % Include credits at bottom of title page if enabled
+    \ifenablelastpagecredits
+    \vfill
+    \begin{center}
+        \includegraphics[width=2.5cm]{credit-sign.pdf}\par
+        \footnotesize
+            \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
+            Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133}{+92 312 4996133} \\
+            \color{gray}\textit{Compiled: \today}
+        \end{center}
+    \fi
+    
     \clearpage
 \fi
 
@@ -699,15 +712,18 @@
 \vspace*{\fill}
 \fi
 
+% Only show credits at end if not using title template 3 (which shows them on title page)
+\ifnum\titleTemplate=3\else
 \ifenablelastpagecredits
 \vfill
 \begin{center}
     \includegraphics[width=2.5cm]{credit-sign.pdf}\par
-    \tiny
+    \footnotesize
         \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
         Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133}{+92 312 4996133} \\
         \color{gray}\textit{Compiled: \today}
     \end{center}
+\fi
 \fi
 
 \end{document}
