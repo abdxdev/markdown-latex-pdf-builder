@@ -43,47 +43,34 @@
 \sloppy
 
 
-\definecolor{inlineCodeBg}{RGB}{246,248,250}
-\definecolor{inlineCodeFg}{RGB}{36,41,47}
+% ============================================================
+% COLOR DEFINITIONS
+% ============================================================
 
-\definecolor{quoteBg}{RGB}{246,248,250}
+% Code Block Colors
+\definecolor{codeBlockBg}{RGB}{247,247,247}
+\definecolor{codeBlockBorder}{RGB}{208,215,222}
+\definecolor{outputCommandBg}{RGB}{232,234,237}
+\definecolor{outputCommandFg}{RGB}{0,92,197}
 
-\definecolor{footnoteRuleColor}{RGB}{180,180,180}
-\definecolor{footnoteNumColor}{RGB}{100,100,100}
+% Inline Code Colors
+\definecolor{inlineCodeBg}{RGB}{247,247,247}
+\definecolor{inlineCodeFg}{RGB}{50,50,50}
 
-\definecolor{highlightBg}{RGB}{255,255,152}
+% Quote Colors
+\definecolor{quoteBg}{RGB}{247,247,247}
+\definecolor{quoteBorder}{RGB}{175,175,175}
 
+% Footnote Colors
+\definecolor{footnoteRuleColor}{RGB}{150,150,150}
+\definecolor{footnoteNumColor}{RGB}{150,150,150}
 
-\newtcolorbox{mdblockquote}{
-  enhanced,
-  frame hidden,
-  colback=quoteBg,
-  borderline west={0pt}{0pt}{gray!40},
-  left=10pt,
-  right=10pt,
-  top=8pt,
-  bottom=8pt,
-  boxsep=0pt,
-  sharp corners
-}
+% Keyboard Shortcut Colors
+\definecolor{keyBg}{RGB}{247,247,247}
+\definecolor{keyBorder}{RGB}{161,161,161}
+\definecolor{keyBottomBorder}{RGB}{102,102,102}
 
-\newcommand{\inlinecode}[1]{
-    \begingroup
-    \setlength{\fboxsep}{2pt}
-    \colorbox{inlineCodeBg}{\ttfamily\scriptsize\color{inlineCodeFg}#1}
-    \endgroup   
-}
-
-
-\newcommand{\mdstrikethrough}[1]{\sout{#1}}
-\newcommand{\mdhighlight}[1]{\colorbox{highlightBg}{#1}}
-
-
-\definecolor{keyBg}{RGB}{245,245,245}
-\definecolor{keyBorder}{RGB}{160,160,160}
-\definecolor{keyBottomBorder}{RGB}{100,100,100}
-
-
+% Alert Box Colors
 \definecolor{alertNoteBg}{RGB}{221,244,255}
 \definecolor{alertNoteBorder}{RGB}{84,174,255}
 \definecolor{alertTipBg}{RGB}{223,251,223}
@@ -94,6 +81,45 @@
 \definecolor{alertWarningBorder}{RGB}{228,160,0}
 \definecolor{alertCautionBg}{RGB}{255,226,221}
 \definecolor{alertCautionBorder}{RGB}{255,103,79}
+
+% Miscellaneous Colors
+\definecolor{highlightBg}{RGB}{255,255,152}
+
+% Title Header Colors (for mode 2)
+\definecolor{titleBoxBg}{RGB}{252,252,252}
+\definecolor{titleBoxFrame}{RGB}{230,230,230}
+\definecolor{titleMainText}{RGB}{26,26,26}
+\definecolor{titleSubText}{RGB}{77,77,77}
+
+% ============================================================
+
+\newcommand{\inlinecode}[1]{
+    \begingroup
+    \setlength{\fboxsep}{2pt}
+    \colorbox{inlineCodeBg}{\ttfamily\color{inlineCodeFg}#1}
+    \endgroup   
+}
+
+
+\newcommand{\mdstrikethrough}[1]{\sout{#1}}
+\newcommand{\mdhighlight}[1]{\colorbox{highlightBg}{#1}}
+
+% ============================================================
+% TCOLORBOX ENVIRONMENTS
+% ============================================================
+
+\newtcolorbox{mdblockquote}{
+  enhanced,
+  frame hidden,
+  colback=quoteBg,
+  borderline west={1pt}{0pt}{quoteBorder},
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt,
+  boxsep=0pt,
+  sharp corners
+}
 
 \newtcolorbox{mdalertnote}{
   enhanced,
@@ -175,8 +201,8 @@
   overlay={\node[anchor=north west,font=\bfseries,text=alertCautionBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {CAUTION};}
 }
 
-
 \newtcbox{\kbdkeybox}{
+    enhanced,
     on line,
     arc=2pt,
     colback=keyBg,
@@ -188,7 +214,10 @@
     bottom=2pt,
     boxsep=0pt,
     before upper={\small\ttfamily},
+    shadow={0mm}{-0.5mm}{0mm}{keyBorder},
+    width=0.9\textwidth
 }
+
 
 \newcommand{\kbdkey}[1]{\kbdkeybox{#1}}
 \newcommand{\kbdplus}{\,{\small +}\,}
@@ -205,7 +234,7 @@
     \hspace{0.4em}
 }
 \newcommand{\mdcheckboxpartial}{
-    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \fill[gray] (0.4ex,0.4ex) rectangle (1.4ex,1.4ex);}
+    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \fill[black] (0.4ex,0.4ex) rectangle (1.4ex,1.4ex);}
     \hspace{0.4em}
 }
 
@@ -213,13 +242,6 @@
 \renewcommand{\markdownRendererTickedBox}{\mdcheckboxchecked}
 \renewcommand{\markdownRendererUntickedBox}{\mdcheckboxunchecked}
 \renewcommand{\markdownRendererHalfTickedBox}{\mdcheckboxpartial}
-
-
-\definecolor{codeBlockBg}{RGB}{246,248,250}
-\definecolor{codeBlockBorder}{RGB}{208,215,222}
-
-\definecolor{outputCommandBg}{RGB}{232,234,237}
-\definecolor{outputCommandFg}{RGB}{0,92,197}
 
 
 \markdownSetup{
@@ -362,9 +384,13 @@
     \end{tabular}
 }
 
-\newif\ifenabletitlepage
-\enabletitlepagetrue
-@@ENABLE_TITLE_PAGE@@
+% Title Template Settings
+% 0 = No title (disabled)
+% 1 = Full university title page with logo (default)
+% 2 = Modern title header above content
+% 3 = Simple title on separate page
+\newcommand{\titleTemplate}{1}
+@@TITLE_TEMPLATE@@
 
 
 \newif\ifenablecontentpage
@@ -563,9 +589,56 @@
   {0pt}{3.25ex plus 1ex minus .2ex}{1em}
 
 \begin{document}
-\ifenabletitlepage
-\thispagestyle{empty}
-\maketitle
+
+% Title Template Rendering
+\ifnum\titleTemplate=1
+    % Mode 1: Full university title page with logo
+    \thispagestyle{empty}
+    \maketitle
+\fi
+
+\ifnum\titleTemplate=2
+    % Mode 2: Modern title header above content
+    \thispagestyle{empty}
+    \begin{center}
+        \vspace*{1cm}
+          % Main title with gradient-like effect using shadow
+        \begin{tcolorbox}[
+            enhanced,
+            colback=titleBoxBg,
+            colframe=titleBoxFrame,
+            boxrule=1pt,
+            arc=8pt,
+            left=20pt,
+            right=20pt,
+            top=25pt,
+            bottom=25pt,
+            shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
+            width=0.9\textwidth
+        ]
+            \centering
+            {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
+            \vspace{0.4cm}
+            {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
+        \end{tcolorbox}
+        
+        \vspace{1cm}
+    \end{center}
+\fi
+
+\ifnum\titleTemplate=3
+    % Mode 3: Simple title on separate page
+    \thispagestyle{empty}
+    \vspace*{\fill}
+    \begin{center}
+        {\Huge\bfseries\assignmenttitle\par}
+        \vspace{1cm}
+        {\Large\coursename\par}
+        \vspace{0.5cm}
+        {\large @@DATE@@\par}
+    \end{center}
+    \vspace*{\fill}
+    \clearpage
 \fi
 
 \ifenablecontentpage
@@ -612,22 +685,15 @@
 \vspace*{\fill}
 \fi
 
-
 \ifenablelastpagecredits
 \vfill
 \begin{center}
     \includegraphics[width=2.5cm]{credit-sign.pdf}\par
-    \footnotesize
-    Carefully crafted by abd using luatex \\ 
-    Visit: \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} for more information \\ 
-    
-    Report errors at Email: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} \\ 
-    or WhatsApp: \href{https://wa.me/923124996133}{+92 312 4996133} \\ 
-    
-    \vspace{0.5em}
-    \textit{Compiled on: \today}
-\end{center}
+    \tiny
+        \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
+        Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133}{+92 312 4996133} \\
+        \color{gray}\textit{Compiled: \today}
+    \end{center}
 \fi
-
 
 \end{document}

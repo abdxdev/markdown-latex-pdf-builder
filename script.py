@@ -26,7 +26,7 @@ import tempfile
 import os
 
 # Template placeholders that get replaced with metadata values
-PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@ENABLE_TITLE_PAGE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
+PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
 
 # Supported image file extensions for asset copying
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
@@ -127,8 +127,11 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
 
     to_value = meta.get("submittedto", "")
 
-    enable_title = bool(meta.get("enableTitlePage"))
-    first_page_toggle = "\\enabletitlepagetrue" if enable_title else "\\enabletitlepagefalse"
+    # Title template mode (0=disabled, 1=full page with logo, 2=modern header, 3=simple separate page)
+    title_template = int(meta.get("titleTemplate", 1))
+    if title_template < 0 or title_template > 3:
+        title_template = 1  # Default to mode 1 if invalid
+    title_template_cmd = f"\\renewcommand{{\\titleTemplate}}{{{title_template}}}"
 
     enable_content = bool(meta.get("enableContentPage"))
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
@@ -138,7 +141,6 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
 
     enable_footnotes_at_end = bool(meta.get("moveFootnotesToEnd"))
     footnotes_at_end_toggle = "\\enablefootnotesatendtrue" if enable_footnotes_at_end else "\\enablefootnotesatendfalse"
-
     enable_thats_all = bool(meta.get("enableThatsAllPage"))
     thats_all_toggle = "\\enablethatsalltrue" if enable_thats_all else "\\enablethatsallfalse"
 
@@ -149,7 +151,7 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@AUTHORS@@": authors_block,
         "@@DATE@@": meta.get("date", ""),
         "@@INPUT_FILE@@": md_path.name,
-        "@@ENABLE_TITLE_PAGE@@": first_page_toggle,
+        "@@TITLE_TEMPLATE@@": title_template_cmd,
         "@@ENABLE_CONTENT_PAGE@@": content_page_toggle,
         "@@ENABLE_LAST_PAGE_CREDITS@@": last_page_credits_toggle,
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
@@ -494,10 +496,11 @@ def process_github_alerts(content: str) -> str:
     > [!NOTE]
     > Content here
 
-    To a format that will be post-processed into LaTeX environments.
+    To a blockquote wrapped with LaTeX environment markers.
+    The content stays as a blockquote so markdown can process tables, lists, etc.
     """
-    # Protect code blocks first so we don't process alerts inside them
-    content, protected_blocks = protect_code_and_math_blocks(content)
+    # Don't protect code blocks - we need to process alerts that contain code blocks
+    # The code blocks will be handled normally by markdown later
     
     alert_types = {
         "NOTE": "mdalertnote",
@@ -511,45 +514,66 @@ def process_github_alerts(content: str) -> str:
     # > [!TYPE]
     # > content lines...
     # > more content...
-    # (until we hit a line that doesn't start with >)
+    # (until we hit a blank line followed by a non-> line, or end of content)
 
     alert_counter = [0]  # Use list to make it mutable in nested function
 
     for alert_type, latex_env in alert_types.items():
         # Match the alert header and all subsequent lines starting with >
-        pattern = rf"^>\s*\[!{alert_type}\]\s*\n((?:>.*\n?)*)"
+        # We need to capture until we hit a blank line followed by a non-> line,
+        # OR until we hit the end of the content
+        pattern = rf"^>\s*\[!{alert_type}\]\s*\n((?:>.*\n)*?)(?=\n[^>\n]|\n*$)"
 
         def replace_alert(match):
             content_lines = match.group(1)
-            # Remove the leading > and optional space from each line
-            processed_lines = []
-            for line in content_lines.split("\n"):
-                stripped = line.lstrip(">")
-                if stripped.startswith(" "):
-                    stripped = stripped[1:]
-                if stripped:  # Only add non-empty lines
-                    processed_lines.append(stripped)
-            alert_content = "\n".join(processed_lines).strip()
-
+            
             # Use unique placeholders that won't be processed by markdown
             alert_id = alert_counter[0]
             alert_counter[0] += 1
-            return f"__ALERT_BEGIN_{alert_id}_{latex_env}__\n\n{alert_content}\n\n__ALERT_END_{alert_id}_{latex_env}__\n"
+            
+            # Remove the > characters from each line so markdown doesn't create blockquotes
+            # This allows markdown to process tables, lists, code blocks, etc. normally inside the alert
+            lines = content_lines.split('\n')
+            cleaned_lines = []
+            for line in lines:
+                # Remove leading > and optional space (only one space to preserve indentation)
+                if line.startswith('> '):
+                    cleaned_lines.append(line[2:])
+                elif line.startswith('>'):
+                    cleaned_lines.append(line[1:])
+                else:
+                    cleaned_lines.append(line)
+            cleaned_content = '\n'.join(cleaned_lines)
+            
+            # Add LaTeX environment markers before and after
+            return f"__ALERT_BEGIN_{alert_id}_{latex_env}__\n\n{cleaned_content}\n\n__ALERT_END_{alert_id}_{latex_env}__\n"
 
         content = re.sub(pattern, replace_alert, content, flags=re.MULTILINE)
 
-    # Restore protected blocks
-    content = restore_protected_blocks(content, protected_blocks)
-    
     return content
 
 
 def post_process_alerts(content: str) -> str:
-    """Convert alert placeholders to raw LaTeX blocks after markdown processing."""
-    # Replace begin markers
-    content = re.sub(r"__ALERT_BEGIN_\d+_([a-z]+)__", lambda m: f"```{{=latex}}\n\\begin{{{m.group(1)}}}\n```", content)
-    # Replace end markers
-    content = re.sub(r"__ALERT_END_\d+_([a-z]+)__", lambda m: f"```{{=latex}}\n\\end{{{m.group(1)}}}\n```", content)
+    """Convert alert placeholders to raw LaTeX blocks after markdown processing.
+    
+    This runs AFTER markdown processing. Since we removed the > characters before
+    markdown processing, there are no blockquote environments to strip.
+    We simply replace the placeholders with the LaTeX alert environments.
+    """
+    def replace_begin(match):
+        env_name = match.group(1)
+        # Insert raw LaTeX to begin the alert environment
+        return f"\\begin{{{env_name}}}"
+    
+    def replace_end(match):
+        env_name = match.group(1)
+        # Insert raw LaTeX to end the alert environment
+        return f"\\end{{{env_name}}}"
+    
+    # Replace the alert markers with LaTeX environments
+    content = re.sub(r"__ALERT_BEGIN_\d+_([a-z]+)__", replace_begin, content)
+    content = re.sub(r"__ALERT_END_\d+_([a-z]+)__", replace_end, content)
+    
     return content
 
 

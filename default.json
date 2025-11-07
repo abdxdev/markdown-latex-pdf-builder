@@ -10,7 +10,7 @@
     }
   ],
   "submittedto": "Instructor Name",
-  "enableTitlePage": true,
+  "titleTemplate": 1,
   "enableContentPage": false,
   "moveFootnotesToEnd": false,
   "enableThatsAllPage": false
