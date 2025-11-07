@@ -387,8 +387,8 @@
 % Title Template Settings
 % 0 = No title (disabled)
 % 1 = Full university title page with logo (default)
-% 2 = Modern title header above content
-% 3 = Simple title on separate page
+% 2 = Modern title header inline with content (no separate page)
+% 3 = Modern title on separate page (same design as mode 2, but centered on its own page)
 \newcommand{\titleTemplate}{1}
 @@TITLE_TEMPLATE@@
 
@@ -627,15 +627,29 @@
 \fi
 
 \ifnum\titleTemplate=3
-    % Mode 3: Simple title on separate page
+    % Mode 3: Modern title on separate page at top (like mode 2, but on dedicated page)
     \thispagestyle{empty}
-    \vspace*{\fill}
     \begin{center}
-        {\Huge\bfseries\assignmenttitle\par}
-        \vspace{1cm}
-        {\Large\coursename\par}
-        \vspace{0.5cm}
-        {\large @@DATE@@\par}
+        \vspace*{1cm}
+        % Main title with gradient-like effect using shadow
+        \begin{tcolorbox}[
+            enhanced,
+            colback=titleBoxBg,
+            colframe=titleBoxFrame,
+            boxrule=1pt,
+            arc=8pt,
+            left=20pt,
+            right=20pt,
+            top=25pt,
+            bottom=25pt,
+            shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
+            width=0.9\textwidth
+        ]
+            \centering
+            {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
+            \vspace{0.4cm}
+            {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
+        \end{tcolorbox}
     \end{center}
     \vspace*{\fill}
     \clearpage
