@@ -36,6 +36,7 @@ class BuildError(Exception):
 
 class Logger:
     """Colored console logging utility with single-line overwriting."""
+
     COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}
     _last_length = 0
 
@@ -265,6 +266,7 @@ def convert_markdown_footnotes_to_latex(content: str) -> str:
             footnote_content = footnote_defs[label]
             return f"\\footnote{{{footnote_content}}}"
         return match.group(0)
+
     content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
 
     content = restore_protected_blocks(content, protected_blocks)
@@ -340,6 +342,7 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     mmdc_cmd = find_mmdc_command()
     if mmdc_cmd is None:
         Logger.warning("Mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
+
         def mermaid_to_text(match):
             mermaid_code = match.group(1).strip()
             return f"```text\n{mermaid_code}\n```"
@@ -361,7 +364,7 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     def replace_mermaid_block(match):
         nonlocal diagram_counter
         diagram_counter += 1
-        
+
         mermaid_code = match.group(1).strip()
         diagram_hash = hashlib.md5(mermaid_code.encode("utf-8")).hexdigest()[:12]
         image_name = f"mermaid_{diagram_hash}.pdf"
@@ -409,6 +412,7 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
         else:
             Logger.info(f"Cached {diagram_counter}/{total_diagrams}", persist=False)
         return f"![Mermaid Diagram]({image_name})"
+
     pattern = r"```mermaid\n(.*?)\n```"
     processed_content = re.sub(pattern, replace_mermaid_block, content, flags=re.DOTALL)
 
@@ -442,6 +446,7 @@ def process_keyboard_shortcuts(content: str) -> str:
 
         joined_latex = "".join(latex_parts)
         return f"\\kbdshortcut{{{joined_latex}}}"
+
     content = re.sub(r"\[\[(.*?)\]\]", convert_shortcut, content)
 
     content = restore_protected_blocks(content, protected_blocks)
@@ -467,18 +472,18 @@ def process_github_alerts(content: str) -> str:
             content_lines = match.group(1)
             alert_id = alert_counter[0]
             alert_counter[0] += 1
-            
-            lines = content_lines.split('\n')
+
+            lines = content_lines.split("\n")
             cleaned_lines = []
             for line in lines:
-                if line.startswith('> '):
+                if line.startswith("> "):
                     cleaned_lines.append(line[2:])
-                elif line.startswith('>'):
+                elif line.startswith(">"):
                     cleaned_lines.append(line[1:])
                 else:
                     cleaned_lines.append(line)
-            cleaned_content = '\n'.join(cleaned_lines)
-            
+            cleaned_content = "\n".join(cleaned_lines)
+
             return f"__ALERT_BEGIN_{alert_id}_{latex_env}__\n\n{cleaned_content}\n\n__ALERT_END_{alert_id}_{latex_env}__\n"
 
         content = re.sub(pattern, replace_alert, content, flags=re.MULTILINE)
@@ -488,17 +493,18 @@ def process_github_alerts(content: str) -> str:
 
 def post_process_alerts(content: str) -> str:
     """Convert alert placeholders to raw LaTeX blocks after markdown processing."""
+
     def replace_begin(match):
         env_name = match.group(1)
         return f"\\begin{{{env_name}}}"
-    
+
     def replace_end(match):
         env_name = match.group(1)
         return f"\\end{{{env_name}}}"
-    
+
     content = re.sub(r"__ALERT_BEGIN_\d+_([a-z]+)__", replace_begin, content)
     content = re.sub(r"__ALERT_END_\d+_([a-z]+)__", replace_end, content)
-    
+
     return content
 
 
@@ -560,9 +566,9 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
 
 def process_executable_python_blocks(content: str, build_dir: Path) -> str:
     """Execute Python code blocks with property-based control.
-    
+
     Syntax: ```python {.execute .show-code .show-output}
-    
+
     Properties:
     - .execute - Execute the code block
     - .show-code - Display the source code (default: hidden)
@@ -571,57 +577,52 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
     - .hide-output - Hide execution output/plot
     """
     protected_blocks = []
-    
+
     def store_protected_block(match):
         protected_blocks.append(match.group(0))
         return f"__PROTECTED_PYTHON_BLOCK_{len(protected_blocks)-1}__"
-    
+
     content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
-    
+
     pattern = r"```python\s+\{([^}]+)\}\n(.*?)\n```"
-    
+
     total_blocks = len(re.findall(pattern, content, flags=re.DOTALL))
     if total_blocks == 0:
         for i, block in enumerate(protected_blocks):
             content = content.replace(f"__PROTECTED_PYTHON_BLOCK_{i}__", block)
         return content
     Logger.info(f"Processing {total_blocks} executable Python block(s)...", persist=False)
-    
+
     block_counter = 0
+
     def execute_python_block(match):
         nonlocal block_counter
         block_counter += 1
-        
+
         properties_str = match.group(1)
         properties = set(prop.strip() for prop in properties_str.split())
-        
-        if '.execute' not in properties:
+
+        if ".execute" not in properties:
             return match.group(0)
-        
+
         code = match.group(2)
-        
-        show_code = '.show-code' in properties and '.hide-code' not in properties
-        show_output = '.hide-output' not in properties
-        
+
+        show_code = ".show-code" in properties and ".hide-code" not in properties
+        show_output = ".hide-output" not in properties
+
         code_hash = hashlib.md5(code.encode("utf-8")).hexdigest()[:12]
-        
+
         has_matplotlib = "matplotlib" in code or "plt." in code
         try:
             if has_matplotlib:
                 plot_filename = f"python_plot_{code_hash}.pdf"
                 plot_path = build_dir / plot_filename
-                
+
                 wrapped_code = code.replace("plt.show()", "")
                 wrapped_code += f"\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()"
-                
-                result = subprocess.run(
-                    ["python", "-c", wrapped_code],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                    check=False
-                )
-                
+
+                result = subprocess.run(["python", "-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
+
                 if result.returncode != 0:
                     Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
                     error_msg = result.stderr.strip() if result.stderr else "Unknown error"
@@ -630,7 +631,7 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
                         parts.append(f"```python\n{code}\n```")
                     parts.append(f"```output\nError executing code:\n{error_msg}\n```")
                     return "\n\n".join(parts)
-                
+
                 if plot_path.exists():
                     Logger.info(f"Generated plot {block_counter}/{total_blocks}", persist=False)
                     parts = []
@@ -648,14 +649,7 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
                         parts.append(f"```output\nNo plot generated\n```")
                     return "\n\n".join(parts) if parts else ""
             else:
-                # For regular code: capture stdout
-                result = subprocess.run(
-                    ["python", "-c", code],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                    check=False
-                )
+                result = subprocess.run(["python", "-c", code], capture_output=True, text=True, timeout=30, check=False)
                 if result.returncode != 0:
                     Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
                     error_msg = result.stderr.strip() if result.stderr else "Unknown error"
@@ -663,10 +657,10 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
                         return f"```python\n{code}\n```\n\n```output\nError executing code:\n{error_msg}\n```"
                     else:
                         return f"```output\nError executing code:\n{error_msg}\n```"
-                
+
                 output = result.stdout.strip()
                 Logger.info(f"Executed Python block {block_counter}/{total_blocks}", persist=False)
-                
+
                 parts = []
                 if show_code:
                     parts.append(f"```python\n{code}\n```")
@@ -687,16 +681,16 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             if show_code:
                 return f"```python\n{code}\n```\n\n```output\nError: {str(e)}\n```"
             else:
-                return f"```output\nError: {str(e)}\n```"    
+                return f"```output\nError: {str(e)}\n```"
+
     processed_content = re.sub(pattern, execute_python_block, content, flags=re.DOTALL)
-    
-    # Restore protected blocks
+
     for i, block in enumerate(protected_blocks):
         processed_content = processed_content.replace(f"__PROTECTED_PYTHON_BLOCK_{i}__", block)
-    
+
     if total_blocks > 0:
         Logger.info(f"Completed {total_blocks} Python block(s)", persist=True)
-    
+
     return processed_content
 
 

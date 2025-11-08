@@ -69,17 +69,21 @@ Open PowerShell (Terminal on Windows 11) and run these commands:
 wget "https://github.com/rstudio/tinytex-releases/releases/download/daily/TinyTeX-1.zip" -OutFile "$env:TEMP\TinyTeX.zip"
 Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDATA
 Remove-Item "$env:TEMP\TinyTeX.zip"
-$Tlmgr = "$env:APPDATA\TinyTeX\bin\windows\tlmgr.bat"
-Invoke-Expression "${Tlmgr} path add"
-Invoke-Expression "${Tlmgr} option repository ctan"
-Invoke-Expression "${Tlmgr} postaction install script xetex"
+$env:PATH += ";$env:APPDATA\TinyTeX\bin\windows"
+tlmgr path add
+tlmgr option repository ctan
+tlmgr postaction install script xetex
 ```
+<!-- # $Tlmgr = "$env:APPDATA\TinyTeX\bin\windows\tlmgr.bat"
+# Invoke-Expression "${Tlmgr} path add"
+# Invoke-Expression "${Tlmgr} option repository ctan"
+# Invoke-Expression "${Tlmgr} postaction install script xetex" -->
 
 #### Step 2: Install LaTeX packages
 
 ```powershell
 tlmgr update --self
-tlmgr install adjustbox amsfonts amsmath booktabs csvsimple datetime endnotes etoolbox fancyhdr float fmtcount fontspec footmisc geometry grfext hyperref hyphenat lineno listings lua-ul luaotfload markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote xcolor
+tlmgr install adjustbox csvsimple datetime endnotes fancyhdr fmtcount footmisc grfext hyphenat lineno listings lua-ul markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote
 ```
 
 #### Step 3: Install Pygments
@@ -101,17 +105,6 @@ Remove-Item "$env:APPDATA\main.zip"
 ```powershell
 npm install -g @mermaid-js/mermaid-cli
 ```
-
-#### Step 6 (Optional): Install Python packages for executable code blocks and plots
-
-If you want to execute Python code blocks and generate matplotlib plots within your documents:
-
-```powershell
-python -m pip install matplotlib numpy
-```
-
-> [!NOTE]
-> This allows you to use ````python {.execute}` code blocks that execute and display results or plots in your PDF.
 
 ## VS Code Setup
 
