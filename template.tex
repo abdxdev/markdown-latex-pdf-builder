@@ -41,8 +41,8 @@
 \usepackage[none]{hyphenat}
 \usepackage{titlesec}
 \usepackage{datetime}
+\settimeformat{ampmtime}
 \sloppy
-
 
 % ============================================================
 % COLOR DEFINITIONS
@@ -219,6 +219,9 @@
     width=0.9\textwidth
 }
 
+% ============================================================
+% CUSTOM COMMANDS
+% ============================================================
 
 \newcommand{\kbdkey}[1]{\kbdkeybox{#1}}
 \newcommand{\kbdplus}{\,{\small +}\,}
@@ -239,6 +242,15 @@
     \hspace{0.4em}
 }
 
+\newcommand{\creditblock}{%
+    \begin{center}
+        \includegraphics[width=2.5cm]{credit-sign.pdf}\par
+        \footnotesize
+            \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
+            Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com?subject=Report for \assignmenttitle&body=I want to talk about \assignmenttitle}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133?text=I want to talk about \assignmenttitle}{+92 312 4996133} \\
+            \color{gray}\textit{Compiled on: \today\ at \currenttime}
+    \end{center}%
+}
 
 \renewcommand{\markdownRendererTickedBox}{\mdcheckboxchecked}
 \renewcommand{\markdownRendererUntickedBox}{\mdcheckboxunchecked}
@@ -628,11 +640,9 @@
 \fi
 
 \ifnum\titleTemplate=3
-    % Mode 3: Modern title on separate page at top (like mode 2, but on dedicated page)
     \thispagestyle{empty}
     \begin{center}
         \vspace*{1cm}
-        % Main title with gradient-like effect using shadow
         \begin{tcolorbox}[
             enhanced,
             colback=titleBoxBg,
@@ -653,17 +663,9 @@
         \end{tcolorbox}
     \end{center}
     \vspace*{\fill}
-    
-    % Include credits at bottom of title page if enabled
     \ifenablelastpagecredits
     \vfill
-    \begin{center}
-        \includegraphics[width=2.5cm]{credit-sign.pdf}\par
-        \footnotesize
-            \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
-            Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133}{+92 312 4996133} \\
-            \color{gray}\textit{Compiled on: \today\ at \currenttime}
-        \end{center}
+    \creditblock
     \fi
     
     \clearpage
@@ -712,18 +714,10 @@
 \end{center}
 \vspace*{\fill}
 \fi
-
-% Only show credits at end if not using title template 3 (which shows them on title page)
 \ifnum\titleTemplate=3\else
 \ifenablelastpagecredits
 \vfill
-\begin{center}
-    \includegraphics[width=2.5cm]{credit-sign.pdf}\par
-    \footnotesize
-        \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
-        Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133}{+92 312 4996133} \\
-        \color{gray}\textit{Compiled on: \today\ at \currenttime}
-    \end{center}
+\creditblock
 \fi
 \fi
 
