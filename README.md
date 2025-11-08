@@ -78,7 +78,8 @@ Invoke-Expression "${Tlmgr} postaction install script xetex"
 #### Step 2: Install LaTeX packages
 
 ```powershell
-tlmgr install adjustbox amsfonts amsmath booktabs csvsimple endnotes etoolbox fancyhdr float fontspec footmisc geometry grfext hyperref hyphenat lineno listings lua-ul luaotfload markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote xcolor
+tlmgr update --self
+tlmgr install adjustbox amsfonts amsmath booktabs csvsimple datetime endnotes etoolbox fancyhdr float fmtcount fontspec footmisc geometry grfext hyperref hyphenat lineno listings lua-ul luaotfload markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote xcolor
 ```
 
 #### Step 3: Install Pygments
@@ -197,3 +198,13 @@ Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
 ```powershell
 Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
 ```
+
+## Tested Environments
+
+This tool was tested on:
+
+- Windows 11.
+- Command runner v0.0.124
+- Python 3.13.3
+- TinyTeX 0.57
+- tlmgr 76773

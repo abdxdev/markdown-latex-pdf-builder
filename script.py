@@ -570,10 +570,20 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
     - .hide-code - Explicitly hide the source code
     - .hide-output - Hide execution output/plot
     """
+    protected_blocks = []
+    
+    def store_protected_block(match):
+        protected_blocks.append(match.group(0))
+        return f"__PROTECTED_PYTHON_BLOCK_{len(protected_blocks)-1}__"
+    
+    content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
+    
     pattern = r"```python\s+\{([^}]+)\}\n(.*?)\n```"
     
     total_blocks = len(re.findall(pattern, content, flags=re.DOTALL))
     if total_blocks == 0:
+        for i, block in enumerate(protected_blocks):
+            content = content.replace(f"__PROTECTED_PYTHON_BLOCK_{i}__", block)
         return content
     Logger.info(f"Processing {total_blocks} executable Python block(s)...", persist=False)
     
@@ -677,9 +687,12 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             if show_code:
                 return f"```python\n{code}\n```\n\n```output\nError: {str(e)}\n```"
             else:
-                return f"```output\nError: {str(e)}\n```"
-    
+                return f"```output\nError: {str(e)}\n```"    
     processed_content = re.sub(pattern, execute_python_block, content, flags=re.DOTALL)
+    
+    # Restore protected blocks
+    for i, block in enumerate(protected_blocks):
+        processed_content = processed_content.replace(f"__PROTECTED_PYTHON_BLOCK_{i}__", block)
     
     if total_blocks > 0:
         Logger.info(f"Completed {total_blocks} Python block(s)", persist=True)
