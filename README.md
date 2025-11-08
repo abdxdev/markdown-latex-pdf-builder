@@ -112,6 +112,7 @@ Download Notes Maker to your user AppData folder:
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
 Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
 Remove-Item "$env:TEMP\main.zip"
+Copy-Item "$env:APPDATA\Notes Maker\notes-maker-main\default.json" "$env:APPDATA\Notes Maker\default.json"
 ```
 
 #### Step 5 (Optional): Install Mermaid CLI for diagram support
@@ -164,7 +165,6 @@ You can edit the default settings for document generation by modifying the `defa
 Run this command to open it in VS Code:
 
 ```powershell
-Copy-Item "$env:APPDATA\Notes Maker\notes-maker-main\default.json" "$env:APPDATA\Notes Maker\default.json"
 code "$env:APPDATA\Notes Maker\default.json"
 ```
 
