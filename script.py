@@ -25,7 +25,7 @@ import hashlib
 import tempfile
 import os
 
-PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
+PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
 SUPPRESS_HYBRID_WARNING = True
 
@@ -124,11 +124,10 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     if title_template < 0 or title_template > 3:
         title_template = 1
     title_template_cmd = f"\\renewcommand{{\\titleTemplate}}{{{title_template}}}"
-
     enable_content = bool(meta.get("enableContentPage"))
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
 
-    enable_credits = bool(meta.get("enableLastPageCredits", False))
+    enable_credits = bool(meta.get("enablePageCredits", False))
     last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"
 
     enable_footnotes_at_end = bool(meta.get("moveFootnotesToEnd"))
@@ -141,11 +140,10 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@SUBTITLE@@": meta.get("subtitle", ""),
         "@@SUBMITTEDTO@@": to_value,
         "@@AUTHORS@@": authors_block,
-        "@@DATE@@": meta.get("date", ""),
-        "@@INPUT_FILE@@": md_path.name,
+        "@@DATE@@": meta.get("date", ""),        "@@INPUT_FILE@@": md_path.name,
         "@@TITLE_TEMPLATE@@": title_template_cmd,
         "@@ENABLE_CONTENT_PAGE@@": content_page_toggle,
-        "@@ENABLE_LAST_PAGE_CREDITS@@": last_page_credits_toggle,
+        "@@ENABLE_PAGE_CREDITS@@": last_page_credits_toggle,
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
         "@@ENABLE_THATS_ALL_PAGE@@": thats_all_toggle,
         "@@UNIVERSITY@@": meta.get("university", ""),

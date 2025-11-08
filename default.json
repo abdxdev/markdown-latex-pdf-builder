@@ -1,17 +1,18 @@
 {
   "university": "University of Engineering and Technology",
   "department": "Department of Computer Science",
-  "title": "Assignment Name",
-  "subtitle": "Subject Name",
+  "title": "Document Title",
+  "subtitle": "Course Name",
   "submittedby": [
     {
       "name": "Student Name",
-      "roll": "Roll Number"
+      "roll": "Registration Number"
     }
   ],
-  "submittedto": "Instructor Name",
+  "submittedto": "Professor Name",
   "titleTemplate": 1,
   "enableContentPage": false,
+  "enablePageCredits": false,
   "moveFootnotesToEnd": false,
   "enableThatsAllPage": false
 }

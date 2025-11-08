@@ -344,10 +344,10 @@
 
 @@ENABLE_CONTENT_PAGE@@
 
-\newif\ifenablelastpagecredits
-\enablelastpagecreditstrue
+\newif\ifenablepagecredits
+\enablepagecreditstrue
 
-@@ENABLE_LAST_PAGE_CREDITS@@
+@@ENABLE_PAGE_CREDITS@@
 
 \newif\ifenablefootnotesatend
 \enablefootnotesatendfalse
@@ -582,11 +582,10 @@
     \centering
     {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
     \vspace{0.4cm}
-    {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
-  \end{tcolorbox}
+    {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}  \end{tcolorbox}
 \end{center}
 \vspace*{\fill}
-\ifenablelastpagecredits
+\ifenablepagecredits
 \vfill
 \creditblock
 \fi
@@ -636,7 +635,7 @@
 \vspace*{\fill}
 \fi
 \ifnum\titleTemplate=3\else
-\ifenablelastpagecredits
+\ifenablepagecredits
 \vfill
 \creditblock
 \fi
