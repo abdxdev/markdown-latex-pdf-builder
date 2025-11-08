@@ -1,7 +1,4 @@
-
-
 \documentclass[a4paper,twoside]{article}
-
 
 \usepackage{fontspec}
 \usepackage[margin=1in]{geometry}
@@ -19,6 +16,13 @@
 \usepackage{adjustbox}
 \usepackage{etoolbox}
 \usepackage[most]{tcolorbox}
+\usepackage{endnotes}
+\usepackage[normalem]{ulem}
+\usepackage{soul}
+\usepackage[bottom,hang]{footmisc}
+\usepackage[none]{hyphenat}
+\usepackage{titlesec}
+\usepackage{datetime}
 \usepackage[cache=true,cachedir=.]{minted}
 \usepackage[
     contentBlocks,
@@ -34,13 +38,7 @@
     hybrid,
     taskLists,
 ]{markdown}
-\usepackage{endnotes}
-\usepackage[normalem]{ulem}
-\usepackage{soul}
-\usepackage[bottom,hang]{footmisc}
-\usepackage[none]{hyphenat}
-\usepackage{titlesec}
-\usepackage{datetime}
+
 \settimeformat{ampmtime}
 \sloppy
 
@@ -359,13 +357,13 @@
 }
 
 
-\setmonofont{JetBrainsMonoNL}[
+\setmonofont{JetBrainsMono}[
     Path=fonts/,
     Extension=.ttf,
     UprightFont=*-Regular,
-    BoldFont=*-Regular,
-    ItalicFont=*-Regular,
-    BoldItalicFont=*-Regular
+    BoldFont=*-Bold,
+    ItalicFont=*-Italic,
+    BoldItalicFont=*-Bold-Italic,
 ]
 
 
