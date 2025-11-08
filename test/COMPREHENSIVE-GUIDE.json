@@ -1,0 +1,19 @@
+{
+  "university": "University of Engineering and Technology",
+  "department": "Department of Computer Science",
+  "title": "Document Title",
+  "subtitle": "Course Name",
+  "submittedby": [
+    {
+      "name": "Student Name",
+      "roll": "Registration Number"
+    }
+  ],
+  "submittedto": "Professor Name",
+  "titleTemplate": 0,
+  "enableContentPage": false,
+  "enablePageCredits": false,
+  "moveFootnotesToEnd": false,
+  "enableThatsAllPage": false,
+  "date": "November 09, 2025"
+}

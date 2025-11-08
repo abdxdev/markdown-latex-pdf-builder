@@ -65,6 +65,8 @@ Open PowerShell (Terminal on Windows 11) and run these commands:
 
 #### Step 1: Download and install TinyTeX
 
+Install TinyTeX to your user AppData folder:
+
 ```powershell
 wget "https://github.com/rstudio/tinytex-releases/releases/download/daily/TinyTeX-1.zip" -OutFile "$env:TEMP\TinyTeX.zip"
 Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDATA
@@ -74,19 +76,29 @@ tlmgr path add
 tlmgr option repository ctan
 tlmgr postaction install script xetex
 ```
-<!-- # $Tlmgr = "$env:APPDATA\TinyTeX\bin\windows\tlmgr.bat"
-# Invoke-Expression "${Tlmgr} path add"
-# Invoke-Expression "${Tlmgr} option repository ctan"
-# Invoke-Expression "${Tlmgr} postaction install script xetex" -->
 
 #### Step 2: Install LaTeX packages
+
+Install required LaTeX packages using `tlmgr`:
 
 ```powershell
 tlmgr update --self
 tlmgr install adjustbox csvsimple datetime endnotes fancyhdr fmtcount footmisc grfext hyphenat lineno listings lua-ul markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote
 ```
 
+> [!NOTE]
+>
+> 1. If you encounter "The term 'tlmgr' is not recognized" errors, try running the following command to get the correct path:
+>
+>    ```powershell
+>    "$env:APPDATA\TinyTeX\bin\windows\"
+>    ```
+>
+> 2. Then manually add the output path to your system PATH variable.
+
 #### Step 3: Install Pygments
+
+Install the Pygments syntax highlighter for code blocks:
 
 ```powershell
 python -m pip install Pygments
@@ -94,16 +106,28 @@ python -m pip install Pygments
 
 #### Step 4: Download Notes Maker
 
+Download Notes Maker to your user AppData folder:
+
 ```powershell
-wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
-Expand-Archive -Force -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
-Remove-Item "$env:APPDATA\main.zip"
+wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
+Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
+Remove-Item "$env:TEMP\main.zip"
 ```
 
 #### Step 5 (Optional): Install Mermaid CLI for diagram support
 
+Install Mermaid CLI globally using npm:
+
 ```powershell
 npm install -g @mermaid-js/mermaid-cli
+```
+
+#### Step 6: Verify installation
+
+Run this command to test Notes Maker with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
+
+```powershell
+python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes Maker\notes-maker-main\test\COMPREHENSIVE-GUIDE.md" --show
 ```
 
 ## VS Code Setup
@@ -115,7 +139,7 @@ npm install -g @mermaid-js/mermaid-cli
    ```jsonc
    // ...other settings...,
    "command-runner.commands": {
-       "Build LaTeX Document": "python \"$env:APPDATA\\notes-maker-main\\script.py\" \"${file}\""
+       "Build LaTeX Document": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\""
    }
    ```
 
@@ -140,10 +164,10 @@ You can edit the default settings for document generation by modifying the `defa
 Run this command to open it in VS Code:
 
 ```powershell
-code $env:APPDATA\notes-maker-main\default.json
+Copy-Item "$env:APPDATA\Notes Maker\notes-maker-main\default.json" "$env:APPDATA\Notes Maker\default.json"
+code "$env:APPDATA\Notes Maker\default.json"
 ```
 
-Edit values such as the university name, department, title, and other settings.  
 The next time you generate a document, it will use the updated defaults.
 
 ## Changing the University Logo
@@ -151,7 +175,7 @@ The next time you generate a document, it will use the updated defaults.
 To replace the default logo, open the script directory:
 
 ```powershell
-explorer $env:APPDATA\notes-maker-main\
+explorer $env:APPDATA\Notes Maker\notes-maker-main\
 ```
 
 Replace the existing `uni-logo.pdf` file with your logo file (use the same name).
@@ -163,10 +187,10 @@ To update Notes Maker, run these commands in PowerShell:
 #### Step 1: Remove old version and download the latest
 
 ```powershell
-Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
-wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:APPDATA\main.zip"
-Expand-Archive -Path "$env:APPDATA\main.zip" -DestinationPath "$env:APPDATA"
-Remove-Item "$env:APPDATA\main.zip"
+Remove-Item "$env:APPDATA\Notes Maker\notes-maker-main" -Recurse -Force
+wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
+Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
+Remove-Item "$env:TEMP\main.zip"
 ```
 
 #### Step 2: Reinstall LaTeX packages
@@ -189,7 +213,7 @@ Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
 #### Step 2: Remove Notes Maker
 
 ```powershell
-Remove-Item "$env:APPDATA\notes-maker-main" -Recurse -Force
+Remove-Item "$env:APPDATA\Notes Maker" -Recurse -Force
 ```
 
 ## Tested Environments

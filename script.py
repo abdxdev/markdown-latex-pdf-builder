@@ -1,7 +1,10 @@
 """Build PDF from a markdown file using template.tex template with JSON metadata.
 
 Usage:
-    python script.py path/to/templatexyz.md
+    python script.py path/to/templatexyz.md [--show]
+
+Options:
+    --show    Open the generated PDF file after successful build
 
 Steps:
 1. Validate markdown path.
@@ -14,6 +17,7 @@ Steps:
 """
 
 from __future__ import annotations
+import argparse
 import json
 import shutil
 import subprocess
@@ -78,13 +82,31 @@ def err(msg: str):
     Logger.error(msg)
 
 
+def is_similar_json(s1: dict, s2: dict) -> bool:
+    """Check if two JSON objects have the same keys with matching data types."""
+    if s1.keys() != s2.keys():
+        return False
+    for key in s1.keys():
+        if type(s1[key]) != type(s2[key]):
+            return False
+    return True
+
+
 def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
     """Load metadata JSON file, creating default if missing."""
     meta_path = md_dir / f"{md_base}.json"
     if not meta_path.exists():
-        default = json.load(open(script_root / "default.json"))
-        default["date"] = datetime.now().strftime("%B %d, %Y")
-        meta_path.write_text(json.dumps(default, indent=2), encoding="utf-8")
+
+        json_file = json.load(open(script_root / "default.json"))
+        if (script_root.parent / "default.json").exists():
+            modified_default = json.load(open(script_root.parent / "default.json"))
+            if is_similar_json(json_file, modified_default):
+                json_file = modified_default
+            else:
+                shutil.copy(script_root / "default.json", script_root.parent)
+
+        json_file["date"] = datetime.now().strftime("%B %d, %Y")
+        meta_path.write_text(json.dumps(json_file, indent=2), encoding="utf-8")
         Logger.warning(f"Created {md_base}.json")
 
     try:
@@ -689,15 +711,49 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
 
     if total_blocks > 0:
         Logger.info(f"Completed {total_blocks} Python block(s)", persist=True)
-
     return processed_content
 
 
+def open_pdf_file(pdf_path: Path):
+    """Open PDF file using the default system application."""
+    try:
+        if os.name == "nt":  # Windows
+            os.startfile(str(pdf_path))
+        elif os.name == "posix":  # macOS and Linux
+            if sys.platform == "darwin":  # macOS
+                subprocess.run(["open", str(pdf_path)], check=False)
+            else:  # Linux
+                subprocess.run(["xdg-open", str(pdf_path)], check=False)
+        else:
+            Logger.warning(f"Cannot open PDF on this platform: {os.name}")
+            return False
+        return True
+    except Exception as e:
+        Logger.warning(f"Failed to open PDF: {e}")
+        return False
+
+
 def main():
-    if len(sys.argv) != 2:
-        err("Usage: python script.py path/to/file.md")
-        sys.exit(1)
-    md_path = Path(sys.argv[1]).expanduser().resolve()
+    parser = argparse.ArgumentParser(
+        description="Build PDF from a markdown file using template.tex template with JSON metadata.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Steps:
+1. Validate markdown path.
+2. Ensure metadata.json exists (create default if missing).
+3. Create build directory _build_<basename> next to markdown.
+4. Copy template (template.tex), fonts/, uni-logo.pdf, markdown file, metadata.json into build dir.
+5. Replace placeholders in template.tex: @@TITLE@@, @@SUBTITLE@@, @@SUBMITTEDTO@@, @@AUTHORS@@, @@DATE@@.
+6. Run: lualatex --shell-escape -synctex=1 -interaction=nonstopmode -file-line-error template.tex
+7. Move template.pdf to <basename>.pdf next to markdown.
+        """,
+    )
+    parser.add_argument("markdown_file", help="Path to the markdown file to process")
+    parser.add_argument("--show", action="store_true", help="Open the generated PDF file after successful build")
+
+    args = parser.parse_args()
+
+    md_path = Path(args.markdown_file).expanduser().resolve()
     if not md_path.exists():
         err(f"Markdown file not found: {md_path}")
         sys.exit(1)
@@ -750,7 +806,6 @@ def main():
 
     copy_image_assets(md_path, build_dir, md_dir)
     replace_placeholders(md_path, build_dir / "template.tex", meta)
-
     try:
         rc, produced, pdf_path = run_lualatex(build_dir)
     except BuildError as e:
@@ -769,6 +824,14 @@ def main():
             Logger.warning(f"Exit {rc}, PDF: {target_pdf}")
         else:
             Logger.success(f"PDF: {target_pdf}")
+
+        if args.show:
+            Logger.info("Opening PDF file...")
+            if open_pdf_file(target_pdf):
+                Logger.success("PDF opened successfully")
+            else:
+                Logger.warning("Could not open PDF automatically")
+
         sys.exit(0)
     else:
         err(f"LuaLaTeX failed (exit code {rc}) and no PDF produced.")
