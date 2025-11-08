@@ -25,18 +25,18 @@
 \usepackage{datetime}
 \usepackage[cache=true,cachedir=.]{minted}
 \usepackage[
-    contentBlocks,
-    rawAttribute,
-    texMathDollars,
-    pipeTables,
-    fencedCode,
-    strikeThrough,
-    superscripts,
-    subscripts,
-    inlineNotes,
-    definitionLists,
-    hybrid,
-    taskLists,
+  contentBlocks,
+  rawAttribute,
+  texMathDollars,
+  pipeTables,
+  fencedCode,
+  strikeThrough,
+  superscripts,
+  subscripts,
+  inlineNotes,
+  definitionLists,
+  hybrid,
+  taskLists,
 ]{markdown}
 
 \settimeformat{ampmtime}
@@ -93,12 +93,11 @@
 % ============================================================
 
 \newcommand{\inlinecode}[1]{
-    \begingroup
-    \setlength{\fboxsep}{2pt}
-    \colorbox{inlineCodeBg}{\ttfamily\color{inlineCodeFg}#1}
-    \endgroup   
+  \begingroup
+  \setlength{\fboxsep}{2pt}
+  \colorbox{inlineCodeBg}{\ttfamily\color{inlineCodeFg}#1}
+  \endgroup
 }
-
 
 \newcommand{\mdstrikethrough}[1]{\sout{#1}}
 \newcommand{\mdhighlight}[1]{\colorbox{highlightBg}{#1}}
@@ -120,101 +119,47 @@
   sharp corners
 }
 
-\newtcolorbox{mdalertnote}{
-  enhanced,
-  breakable,
-  colback=alertNoteBg,
-  colframe=alertNoteBorder,
-  boxrule=1pt,
-  left=13pt,
-  right=10pt,
-  top=26pt,
-  bottom=10pt,
-  boxsep=0pt,
-  sharp corners,
-  borderline west={3pt}{0pt}{alertNoteBorder},
-  overlay={\node[anchor=north west,font=\bfseries,text=alertNoteBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {NOTE};}
+% Functional alert box generator
+\newcommand{\createalertbox}[4]{%
+  \newtcolorbox{#1}{
+    enhanced,
+    breakable,
+    colback=#2,
+    colframe=#3,
+    boxrule=1pt,
+    left=13pt,
+    right=10pt,
+    top=26pt,
+    bottom=10pt,
+    boxsep=0pt,
+    sharp corners,
+    borderline west={3pt}{0pt}{#3},
+    overlay={\node[anchor=north west,font=\bfseries,text=#3] at ([xshift=10pt,yshift=-8pt]frame.north west) {#4};}
+  }
 }
 
-\newtcolorbox{mdalerttip}{
-  enhanced,
-  breakable,
-  colback=alertTipBg,
-  colframe=alertTipBorder,
-  boxrule=1pt,
-  left=13pt,
-  right=10pt,
-  top=26pt,
-  bottom=10pt,
-  boxsep=0pt,
-  sharp corners,
-  borderline west={3pt}{0pt}{alertTipBorder},
-  overlay={\node[anchor=north west,font=\bfseries,text=alertTipBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {TIP};}
-}
-
-\newtcolorbox{mdalertimportant}{
-  enhanced,
-  breakable,
-  colback=alertImportantBg,
-  colframe=alertImportantBorder,
-  boxrule=1pt,
-  left=13pt,
-  right=10pt,
-  top=26pt,
-  bottom=10pt,
-  boxsep=0pt,
-  sharp corners,
-  borderline west={3pt}{0pt}{alertImportantBorder},
-  overlay={\node[anchor=north west,font=\bfseries,text=alertImportantBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {IMPORTANT};}
-}
-
-\newtcolorbox{mdalertwarning}{
-  enhanced,
-  breakable,
-  colback=alertWarningBg,
-  colframe=alertWarningBorder,
-  boxrule=1pt,
-  left=13pt,
-  right=10pt,
-  top=26pt,
-  bottom=10pt,
-  boxsep=0pt,
-  sharp corners,
-  borderline west={3pt}{0pt}{alertWarningBorder},
-  overlay={\node[anchor=north west,font=\bfseries,text=alertWarningBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {WARNING};}
-}
-
-\newtcolorbox{mdalertcaution}{
-  enhanced,
-  breakable,
-  colback=alertCautionBg,
-  colframe=alertCautionBorder,
-  boxrule=1pt,
-  left=13pt,
-  right=10pt,
-  top=26pt,
-  bottom=10pt,
-  boxsep=0pt,
-  sharp corners,
-  borderline west={3pt}{0pt}{alertCautionBorder},
-  overlay={\node[anchor=north west,font=\bfseries,text=alertCautionBorder] at ([xshift=10pt,yshift=-8pt]frame.north west) {CAUTION};}
-}
+% Create all alert boxes using the functional approach
+\createalertbox{mdalertnote}{alertNoteBg}{alertNoteBorder}{NOTE}
+\createalertbox{mdalerttip}{alertTipBg}{alertTipBorder}{TIP}
+\createalertbox{mdalertimportant}{alertImportantBg}{alertImportantBorder}{IMPORTANT}
+\createalertbox{mdalertwarning}{alertWarningBg}{alertWarningBorder}{WARNING}
+\createalertbox{mdalertcaution}{alertCautionBg}{alertCautionBorder}{CAUTION}
 
 \newtcbox{\kbdkeybox}{
-    enhanced,
-    on line,
-    arc=2pt,
-    colback=keyBg,
-    colframe=keyBorder,
-    boxrule=0.5pt,
-    left=3pt,
-    right=3pt,
-    top=2pt,
-    bottom=2pt,
-    boxsep=0pt,
-    before upper={\small\ttfamily},
-    shadow={0mm}{-0.5mm}{0mm}{keyBorder},
-    width=0.9\textwidth
+  enhanced,
+  on line,
+  arc=2pt,
+  colback=keyBg,
+  colframe=keyBorder,
+  boxrule=0.5pt,
+  left=3pt,
+  right=3pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  before upper={\small\ttfamily},
+  shadow={0mm}{-0.5mm}{0mm}{keyBorder},
+  width=0.9\textwidth
 }
 
 % ============================================================
@@ -226,163 +171,154 @@
 \newcommand{\kbdminus}{\,{\small -}\,}
 \newcommand{\kbdshortcut}[1]{#1}
 
+% Functional code block wrapper
+% #1 = file path to input
+% #2 = language (can be empty)
+% #3 = top padding (5pt or 20pt)
+% #4 = whether to show overlay label (true/false)
+\newcommand{\codeblockwrapper}[4]{%
+  \begin{tcolorbox}[
+      enhanced,
+      colback=codeBlockBg,
+      colframe=codeBlockBorder,
+      boxrule=0pt,
+      arc=3pt,
+      left=5pt,
+      right=5pt,
+      top=#3,
+      bottom=5pt,
+      breakable,
+      overlay={%
+        \ifstrequal{#4}{true}{%
+          \node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#2};%
+        }{}%
+      }
+    ]%
+    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#2}{#1}%
+  \end{tcolorbox}%
+}
+
+\newcommand{\codeblockplain}[1]{%
+  \begin{tcolorbox}[
+      colback=codeBlockBg,
+      colframe=codeBlockBorder,
+      boxrule=0pt,
+      arc=3pt,
+      left=5pt,
+      right=5pt,
+      top=5pt,
+      bottom=5pt,
+      breakable
+    ]%
+    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
+  \end{tcolorbox}%
+}
 
 \newcommand{\mdcheckboxchecked}{
-    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) to (0.7ex,0.5ex) to (1.5ex,1.3ex);}
-    \hspace{0.4em}
+  \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \draw[line width=1.4pt] (0.3ex,0.9ex) to (0.7ex,0.5ex) to (1.5ex,1.3ex);}
+  \hspace{0.4em}
 }
 \newcommand{\mdcheckboxunchecked}{
-    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex);}
-    \hspace{0.4em}
+  \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex);}
+  \hspace{0.4em}
 }
 \newcommand{\mdcheckboxpartial}{
-    \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \fill[black] (0.4ex,0.4ex) rectangle (1.4ex,1.4ex);}
-    \hspace{0.4em}
+  \tikz[baseline=0.2ex]{\draw[line width=0.5pt,rounded corners=1pt] (0,0) rectangle (1.8ex,1.8ex); \fill[black] (0.4ex,0.4ex) rectangle (1.4ex,1.4ex);}
+  \hspace{0.4em}
 }
 
 \newcommand{\creditblock}{%
-    \begin{center}
-        \includegraphics[width=2.5cm]{credit-sign.pdf}\par
-        \footnotesize
-            \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
-            Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com?subject=Report for \assignmenttitle&body=I want to talk about \assignmenttitle}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133?text=I want to talk about \assignmenttitle}{+92 312 4996133} \\
-            \color{gray}\textit{Compiled on: \today\ at \currenttime}
-    \end{center}%
+  \begin{center}
+    \includegraphics[width=2.5cm]{credit-sign.pdf}\par
+    \footnotesize
+    \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
+    Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com?subject=Report for \assignmenttitle&body=I want to talk about \assignmenttitle}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133?text=I want to talk about \assignmenttitle}{+92 312 4996133} \\
+    \color{gray}\textit{Compiled on: \today\ at \currenttime}
+  \end{center}%
 }
 
 \renewcommand{\markdownRendererTickedBox}{\mdcheckboxchecked}
 \renewcommand{\markdownRendererUntickedBox}{\mdcheckboxunchecked}
 \renewcommand{\markdownRendererHalfTickedBox}{\mdcheckboxpartial}
 
-
 \markdownSetup{
-    rendererPrototypes={
-        codeSpan = {\inlinecode{#1}},
-        link = {\href{#3}{#1}},
-        blockQuoteBegin = {\begin{mdblockquote}},
-        blockQuoteEnd = {\end{mdblockquote}},
-        inlineHtmlTag = {
-            \ifstrequal{#1}{<br>}{\newline\noindent}{
-                \ifstrequal{#1}{<br/>}{\newline\noindent}{
-                    \ifstrequal{#1}{<br />}{\newline\noindent}{#1}
-                }
-            }
-        },
-        strikeThrough = {\mdstrikethrough{#1}},
-        superscript = {\textsuperscript{#1}},
-        subscript = {\textsubscript{#1}},
-        image = {%
-            \begin{figure}[H]%
-            \centering%
-            \includegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio]{#3}%
-            \ifx\empty#4\empty\else\caption{#4}\fi%
-            \end{figure}%
-        },
-        inputFencedCode = {%
-            \edef\templang{#3}%
-            \ifx\templang\empty
-                \begin{tcolorbox}[
-                    colback=codeBlockBg,
-                    colframe=codeBlockBorder,
-                    boxrule=0pt,
-                    arc=3pt,
-                    left=5pt,
-                    right=5pt,
-                    top=5pt,
-                    bottom=5pt,
-                    breakable
-                ]%
-                \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
-                \end{tcolorbox}%
-            \else
-                \def\terminallang{terminal}%
-                \ifx\templang\terminallang
-                    {%
-                    \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}%
-                    \begin{tcolorbox}[
-                        enhanced,
-                        colback=codeBlockBg,
-                        colframe=codeBlockBorder,
-                        boxrule=0pt,
-                        arc=3pt,
-                        left=5pt,
-                        right=5pt,
-                        top=20pt,
-                        bottom=5pt,
-                        breakable,
-                        overlay={\node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#3};}
-                    ]%
-                    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
-                    \end{tcolorbox}%
-                    }%
-                \else
-                    \begin{tcolorbox}[
-                        enhanced,
-                        colback=codeBlockBg,
-                        colframe=codeBlockBorder,
-                        boxrule=0pt,
-                        arc=3pt,
-                        left=5pt,
-                        right=5pt,
-                        top=20pt,
-                        bottom=5pt,
-                        breakable,
-                        overlay={\node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#3};}
-                    ]%
-                    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#3}{#1}%
-                    \end{tcolorbox}%
-                \fi
-            \fi
-        },
-        inputVerbatim = {
-            \begin{tcolorbox}[
-                colback=codeBlockBg,
-                colframe=codeBlockBorder,
-                boxrule=0pt,
-                arc=3pt,
-                left=5pt,
-                right=5pt,
-                top=5pt,
-                bottom=5pt,
-                breakable
-            ]            \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}
-            \end{tcolorbox}
-        },
-        dlBegin = {\begin{description}},
-        dlEnd = {\end{description}},
-        dlItem = {\item[#1]\mbox{}\newline},
-        dlItemEnd = {}    
-    },    
-    fencedCode = true,
+  rendererPrototypes={
+    codeSpan = {\inlinecode{#1}},
+    link = {\href{#3}{#1}},
+    blockQuoteBegin = {
+    \begin{mdblockquote}},
+      blockQuoteEnd = {
+    \end{mdblockquote}},
+    inlineHtmlTag = {
+      \ifstrequal{#1}{<br>}{\newline\noindent}{
+        \ifstrequal{#1}{<br/>}{\newline\noindent}{
+          \ifstrequal{#1}{<br />}{\newline\noindent}{#1}
+        }
+      }
+    },
+    strikeThrough = {\mdstrikethrough{#1}},
+    superscript = {\textsuperscript{#1}},
+    subscript = {\textsubscript{#1}},
+    image = {%
+      \begin{figure}[H]%
+        \centering%
+        \includegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio]{#3}%
+        \ifx\empty#4\empty\else\caption{#4}\fi%
+      \end{figure}%
+    },
+    inputFencedCode = {%
+      \edef\templang{#3}%
+      \ifx\templang\empty
+      \codeblockplain{#1}%
+      \else
+      \def\terminallang{terminal}%
+      \ifx\templang\terminallang
+      {%
+        \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}%
+        \codeblockwrapper{#1}{text}{20pt}{true}%
+      }%
+      \else
+      \codeblockwrapper{#1}{#3}{20pt}{true}%
+      \fi
+      \fi
+    },
+    inputVerbatim = {
+      \codeblockplain{#1}
+    },
+    dlBegin = {
+    \begin{description}},
+        dlEnd = {
+    \end{description}},
+    dlItem = {
+  \item[#1]\mbox{}\newline},
+    dlItemEnd = {}
+  },
+  fencedCode = true,
 }
-
 
 \setmonofont{JetBrainsMono}[
-    Path=fonts/,
-    Extension=.ttf,
-    UprightFont=*-Regular,
-    BoldFont=*-Bold,
-    ItalicFont=*-Italic,
-    BoldItalicFont=*-Bold-Italic,
+  Path=fonts/,
+  Extension=.ttf,
+  UprightFont=*-Regular,
+  BoldFont=*-Bold,
+  ItalicFont=*-Italic,
+  BoldItalicFont=*-Bold-Italic,
 ]
 
-
 \hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    filecolor=magenta,
-    urlcolor=cyan
+  colorlinks=true,
+  linkcolor=black,
+  filecolor=magenta,
+  urlcolor=cyan
 }
-
 
 \setminted{
-    frame=none,
-    breaklines=true,
-    fontsize=\footnotesize,
-    linenos=false,
-    style=default
+  frame=none,
+  breaklines=true,
+  fontsize=\footnotesize,
+  linenos=false,
+  style=default
 }
-
 
 \newcommand{\university}{@@UNIVERSITY@@}
 \newcommand{\department}{@@DEPARTMENT@@}
@@ -390,9 +326,9 @@
 \newcommand{\assignmenttitle}{@@TITLE@@}
 \newcommand{\submittedto}{@@SUBMITTEDTO@@}
 \newcommand{\submissioninfo}[1]{
-    \begin{tabular}{@{}ll@{}}
+  \begin{tabular}{@{}ll@{}}
     #1
-    \end{tabular}
+  \end{tabular}
 }
 
 % Title Template Settings
@@ -403,95 +339,89 @@
 \newcommand{\titleTemplate}{1}
 @@TITLE_TEMPLATE@@
 
-
 \newif\ifenablecontentpage
 \enablecontentpagetrue
 
 @@ENABLE_CONTENT_PAGE@@
-
 
 \newif\ifenablelastpagecredits
 \enablelastpagecreditstrue
 
 @@ENABLE_LAST_PAGE_CREDITS@@
 
-
 \newif\ifenablefootnotesatend
 \enablefootnotesatendfalse
 
 @@ENABLE_FOOTNOTES_AT_END@@
-
 
 \newif\ifenablethatsall
 \enablethatsalltrue
 
 @@ENABLE_THATS_ALL_PAGE@@
 
-
 \ifenablefootnotesatend
-    
-    \let\footnote=\endnote
-    \renewcommand{\notesname}{References}
-    
-    
-    \makeatletter
-    \renewcommand{\enoteformat}{
-        \noindent
-        \makebox[2em][l]{\@theenmark.}\hspace{0.3em}
-    }    \makeatother
-      
-    \renewcommand{\enoteheading}{
-        \thispagestyle{empty}
-        \begin{center}
-        {\Huge\bfseries\color{black}\notesname}
-        \end{center}
-        \vspace{\cftaftertoctitleskip}
-    }
-    
-    
-    \renewcommand{\enotesize}{\normalsize}
-    
-    
-    \def\enotesize{\normalsize}
-    \patchcmd{\theendnotes}{\par}{\par\vspace{0.8em}}{}{}
-\else
-    
-    \makeatletter
-    
-    \renewcommand{\footnoterule}{
-        \kern-3pt
-        {\color{footnoteRuleColor}\hrule width 3in height 0.8pt}
-        \kern 2.5pt
-    }
-    
-    
-    \setlength{\footnotesep}{1.2em}
-    
-    
-    \setlength{\footnotemargin}{1.5em}
-    
-    
-    \renewcommand{\@makefnmark}{
-        \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
-    }
-    
-    
-    \long\def\@makefntext#1{
-        \parindent 0em
-        \noindent
-        \makebox[0pt][r]{
-            \hspace{-1.5em}
-            {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
-            \hspace{0.5em}
-        }
-        {\footnotesize#1}
-    }
-    
-    
-    \renewcommand{\footnotesize}{\fontsize{9}{11}\selectfont}
-    \makeatother
-\fi
 
+\let\footnote=\endnote
+\renewcommand{\notesname}{References}
+
+
+\makeatletter
+\renewcommand{\enoteformat}{
+  \noindent
+  \makebox[2em][l]{\@theenmark.}\hspace{0.3em}
+}    \makeatother
+
+\renewcommand{\enoteheading}{
+  \thispagestyle{empty}
+  \begin{center}
+    {\Huge\bfseries\color{black}\notesname}
+  \end{center}
+  \vspace{\cftaftertoctitleskip}
+}
+
+
+\renewcommand{\enotesize}{\normalsize}
+
+
+\def\enotesize{\normalsize}
+\patchcmd{\theendnotes}{\par}{\par\vspace{0.8em}}{}{}
+\else
+
+\makeatletter
+
+\renewcommand{\footnoterule}{
+  \kern-3pt
+  {\color{footnoteRuleColor}\hrule width 3in height 0.8pt}
+  \kern 2.5pt
+}
+
+
+\setlength{\footnotesep}{1.2em}
+
+
+\setlength{\footnotemargin}{1.5em}
+
+
+\renewcommand{\@makefnmark}{
+  \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
+}
+
+
+\long\def\@makefntext#1{
+  \parindent 0em
+  \noindent
+  \makebox[0pt][r]{
+    \hspace{-1.5em}
+    {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
+    \hspace{0.5em}
+  }
+  {\footnotesize#1}
+}
+
+
+\renewcommand{\footnotesize}{\fontsize{9}{11}\selectfont}
+\makeatother
+\fi
 
 \renewcommand{\cfttoctitlefont}{\Huge\bfseries\color{black}}
 \renewcommand{\cftbeforetoctitleskip}{20pt}
@@ -509,164 +439,159 @@
 \setlength{\cftbeforesubsecskip}{8pt}
 \setlength{\cftbeforesubsubsecskip}{5pt}
 
-
 \titlecontents{section}[2em]
-    {\addvspace{1.2pc}\large\bfseries\color{black}}
-    {\contentslabel[\thecontentslabel]{2em}}
-    {}
-    {\hfill\thecontentspage}[\vspace{0.5pc}]
+{\addvspace{1.2pc}\large\bfseries\color{black}}
+{\contentslabel[\thecontentslabel]{2em}}
+{}
+{\hfill\thecontentspage}[\vspace{0.5pc}]
 
 \titlecontents{subsection}[4em]
-    {\addvspace{0.8pc}\normalsize\color{black}}
-    {\contentslabel[\thecontentslabel]{2.5em}}
-    {}
-    {\hfill\thecontentspage}
+{\addvspace{0.8pc}\normalsize\color{black}}
+{\contentslabel[\thecontentslabel]{2.5em}}
+{}
+{\hfill\thecontentspage}
 
 \titlecontents{subsubsection}[6em]
-    {\addvspace{0.5pc}\small\color{black}}
-    {\contentslabel[\thecontentslabel]{3em}}
-    {}
-    {\hfill\thecontentspage}
-
+{\addvspace{0.5pc}\small\color{black}}
+{\contentslabel[\thecontentslabel]{3em}}
+{}
+{\hfill\thecontentspage}
 
 \renewcommand{\contentsname}{
-    \vspace{-20pt}
-    \centerline{\Huge\bfseries\color{black}{Contents}}
-    \vspace{10pt}
-    \centerline{\rule{0.5\textwidth}{1pt}}
-    \vspace{15pt}
+  \vspace{-20pt}
+  \centerline{\Huge\bfseries\color{black}{Contents}}
+  \vspace{10pt}
+  \centerline{\rule{0.5\textwidth}{1pt}}
+  \vspace{15pt}
 }
-
 
 \renewcommand{\maketitle}{
-    \begin{titlepage}
-        \centering
-        \vspace*{-1cm}
-        
-        \includegraphics[width=3cm]{uni-logo.pdf}\par
-        \vspace{0.5cm}
-        {\large\scshape \university\par}
-        {\normalsize\scshape \department\par}
-        \vspace{1.5cm}
-        {\LARGE\bfseries \assignmenttitle\par}
-        \vspace{0.3cm}
-        {\color{gray}\rule{0.6\textwidth}{0.4pt}\par}
-        \vspace{0.5cm}
-        {\large{\coursename}\par}
-        \vfill
-        {
-            \large
-            \textbf{Submitted By}\par
-            \vspace{0.3cm}
-            \submissioninfo{
-                @@AUTHORS@@
-            }
-        }
-        \vfill
-        {
-            \large
-            \textbf{Submitted To}\par
-            \vspace{0.3cm}
-            \submittedto\par
-        }
-        \vfill
-        {\large @@DATE@@\par}
-    \end{titlepage}
-    \clearpage
+  \begin{titlepage}
+    \centering
+    \vspace*{-1cm}
+
+    \includegraphics[width=3cm]{uni-logo.pdf}\par
+    \vspace{0.5cm}
+    {\large\scshape \university\par}
+    {\normalsize\scshape \department\par}
+    \vspace{1.5cm}
+    {\LARGE\bfseries \assignmenttitle\par}
+    \vspace{0.3cm}
+    {\color{gray}\rule{0.6\textwidth}{0.4pt}\par}
+    \vspace{0.5cm}
+    {\large{\coursename}\par}
+    \vfill
+    {
+      \large
+      \textbf{Submitted By}\par
+      \vspace{0.3cm}
+      \submissioninfo{
+        @@AUTHORS@@
+      }
+    }
+    \vfill
+    {
+      \large
+      \textbf{Submitted To}\par
+      \vspace{0.3cm}
+      \submittedto\par
+    }
+    \vfill
+    {\large @@DATE@@\par}
+  \end{titlepage}
+  \clearpage
 }
 
-
 \titleformat{\section}
-  {\Large\bfseries}{\thesection}{1em}{}
+{\Large\bfseries}{\thesection}{1em}{}
 \titleformat{\subsection}
-  {\large\bfseries}{\thesubsection}{1em}{}
+{\large\bfseries}{\thesubsection}{1em}{}
 \titleformat{\subsubsection}
-  {\normalsize\bfseries}{\thesubsubsection}{1em}{}
+{\normalsize\bfseries}{\thesubsubsection}{1em}{}
 \titleformat{\paragraph}
-  {\normalsize\bfseries}{\theparagraph}{1em}{}
+{\normalsize\bfseries}{\theparagraph}{1em}{}
 \titleformat{\subparagraph}
-  {\small\bfseries}{\thesubparagraph}{1em}{}
-
+{\small\bfseries}{\thesubparagraph}{1em}{}
 
 \titlespacing*{\section}
-  {0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
 \titlespacing*{\subsection}
-  {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 \titlespacing*{\subsubsection}
-  {0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 \titlespacing*{\paragraph}
-  {0pt}{3.25ex plus 1ex minus .2ex}{1em}
+{0pt}{3.25ex plus 1ex minus .2ex}{1em}
 \titlespacing*{\subparagraph}
-  {0pt}{3.25ex plus 1ex minus .2ex}{1em}
+{0pt}{3.25ex plus 1ex minus .2ex}{1em}
 
 \begin{document}
 
 % Title Template Rendering
 \ifnum\titleTemplate=1
-    % Mode 1: Full university title page with logo
-    \thispagestyle{empty}
-    \maketitle
+% Mode 1: Full university title page with logo
+\thispagestyle{empty}
+\maketitle
 \fi
 
 \ifnum\titleTemplate=2
-    % Mode 2: Modern title header above content
-    \thispagestyle{empty}
-    \begin{center}
-        \vspace*{1cm}
-          % Main title with gradient-like effect using shadow
-        \begin{tcolorbox}[
-            enhanced,
-            colback=titleBoxBg,
-            colframe=titleBoxFrame,
-            boxrule=1pt,
-            arc=8pt,
-            left=20pt,
-            right=20pt,
-            top=25pt,
-            bottom=25pt,
-            shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
-            width=0.9\textwidth
-        ]
-            \centering
-            {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
-            \vspace{0.4cm}
-            {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
-        \end{tcolorbox}
-        
-        \vspace{1cm}
-    \end{center}
+% Mode 2: Modern title header above content
+\thispagestyle{empty}
+\begin{center}
+  \vspace*{1cm}
+  % Main title with gradient-like effect using shadow
+  \begin{tcolorbox}[
+      enhanced,
+      colback=titleBoxBg,
+      colframe=titleBoxFrame,
+      boxrule=1pt,
+      arc=8pt,
+      left=20pt,
+      right=20pt,
+      top=25pt,
+      bottom=25pt,
+      shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
+      width=0.9\textwidth
+    ]
+    \centering
+    {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
+    \vspace{0.4cm}
+    {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
+  \end{tcolorbox}
+
+  \vspace{1cm}
+\end{center}
 \fi
 
 \ifnum\titleTemplate=3
-    \thispagestyle{empty}
-    \begin{center}
-        \vspace*{1cm}
-        \begin{tcolorbox}[
-            enhanced,
-            colback=titleBoxBg,
-            colframe=titleBoxFrame,
-            boxrule=1pt,
-            arc=8pt,
-            left=20pt,
-            right=20pt,
-            top=25pt,
-            bottom=25pt,
-            shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
-            width=0.9\textwidth
-        ]
-            \centering
-            {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
-            \vspace{0.4cm}
-            {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
-        \end{tcolorbox}
-    \end{center}
-    \vspace*{\fill}
-    \ifenablelastpagecredits
-    \vfill
-    \creditblock
-    \fi
-    
-    \clearpage
+\thispagestyle{empty}
+\begin{center}
+  \vspace*{1cm}
+  \begin{tcolorbox}[
+      enhanced,
+      colback=titleBoxBg,
+      colframe=titleBoxFrame,
+      boxrule=1pt,
+      arc=8pt,
+      left=20pt,
+      right=20pt,
+      top=25pt,
+      bottom=25pt,
+      shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
+      width=0.9\textwidth
+    ]
+    \centering
+    {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
+    \vspace{0.4cm}
+    {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
+  \end{tcolorbox}
+\end{center}
+\vspace*{\fill}
+\ifenablelastpagecredits
+\vfill
+\creditblock
+\fi
+
+\clearpage
 \fi
 
 \ifenablecontentpage
@@ -684,31 +609,29 @@
 
 \pagestyle{fancy}
 
-
 \raggedbottom
 
-
-\AtBeginEnvironment{tabular}{\begin{adjustbox}{max width=\textwidth}}
-\AtEndEnvironment{tabular}{\end{adjustbox}}
+\AtBeginEnvironment{tabular}{
+\begin{adjustbox}{max width=\textwidth}}
+  \AtEndEnvironment{tabular}{
+\end{adjustbox}}
 
 \let\oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio,#1]{#2}}
 
 \markdownInput{@@INPUT_FILE@@}
 
-
 \ifenablefootnotesatend
 \clearpage
 \theendnotes
 \fi
-
 
 \ifenablethatsall
 \clearpage
 \thispagestyle{empty}
 \vspace*{\fill}
 \begin{center}
-    {\Huge\bfseries --- That's all for now ---}
+  {\Huge\bfseries --- That's all for now ---}
 \end{center}
 \vspace*{\fill}
 \fi
