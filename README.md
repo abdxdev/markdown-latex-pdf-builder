@@ -150,7 +150,7 @@ python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes
 
 1. Open any folder in VS Code.
 2. Create a new Markdown file (for example, `report.md`).
-3. Add your content. Visit the [Markdown Guide](https://www.markdownguide.org/) for syntax help.
+3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/notes-maker/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
 4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**.
 5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date.
 6. Re-run the build command from step 4 to generate the updated PDF.
