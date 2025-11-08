@@ -25,13 +25,8 @@ import hashlib
 import tempfile
 import os
 
-# Template placeholders that get replaced with metadata values
 PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_LAST_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
-
-# Supported image file extensions for asset copying
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
-
-# Flag to suppress markdown hybrid deprecation warning when it's the only output
 SUPPRESS_HYBRID_WARNING = True
 
 
@@ -41,14 +36,12 @@ class BuildError(Exception):
 
 class Logger:
     """Colored console logging utility with single-line overwriting."""
-
     COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}
     _last_length = 0
 
     @classmethod
     def _print(cls, msg: str, persist: bool = False):
         """Print message, optionally overwriting previous line."""
-        # Pad message to clear previous longer messages
         padding = max(0, cls._last_length - len(msg))
         padded_msg = msg + " " * padding
         cls._last_length = len(msg)
@@ -124,13 +117,11 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     """Replace template placeholders with metadata values."""
     content = tex_path.read_text(encoding="utf-8")
     authors_block = build_authors(meta)
-
     to_value = meta.get("submittedto", "")
 
-    # Title template mode (0=disabled, 1=full page with logo, 2=modern header, 3=simple separate page)
     title_template = int(meta.get("titleTemplate", 1))
     if title_template < 0 or title_template > 3:
-        title_template = 1  # Default to mode 1 if invalid
+        title_template = 1
     title_template_cmd = f"\\renewcommand{{\\titleTemplate}}{{{title_template}}}"
 
     enable_content = bool(meta.get("enableContentPage"))
@@ -196,7 +187,6 @@ def run_lualatex(build_dir: Path):
             final_returncode = proc.returncode
             output = proc.stdout
 
-            # Filter out the hybrid deprecation warning if it's the only warning
             lines = output.split("\n")
             filtered_lines = []
             skip_next = False
@@ -252,9 +242,7 @@ def find_markdown_images(md_path: Path) -> list[Path]:
 
 
 def convert_markdown_footnotes_to_latex(content: str) -> str:
-    # Protect code and math blocks
     content, protected_blocks = protect_code_and_math_blocks(content)
-
     footnote_defs = {}
 
     def extract_definition(match):
@@ -277,43 +265,30 @@ def convert_markdown_footnotes_to_latex(content: str) -> str:
             footnote_content = footnote_defs[label]
             return f"\\footnote{{{footnote_content}}}"
         return match.group(0)
-
     content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
 
-    # Restore protected blocks
     content = restore_protected_blocks(content, protected_blocks)
-
     return content
 
 
 def escape_signs(content: str, to_escape: list[str]) -> str:
     """Escape special characters while protecting code blocks and raw latex blocks."""
-    # Protect code blocks, math blocks, and raw latex blocks
     protected_blocks = []
 
     def store_protected_block(match):
         protected_blocks.append(match.group(0))
         return f"__ESCAPE_PROTECTED_{len(protected_blocks)-1}__"
 
-    # Protect raw latex blocks (pandoc syntax)
     content = re.sub(r"`+\{=latex\}.*?`+", store_protected_block, content, flags=re.DOTALL)
-
-    # Protect fenced code blocks (4+ backticks, then 3 backticks)
     content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
-
-    # Protect inline code
     content = re.sub(r"`[^`\n]+`", store_protected_block, content)
-
-    # Protect math blocks
     content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
 
-    # Now escape the signs
     for sign in to_escape:
         content = content.replace(sign, f"\\{sign}")
 
-    # Restore protected blocks
     for i, block in enumerate(protected_blocks):
         content = content.replace(f"__ESCAPE_PROTECTED_{i}__", block)
 
@@ -337,10 +312,7 @@ def normalize_language_identifiers(content: str) -> str:
 
 
 def find_mmdc_command():
-    """Return path to mermaid-cli (mmdc) if available in PATH.
-
-    Simplified to rely on PATH discovery for cross-platform support.
-    """
+    """Return path to mermaid-cli (mmdc) if available in PATH."""
     candidates = ["mmdc"]
     if os.name == "nt":
         candidates.insert(0, "mmdc.cmd")
@@ -357,21 +329,17 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
     if "```mermaid" not in content:
         return content
 
-    # Protect code blocks that are NOT mermaid (like ```markdown blocks containing mermaid examples)
     protected_blocks = []
 
     def store_non_mermaid_block(match):
         protected_blocks.append(match.group(0))
         return f"__PROTECTED_CODE_BLOCK_{len(protected_blocks)-1}__"
 
-    # Protect multi-backtick code blocks (4+ backticks) which contain code examples
-    # Use .*? instead of [^`]*? to match content that includes backticks
     content = re.sub(r"````+.*?````+", store_non_mermaid_block, content, flags=re.DOTALL)
 
     mmdc_cmd = find_mmdc_command()
     if mmdc_cmd is None:
         Logger.warning("Mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
-
         def mermaid_to_text(match):
             mermaid_code = match.group(1).strip()
             return f"```text\n{mermaid_code}\n```"
@@ -379,12 +347,11 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
         pattern = r"```mermaid\n(.*?)\n```"
         content = re.sub(pattern, mermaid_to_text, content, flags=re.DOTALL)
 
-        # Restore protected blocks
         for i, block in enumerate(protected_blocks):
             content = content.replace(f"__PROTECTED_CODE_BLOCK_{i}__", block)
 
         return content
-    # Count total mermaid diagrams for progress tracking
+
     total_diagrams = len(re.findall(r"```mermaid\n(.*?)\n```", content, flags=re.DOTALL))
     if total_diagrams > 0:
         Logger.info(f"Processing {total_diagrams} Mermaid diagram(s)...", persist=False)
@@ -396,7 +363,6 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
         diagram_counter += 1
         
         mermaid_code = match.group(1).strip()
-        # Create a hash of the mermaid code for caching
         diagram_hash = hashlib.md5(mermaid_code.encode("utf-8")).hexdigest()[:12]
         image_name = f"mermaid_{diagram_hash}.pdf"
         image_path = build_dir / image_name
@@ -443,11 +409,9 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
         else:
             Logger.info(f"Cached {diagram_counter}/{total_diagrams}", persist=False)
         return f"![Mermaid Diagram]({image_name})"
-
     pattern = r"```mermaid\n(.*?)\n```"
     processed_content = re.sub(pattern, replace_mermaid_block, content, flags=re.DOTALL)
 
-    # Restore protected blocks
     for i, block in enumerate(protected_blocks):
         processed_content = processed_content.replace(f"__PROTECTED_CODE_BLOCK_{i}__", block)
 
@@ -456,8 +420,6 @@ def process_mermaid_diagrams(content: str, build_dir: Path) -> str:
 
 def process_keyboard_shortcuts(content: str) -> str:
     """Convert [[KEY]] and [[KEY1] + [KEY2]] syntax to LaTeX keyboard shortcut commands."""
-
-    # Protect code and math blocks
     content, protected_blocks = protect_code_and_math_blocks(content)
 
     def convert_shortcut(match):
@@ -480,28 +442,14 @@ def process_keyboard_shortcuts(content: str) -> str:
 
         joined_latex = "".join(latex_parts)
         return f"\\kbdshortcut{{{joined_latex}}}"
-
     content = re.sub(r"\[\[(.*?)\]\]", convert_shortcut, content)
 
-    # Restore protected blocks
     content = restore_protected_blocks(content, protected_blocks)
-
     return content
 
 
 def process_github_alerts(content: str) -> str:
-    """Convert GitHub-style alert blocks to LaTeX alert environments.
-
-    Converts:
-    > [!NOTE]
-    > Content here
-
-    To a blockquote wrapped with LaTeX environment markers.
-    The content stays as a blockquote so markdown can process tables, lists, etc.
-    """
-    # Don't protect code blocks - we need to process alerts that contain code blocks
-    # The code blocks will be handled normally by markdown later
-    
+    """Convert GitHub-style alert blocks to LaTeX alert environments."""
     alert_types = {
         "NOTE": "mdalertnote",
         "TIP": "mdalerttip",
@@ -510,33 +458,19 @@ def process_github_alerts(content: str) -> str:
         "CAUTION": "mdalertcaution",
     }
 
-    # Pattern to match alert blocks:
-    # > [!TYPE]
-    # > content lines...
-    # > more content...
-    # (until we hit a blank line followed by a non-> line, or end of content)
-
-    alert_counter = [0]  # Use list to make it mutable in nested function
+    alert_counter = [0]
 
     for alert_type, latex_env in alert_types.items():
-        # Match the alert header and all subsequent lines starting with >
-        # We need to capture until we hit a blank line followed by a non-> line,
-        # OR until we hit the end of the content
         pattern = rf"^>\s*\[!{alert_type}\]\s*\n((?:>.*\n)*?)(?=\n[^>\n]|\n*$)"
 
         def replace_alert(match):
             content_lines = match.group(1)
-            
-            # Use unique placeholders that won't be processed by markdown
             alert_id = alert_counter[0]
             alert_counter[0] += 1
             
-            # Remove the > characters from each line so markdown doesn't create blockquotes
-            # This allows markdown to process tables, lists, code blocks, etc. normally inside the alert
             lines = content_lines.split('\n')
             cleaned_lines = []
             for line in lines:
-                # Remove leading > and optional space (only one space to preserve indentation)
                 if line.startswith('> '):
                     cleaned_lines.append(line[2:])
                 elif line.startswith('>'):
@@ -545,7 +479,6 @@ def process_github_alerts(content: str) -> str:
                     cleaned_lines.append(line)
             cleaned_content = '\n'.join(cleaned_lines)
             
-            # Add LaTeX environment markers before and after
             return f"__ALERT_BEGIN_{alert_id}_{latex_env}__\n\n{cleaned_content}\n\n__ALERT_END_{alert_id}_{latex_env}__\n"
 
         content = re.sub(pattern, replace_alert, content, flags=re.MULTILINE)
@@ -554,23 +487,15 @@ def process_github_alerts(content: str) -> str:
 
 
 def post_process_alerts(content: str) -> str:
-    """Convert alert placeholders to raw LaTeX blocks after markdown processing.
-    
-    This runs AFTER markdown processing. Since we removed the > characters before
-    markdown processing, there are no blockquote environments to strip.
-    We simply replace the placeholders with the LaTeX alert environments.
-    """
+    """Convert alert placeholders to raw LaTeX blocks after markdown processing."""
     def replace_begin(match):
         env_name = match.group(1)
-        # Insert raw LaTeX to begin the alert environment
         return f"\\begin{{{env_name}}}"
     
     def replace_end(match):
         env_name = match.group(1)
-        # Insert raw LaTeX to end the alert environment
         return f"\\end{{{env_name}}}"
     
-    # Replace the alert markers with LaTeX environments
     content = re.sub(r"__ALERT_BEGIN_\d+_([a-z]+)__", replace_begin, content)
     content = re.sub(r"__ALERT_END_\d+_([a-z]+)__", replace_end, content)
     
@@ -578,26 +503,17 @@ def post_process_alerts(content: str) -> str:
 
 
 def protect_code_and_math_blocks(content: str) -> tuple[str, list[str]]:
-    """Temporarily replace code blocks and math blocks with placeholders.
-    Returns the modified content and a list of protected blocks."""
+    """Temporarily replace code blocks and math blocks with placeholders."""
     protected_blocks = []
 
     def store_protected_block(match):
         protected_blocks.append(match.group(0))
         return f"__PROTECTED_PLACEHOLDER_{len(protected_blocks)-1}__"
 
-    # Protect fenced code blocks (```...```) and (````...````) - must be done before inline code
-    # Match 4 or more backticks first, then 3 backticks
     content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
-
-    # Protect inline code blocks (`...`)
     content = re.sub(r"`[^`\n]+`", store_protected_block, content)
-
-    # Protect display math blocks ($$...$$)
     content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
-
-    # Protect inline math blocks ($...$) - single line only
     content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
 
     return content, protected_blocks
@@ -611,20 +527,15 @@ def restore_protected_blocks(content: str, protected_blocks: list[str]) -> str:
 
 
 def apply_markdown_formatting_math_safe(content: str) -> str:
-    """Apply markdown formatting while protecting LaTeX math blocks and code blocks from modification."""
-
-    # Protect code and math blocks
+    """Apply markdown formatting while protecting LaTeX math blocks and code blocks."""
     content, protected_blocks = protect_code_and_math_blocks(content)
 
-    # Now safely apply formatting to non-protected content
     content = re.sub(r"==([^=\n]+)==", r"\\mdhighlight{\1}", content)
     content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
     content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", content)
     content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
 
-    # Restore protected blocks
     content = restore_protected_blocks(content, protected_blocks)
-
     return content
 
 
@@ -634,10 +545,8 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
         return
     for img in images:
         try:
-            # Recreate relative structure from markdown dir
             rel = img.relative_to(root_md_dir)
         except ValueError:
-            # Image outside markdown dir; flatten
             rel = Path(img.name)
 
         dest = build_dir / rel
@@ -647,6 +556,135 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
                 shutil.copy(img, dest)
             except Exception as e:
                 err(f"Failed to copy image {img}: {e}")
+
+
+def process_executable_python_blocks(content: str, build_dir: Path) -> str:
+    """Execute Python code blocks with property-based control.
+    
+    Syntax: ```python {.execute .show-code .show-output}
+    
+    Properties:
+    - .execute - Execute the code block
+    - .show-code - Display the source code (default: hidden)
+    - .show-output - Display execution output/plot (default: shown)
+    - .hide-code - Explicitly hide the source code
+    - .hide-output - Hide execution output/plot
+    """
+    pattern = r"```python\s+\{([^}]+)\}\n(.*?)\n```"
+    
+    total_blocks = len(re.findall(pattern, content, flags=re.DOTALL))
+    if total_blocks == 0:
+        return content
+    Logger.info(f"Processing {total_blocks} executable Python block(s)...", persist=False)
+    
+    block_counter = 0
+    def execute_python_block(match):
+        nonlocal block_counter
+        block_counter += 1
+        
+        properties_str = match.group(1)
+        properties = set(prop.strip() for prop in properties_str.split())
+        
+        if '.execute' not in properties:
+            return match.group(0)
+        
+        code = match.group(2)
+        
+        show_code = '.show-code' in properties and '.hide-code' not in properties
+        show_output = '.hide-output' not in properties
+        
+        code_hash = hashlib.md5(code.encode("utf-8")).hexdigest()[:12]
+        
+        has_matplotlib = "matplotlib" in code or "plt." in code
+        try:
+            if has_matplotlib:
+                plot_filename = f"python_plot_{code_hash}.pdf"
+                plot_path = build_dir / plot_filename
+                
+                wrapped_code = code.replace("plt.show()", "")
+                wrapped_code += f"\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()"
+                
+                result = subprocess.run(
+                    ["python", "-c", wrapped_code],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    check=False
+                )
+                
+                if result.returncode != 0:
+                    Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
+                    error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                    parts = []
+                    if show_code:
+                        parts.append(f"```python\n{code}\n```")
+                    parts.append(f"```output\nError executing code:\n{error_msg}\n```")
+                    return "\n\n".join(parts)
+                
+                if plot_path.exists():
+                    Logger.info(f"Generated plot {block_counter}/{total_blocks}", persist=False)
+                    parts = []
+                    if show_code:
+                        parts.append(f"```python\n{code}\n```")
+                    if show_output:
+                        parts.append(f"![Python Plot]({plot_filename})")
+                    return "\n\n".join(parts) if parts else ""
+                else:
+                    Logger.warning(f"Plot file not created {block_counter}/{total_blocks}")
+                    parts = []
+                    if show_code:
+                        parts.append(f"```python\n{code}\n```")
+                    if show_output:
+                        parts.append(f"```output\nNo plot generated\n```")
+                    return "\n\n".join(parts) if parts else ""
+            else:
+                # For regular code: capture stdout
+                result = subprocess.run(
+                    ["python", "-c", code],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                    check=False
+                )
+                if result.returncode != 0:
+                    Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
+                    error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                    if show_code:
+                        return f"```python\n{code}\n```\n\n```output\nError executing code:\n{error_msg}\n```"
+                    else:
+                        return f"```output\nError executing code:\n{error_msg}\n```"
+                
+                output = result.stdout.strip()
+                Logger.info(f"Executed Python block {block_counter}/{total_blocks}", persist=False)
+                
+                parts = []
+                if show_code:
+                    parts.append(f"```python\n{code}\n```")
+                if show_output:
+                    if output:
+                        parts.append(f"```output\n{output}\n```")
+                    else:
+                        parts.append(f"```output\n(No output)\n```")
+                return "\n\n".join(parts) if parts else ""
+        except subprocess.TimeoutExpired:
+            Logger.warning(f"Python block {block_counter}/{total_blocks} timed out")
+            if show_code:
+                return f"```python\n{code}\n```\n\n```output\nExecution timed out (30s limit)\n```"
+            else:
+                return f"```output\nExecution timed out (30s limit)\n```"
+        except Exception as e:
+            Logger.warning(f"Error executing Python block {block_counter}/{total_blocks}: {str(e)}")
+            if show_code:
+                return f"```python\n{code}\n```\n\n```output\nError: {str(e)}\n```"
+            else:
+                return f"```output\nError: {str(e)}\n```"
+    
+    processed_content = re.sub(pattern, execute_python_block, content, flags=re.DOTALL)
+    
+    if total_blocks > 0:
+        Logger.info(f"Completed {total_blocks} Python block(s)", persist=True)
+    
+    return processed_content
 
 
 def main():
@@ -694,6 +732,7 @@ def main():
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = escape_signs(md_content, ["%"])
     md_content = post_process_alerts(md_content)
+    md_content = process_executable_python_blocks(md_content, build_dir)
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
     if logo.exists():

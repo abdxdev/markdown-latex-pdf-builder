@@ -50,8 +50,8 @@
 % Code Block Colors
 \definecolor{codeBlockBg}{RGB}{247,247,247}
 \definecolor{codeBlockBorder}{RGB}{208,215,222}
-\definecolor{outputCommandBg}{RGB}{232,234,237}
-\definecolor{outputCommandFg}{RGB}{0,92,197}
+\definecolor{terminalCommandBg}{RGB}{232,234,237}
+\definecolor{terminalCommandFg}{RGB}{0,92,197}
 
 % Inline Code Colors
 \definecolor{inlineCodeBg}{RGB}{247,247,247}
@@ -284,10 +284,10 @@
                 \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
                 \end{tcolorbox}%
             \else
-                \def\outputlang{output}%
-                \ifx\templang\outputlang
+                \def\terminallang{terminal}%
+                \ifx\templang\terminallang
                     {%
-                    \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{outputCommandFg}##1}\else##1\fi}%
+                    \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}%
                     \begin{tcolorbox}[
                         enhanced,
                         colback=codeBlockBg,

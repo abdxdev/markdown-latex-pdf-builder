@@ -101,6 +101,17 @@ Remove-Item "$env:APPDATA\main.zip"
 npm install -g @mermaid-js/mermaid-cli
 ```
 
+#### Step 6 (Optional): Install Python packages for executable code blocks and plots
+
+If you want to execute Python code blocks and generate matplotlib plots within your documents:
+
+```powershell
+python -m pip install matplotlib numpy
+```
+
+> [!NOTE]
+> This allows you to use ````python {.execute}` code blocks that execute and display results or plots in your PDF.
+
 ## VS Code Setup
 
 1. Open VS Code and press `Ctrl + Shift + P`.
