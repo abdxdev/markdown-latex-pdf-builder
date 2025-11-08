@@ -82,17 +82,16 @@ def err(msg: str):
     Logger.error(msg)
 
 
-def is_similar_json(s1: dict, s2: dict) -> bool:
-    """Check if two JSON objects have the same keys with matching data types."""
-    if s1.keys() != s2.keys():
-        return False
-    for key in s1.keys():
-        if type(s1[key]) != type(s2[key]):
-            return False
-    return True
-
-
 def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
+    def is_similar_json(s1: dict, s2: dict) -> bool:
+        """Check if two JSON objects have the same keys with matching data types."""
+        if s1.keys() != s2.keys():
+            return False
+        for key in s1.keys():
+            if type(s1[key]) != type(s2[key]):
+                return False
+        return True
+
     """Load metadata JSON file, creating default if missing."""
     meta_path = md_dir / f"{md_base}.json"
     if not meta_path.exists():
@@ -103,7 +102,9 @@ def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> di
             if is_similar_json(json_file, modified_default):
                 json_file = modified_default
             else:
-                shutil.copy(script_root / "default.json", script_root.parent)
+                copy_similar = {k: v for k, v in modified_default.items() if k in json_file and type(v) == type(json_file[k])}
+                json_file.update(copy_similar)
+                json.dump(json_file, open(script_root.parent / "default.json", "w"), indent=2)
 
         json_file["date"] = datetime.now().strftime("%B %d, %Y")
         meta_path.write_text(json.dumps(json_file, indent=2), encoding="utf-8")
