@@ -232,7 +232,7 @@
     \includegraphics[width=2.5cm]{credit-sign.pdf}\par
     \footnotesize
     \LaTeX{} Document by abd, more at \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
-    Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com?subject=Report for \assignmenttitle&body=I want to talk about \assignmenttitle}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133?text=I want to talk about \assignmenttitle}{+92 312 4996133} \\
+    Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com?subject=Report for \assignmenttitle\ - \assignmentsubtitle&body=I want to talk about \assignmenttitle\ - \assignmentsubtitle}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133?text=I want to talk about \assignmenttitle\ - \assignmentsubtitle}{+92 312 4996133} \\
     \color{gray}\textit{Compiled on: \today\ at \currenttime}
   \end{center}%
 }
@@ -322,8 +322,8 @@
 
 \newcommand{\university}{@@UNIVERSITY@@}
 \newcommand{\department}{@@DEPARTMENT@@}
-\newcommand{\coursename}{@@SUBTITLE@@}
 \newcommand{\assignmenttitle}{@@TITLE@@}
+\newcommand{\assignmentsubtitle}{@@SUBTITLE@@}
 \newcommand{\submittedto}{@@SUBMITTEDTO@@}
 \newcommand{\submissioninfo}[1]{
   \begin{tabular}{@{}ll@{}}
@@ -479,7 +479,7 @@
     \vspace{0.3cm}
     {\color{gray}\rule{0.6\textwidth}{0.4pt}\par}
     \vspace{0.5cm}
-    {\large{\coursename}\par}
+    {\large{\assignmentsubtitle}\par}
     \vfill
     {
       \large
@@ -555,7 +555,7 @@
     \centering
     {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
     \vspace{0.4cm}
-    {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}
+    {\fontsize{16}{20}\selectfont\color{titleSubText}\assignmentsubtitle\par}
   \end{tcolorbox}
 
   \vspace{1cm}
@@ -582,7 +582,7 @@
     \centering
     {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
     \vspace{0.4cm}
-    {\fontsize{16}{20}\selectfont\color{titleSubText}\coursename\par}  \end{tcolorbox}
+    {\fontsize{16}{20}\selectfont\color{titleSubText}\assignmentsubtitle\par}  \end{tcolorbox}
 \end{center}
 \vspace*{\fill}
 \ifenablepagecredits

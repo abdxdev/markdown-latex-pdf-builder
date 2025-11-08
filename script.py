@@ -128,7 +128,7 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
 
     enable_credits = bool(meta.get("enablePageCredits", False))
-    last_page_credits_toggle = "\\enablelastpagecreditstrue" if enable_credits else "\\enablelastpagecreditsfalse"
+    page_credits_toggle = "\\enablepagecreditstrue" if enable_credits else "\\enablepagecreditsfalse"
 
     enable_footnotes_at_end = bool(meta.get("moveFootnotesToEnd"))
     footnotes_at_end_toggle = "\\enablefootnotesatendtrue" if enable_footnotes_at_end else "\\enablefootnotesatendfalse"
@@ -140,10 +140,11 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@SUBTITLE@@": meta.get("subtitle", ""),
         "@@SUBMITTEDTO@@": to_value,
         "@@AUTHORS@@": authors_block,
-        "@@DATE@@": meta.get("date", ""),        "@@INPUT_FILE@@": md_path.name,
+        "@@DATE@@": meta.get("date", ""),
+        "@@INPUT_FILE@@": md_path.name,
         "@@TITLE_TEMPLATE@@": title_template_cmd,
         "@@ENABLE_CONTENT_PAGE@@": content_page_toggle,
-        "@@ENABLE_PAGE_CREDITS@@": last_page_credits_toggle,
+        "@@ENABLE_PAGE_CREDITS@@": page_credits_toggle,
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
         "@@ENABLE_THATS_ALL_PAGE@@": thats_all_toggle,
         "@@UNIVERSITY@@": meta.get("university", ""),
