@@ -83,40 +83,72 @@ def err(msg: str):
 
 
 def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
-    def is_similar_json(s1: dict, s2: dict) -> bool:
+    def is_similar_json(s1: dict, s2: dict, except_keys: set) -> bool:
         """Check if two JSON objects have the same keys with matching data types."""
         if s1.keys() != s2.keys():
             return False
         for key in s1.keys():
+            if key in except_keys:
+                continue
             if type(s1[key]) != type(s2[key]):
                 return False
         return True
 
+    def load_json_file(path: Path) -> dict:
+        """Safely load JSON from file."""
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def get_current_date() -> str:
+        """Get current date in the required format."""
+        return datetime.now().strftime("%B %d, %Y")
+
+    def write_metadata_with_date(data: dict, path: Path) -> None:
+        """Write metadata JSON file with current date."""
+        data["date"] = get_current_date()
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    def update_compatible_fields(target: dict, source: dict | None) -> None:
+        """Update target dict with compatible fields from source."""
+        if source is not None:
+            target.update({k: v for k, v in source.items() if k in target and type(v) == type(target[k])})
+
     """Load metadata JSON file, creating default if missing."""
     meta_path = md_dir / f"{md_base}.json"
+    json_file = load_json_file(script_root / "default.json")
+    
     if not meta_path.exists():
-
-        json_file = json.load(open(script_root / "default.json"))
-        if (script_root.parent / "default.json").exists():
-            modified_default = json.load(open(script_root.parent / "default.json"))
-            if is_similar_json(json_file, modified_default):
+        # Check for modified default in parent directory
+        parent_default_path = script_root.parent / "default.json"
+        if parent_default_path.exists():
+            try:
+                modified_default = load_json_file(parent_default_path)
+            except json.JSONDecodeError:
+                Logger.error(f"Invalid JSON in {parent_default_path}. Using default.")
+                modified_default = None
+            if is_similar_json(json_file, modified_default, except_keys={"date"}):
                 json_file = modified_default
             else:
-                copy_similar = {k: v for k, v in modified_default.items() if k in json_file and type(v) == type(json_file[k])}
-                json_file.update(copy_similar)
-                json.dump(json_file, open(script_root.parent / "default.json", "w"), indent=2)
+                update_compatible_fields(json_file, modified_default)
+                with open(parent_default_path, "w", encoding="utf-8") as f:
+                    json.dump(json_file, f, indent=2)
 
-        json_file["date"] = datetime.now().strftime("%B %d, %Y")
-        meta_path.write_text(json.dumps(json_file, indent=2), encoding="utf-8")
+        write_metadata_with_date(json_file, meta_path)
         Logger.warning(f"Created {md_base}.json")
+    else:
+        try:
+            json_file_in_dir = load_json_file(meta_path)
+        except json.JSONDecodeError:
+            Logger.error(f"Invalid JSON in {md_base}.json. Recreating from default.")
+            write_metadata_with_date(json_file, meta_path)
+            return json_file
+        
+        if not is_similar_json(json_file, json_file_in_dir, except_keys={"date"}):
+            update_compatible_fields(json_file, json_file_in_dir)
+            write_metadata_with_date(json_file, meta_path)
+            Logger.warning(f"Updated {md_base}.json to match expected structure")
 
-    try:
-        raw = meta_path.read_text(encoding="utf-8-sig")
-        data = json.loads(raw)
-        meta_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        return data
-    except Exception as e:
-        raise BuildError(f"Failed to parse {md_base}.json: {e}") from e
+    return load_json_file(meta_path)
 
 
 def build_authors(meta: dict) -> str:
