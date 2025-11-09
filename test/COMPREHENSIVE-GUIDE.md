@@ -246,6 +246,186 @@ Term 2
 : Definition 2a
 : Definition 2b
 
+## Tables
+
+### Pipe Tables
+
+```markdown
+| Left | Center | Right | Default |
+| :--- | :----: | ----: | ------- |
+| L1   |   C1   |    R1 | Default |
+| L2   |   C2   |    R2 | Default |
+```
+
+| Left | Center | Right | Default |
+| :--- | :----: | ----: | ------- |
+| L1   |   C1   |    R1 | Default |
+| L2   |   C2   |    R2 | Default |
+
+## Table with Captions
+
+```markdown
+| Header 1 | Header 2 | Header 3 |
+| -------- | -------- | -------- |
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+
+: Sample Table with Caption
+```
+
+| Header 1 | Header 2 | Header 3 |
+| -------- | -------- | -------- |
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
+
+: Sample Table with Caption
+
+## Horizontal Rule
+
+```markdown
+---
+```
+
+---
+
+```markdown
+___
+```
+
+___
+
+```markdown
+***
+```
+
+***
+
+## Math Expressions
+
+### Inline Math
+
+```markdown
+This is inline math: $E = mc^2$
+```
+
+This is inline math: $E = mc^2$
+
+### Display Math
+
+```markdown
+$$
+\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+```
+
+$$
+\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+$$
+
+## Footnotes
+
+### Inline Footnote
+
+```markdown
+Text with inline footnote^[This is the footnote content].
+```
+
+Text with inline footnote^[This is the footnote content].
+
+### Reference Footnote
+
+```markdown
+Text with reference footnote[^1].
+
+[^1]: This is the footnote content.
+```
+
+Text with reference footnote[^1].
+
+[^1]: This is the footnote content.
+
+## Keyboard Shortcuts
+
+### Single Key
+
+```markdown
+[[Ctrl]]
+```
+
+[[Ctrl]]
+
+### Key Combination with Plus
+
+```markdown
+[[Ctrl] + [C]]
+```
+
+[[Ctrl] + [C]]
+
+### Key Combination with Minus
+
+```markdown
+[[Alt] - [Tab]]
+```
+
+[[Alt] - [Tab]]
+
+## Line Break
+
+### Using Two Spaces
+
+Put two spaces at the end of a line 1 to create a line break.
+
+```markdown
+Line 1<space><space>
+Line 2
+```
+
+Line 1  
+Line 2
+
+### Using Backslash
+
+```markdown
+Line 1\
+Line 2
+```
+
+Line 1\
+Line 2
+
+### Using HTML `<br>` Tag
+
+```markdown
+Line 1<br>
+Line 2
+```
+
+Line 1<br>
+Line 2
+
+```markdown
+Line 1<br/>
+Line 2
+```
+
+Line 1<br/>
+Line 2
+
+### Using Empty Line (Paragraph Break)
+
+```markdown
+Line 1
+
+
+Line 2
+```
+
+Line 1
+
+
+Line 2
+
 ## Blockquotes
 
 ```markdown
@@ -430,146 +610,6 @@ GitHub alerts can also contain formatted text, code, tables, and keyboard shortc
 >
 > **Never** run the above command!
 
-## Tables
-
-### Pipe Tables
-
-```markdown
-| Header 1 | Header 2 | Header 3 |
-| -------- | -------- | -------- |
-| Cell 1   | Cell 2   | Cell 3   |
-| Cell 4   | Cell 5   | Cell 6   |
-```
-
-| Header 1 | Header 2 | Header 3 |
-| -------- | -------- | -------- |
-| Cell 1   | Cell 2   | Cell 3   |
-| Cell 4   | Cell 5   | Cell 6   |
-
-### Table Alignment
-
-```markdown
-| Left | Center | Right |
-| :--- | :----: | ----: |
-| L1   |   C1   |    R1 |
-| L2   |   C2   |    R2 |
-```
-
-| Left | Center | Right |
-| :--- | :----: | ----: |
-| L1   |   C1   |    R1 |
-| L2   |   C2   |    R2 |
-
-## Horizontal Rule
-
-```markdown
----
-```
-
----
-
-```markdown
-___
-```
-
-___
-
-```markdown
-***
-```
-
-***
-
-## Math Expressions
-
-### Inline Math
-
-```markdown
-This is inline math: $E = mc^2$
-```
-
-This is inline math: $E = mc^2$
-
-### Display Math
-
-```markdown
-$$
-\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
-```
-
-$$
-\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
-
-## Footnotes
-
-### Inline Footnote
-
-```markdown
-Text with inline footnote^[This is the footnote content].
-```
-
-Text with inline footnote^[This is the footnote content].
-
-### Reference Footnote
-
-```markdown
-Text with reference footnote[^1].
-
-[^1]: This is the footnote content.
-```
-
-Text with reference footnote[^1].
-
-[^1]: This is the footnote content.
-
-## Keyboard Shortcuts
-
-### Single Key
-
-```markdown
-[[Ctrl]]
-```
-
-[[Ctrl]]
-
-### Key Combination with Plus
-
-```markdown
-[[Ctrl] + [C]]
-```
-
-[[Ctrl] + [C]]
-
-### Key Combination with Minus
-
-```markdown
-[[Alt] - [Tab]]
-```
-
-[[Alt] - [Tab]]
-
-## HTML Support
-
-### Line Break
-
-```markdown
-Line 1<br>
-Line 2
-```
-
-Line 1<br>
-Line 2
-
-```markdown
-Line 1<br/>
-Line 2
-```
-
-Line 1<br/>
-Line 2
-
 ---
 
 ## Executable Python Code Blocks
@@ -605,40 +645,6 @@ print("Hello, World!")
 - **`.hide-code`** - Explicitly hide the source code (default)
 - **`.hide-output`** - Hide execution output/plot
 
-### Property Combinations
-
-**Default behavior** (hide code, show output):
-
-````markdown
-```python {.execute}
-print("Hello, World!")
-```
-````
-
-**Show both code and output**:
-
-````markdown
-```python {.execute .show-code}
-print("Hello, World!")
-```
-````
-
-**Show code only** (no output):
-
-````markdown
-```python {.execute .show-code .hide-output}
-x = 5 + 3
-```
-````
-
-**Show output only** (hide code):
-
-````markdown
-```python {.execute}
-print("Result:", 42)
-```
-````
-
 ### Simple Print Example
 
 **Output only** (default):
@@ -663,38 +669,6 @@ print("Hello, World!")
 
 ```python {.execute .show-code}
 print("Hello, World!")
-```
-
-### Calculations and Data Processing
-
-**Mathematical calculations with NumPy:**
-
-````markdown
-```python {.execute .show-code}
-import numpy as np
-result = np.sum([1, 2, 3, 4, 5])
-print(f"Sum of 1 to 5: {result}")
-```
-````
-
-```python {.execute .show-code}
-import numpy as np
-result = np.sum([1, 2, 3, 4, 5])
-print(f"Sum of 1 to 5: {result}")
-```
-
-**Multiple lines of output:**
-
-````markdown
-```python {.execute .show-code}
-for i in range(5):
-    print(f"Count: {i}")
-```
-````
-
-```python {.execute .show-code}
-for i in range(5):
-    print(f"Count: {i}")
 ```
 
 ### Matplotlib Plots
@@ -822,55 +796,6 @@ axes[1, 1].set_title('Damped Sine')
 plt.tight_layout()
 plt.show()
 ```
-
-### Features and Limitations
-
-**Features:**
-
-- Automatic execution during document build
-- Output captured and displayed in `output` blocks
-- Matplotlib plots saved as high-quality PDFs
-- Flexible visibility control with `.show-code`, `.show-output`, `.hide-code`, `.hide-output`
-- Support for all Python libraries (NumPy, Pandas, etc.)
-- Error messages displayed if execution fails
-- 30-second timeout to prevent hanging
-
-**Limitations:**
-
-- Code runs in isolated subprocess (no shared state between blocks)
-- Interactive plots (`plt.show()`) are automatically converted to saved PDFs
-- Execution happens during build time (not runtime)
-- Requires Python and necessary libraries installed on your system
-
-**Best Practices:**
-
-1. Use `.show-code` when teaching or documenting code
-2. Omit `.show-code` for cleaner documents where code isn't relevant
-3. Keep code blocks independent (they don't share variables)
-4. Import all necessary libraries within each code block
-5. Use `plt.figure(figsize=(width, height))` to control plot dimensions
-
----
-
-## Additional Features
-
-### Language Normalization
-
-The following language identifiers are automatically converted for syntax highlighting:
-
-- `jsonc` → `json`
-- `tsx` → `typescript`
-- `jsx` → `javascript`
-- `vue` → `html`
-- `svelte` → `html`
-- `astro` → `html`
-
-### Automatic Processing
-
-- **Image Asset Copying**: All referenced images are automatically copied to build directory
-- **Math Protection**: Math expressions are protected during text processing
-- **Table Auto-fit**: Tables automatically adjust to fit page width
-- **Image Auto-resize**: Images automatically scale to fit page width while maintaining aspect ratio
 
 ## Document Metadata (JSON)
 

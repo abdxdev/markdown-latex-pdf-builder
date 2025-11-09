@@ -29,6 +29,7 @@
   rawAttribute,
   texMathDollars,
   pipeTables,
+  tableCaptions,
   fencedCode,
   strikeThrough,
   superscripts,
@@ -259,26 +260,26 @@
     strikeThrough = {\mdstrikethrough{#1}},
     superscript = {\textsuperscript{#1}},
     subscript = {\textsubscript{#1}},
-    image = {%
-      \begin{figure}[H]%
-        \centering%
-        \includegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio]{#3}%
-        \ifx\empty#4\empty\else\caption{#4}\fi%
-      \end{figure}%
+    image = {
+      \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio]{#3}
+        \ifx\empty#4\empty\else\caption{#4}\fi
+      \end{figure}
     },
-    inputFencedCode = {%
-      \edef\templang{#3}%
+    inputFencedCode = {
+      \edef\templang{#3}
       \ifx\templang\empty
-      \codeblockplain{#1}%
+      \codeblockplain{#1}
       \else
-      \def\terminallang{terminal}%
+      \def\terminallang{terminal}
       \ifx\templang\terminallang
-      {%
-        \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}%
-        \codeblockwrapper{#1}{text}{20pt}{true}%
-      }%
+      {
+        \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}
+        \codeblockwrapper{#1}{text}{20pt}{true}
+      }
       \else
-      \codeblockwrapper{#1}{#3}{20pt}{true}%
+      \codeblockwrapper{#1}{#3}{20pt}{true}
       \fi
       \fi
     },
@@ -286,23 +287,33 @@
       \codeblockplain{#1}
     },
     dlBegin = {
-    \begin{description}},
+      \begin{description}
+        },
         dlEnd = {
-    \end{description}},
+      \end{description}
+    },
     dlItem = {
-  \item[#1]\mbox{}\newline},
-    dlItemEnd = {}
+    \item[#1]\mbox{}\newline
+    },
+    dlItemEnd = {},
+    thematicBreak = {
+      \vspace{1em}
+      \begin{center}
+        {\color{footnoteRuleColor}\rule{\textwidth}{0.5pt}}
+      \end{center}
+      \vspace{1em}
+    },
   },
   fencedCode = true,
 }
 
-\setmonofont{JetBrainsMono}[
+\setmonofont{JetBrainsMonoNL}[
   Path=fonts/,
   Extension=.ttf,
   UprightFont=*-Regular,
   BoldFont=*-Bold,
   ItalicFont=*-Italic,
-  BoldItalicFont=*-Bold-Italic,
+  BoldItalicFont=*-BoldItalic,
 ]
 
 \hypersetup{
@@ -364,7 +375,6 @@
 \let\footnote=\endnote
 \renewcommand{\notesname}{References}
 
-
 \makeatletter
 \renewcommand{\enoteformat}{
   \noindent
@@ -379,9 +389,7 @@
   \vspace{\cftaftertoctitleskip}
 }
 
-
 \renewcommand{\enotesize}{\normalsize}
-
 
 \def\enotesize{\normalsize}
 \patchcmd{\theendnotes}{\par}{\par\vspace{0.8em}}{}{}
@@ -395,17 +403,13 @@
   \kern 2.5pt
 }
 
-
 \setlength{\footnotesep}{1.2em}
 
-
 \setlength{\footnotemargin}{1.5em}
-
 
 \renewcommand{\@makefnmark}{
   \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
 }
-
 
 \long\def\@makefntext#1{
   \parindent 0em
@@ -417,7 +421,6 @@
   }
   {\footnotesize#1}
 }
-
 
 \renewcommand{\footnotesize}{\fontsize{9}{11}\selectfont}
 \makeatother
@@ -618,6 +621,10 @@
 
 \let\oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio,#1]{#2}}
+
+\makeatletter
+\renewcommand{\fps@table}{H}
+\makeatother
 
 \markdownInput{@@INPUT_FILE@@}
 
