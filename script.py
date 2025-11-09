@@ -268,7 +268,7 @@ def _display_latex_output(filtered_output: str, returncode: int) -> None:
             print(filtered_output)
 
 
-def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True):
+def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True, passes_reason: str = "multiple passes required"):
     cmd = [
         "lualatex",
         "--shell-escape",
@@ -279,7 +279,6 @@ def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True):
     ]
 
     max_passes = 2 if requires_multiple_passes else 1
-    passes_reason = "code blocks detected" if requires_multiple_passes else "no code blocks"
     Logger.info(f"Compiling LaTeX ({max_passes} pass{'es' if max_passes > 1 else ''}, {passes_reason})...")
 
     for pass_num in range(1, max_passes + 1):
@@ -924,7 +923,19 @@ Steps:
     md_content = post_process_alerts(md_content)
     md_content = process_executable_python_blocks(md_content, build_dir)
 
-    needs_multiple_passes = has_code_blocks(md_content)
+    has_code = has_code_blocks(md_content)
+    has_content_page = bool(meta.get("enableContentPage"))
+    needs_multiple_passes = has_code or has_content_page
+    
+    if needs_multiple_passes:
+        reasons = []
+        if has_code:
+            reasons.append("code blocks detected")
+        if has_content_page:
+            reasons.append("content page enabled")
+        passes_reason = " and ".join(reasons)
+    else:
+        passes_reason = "no special features"
 
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
@@ -938,7 +949,7 @@ Steps:
     copy_image_assets(md_path, build_dir, md_dir)
     replace_placeholders(md_path, build_dir / "template.tex", meta)
     try:
-        rc, produced, pdf_path = run_lualatex(build_dir, needs_multiple_passes)
+        rc, produced, pdf_path = run_lualatex(build_dir, needs_multiple_passes, passes_reason)
     except BuildError as e:
         err(str(e))
         sys.exit(1)
