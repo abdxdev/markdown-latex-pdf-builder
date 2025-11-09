@@ -169,7 +169,6 @@
 
 \newcommand{\kbdkey}[1]{\kbdkeybox{#1}}
 \newcommand{\kbdplus}{\,{\small +}\,}
-\newcommand{\kbdminus}{\,{\small -}\,}
 \newcommand{\kbdshortcut}[1]{#1}
 
 % Functional code block wrapper
@@ -295,7 +294,9 @@
     },
     dlItemEnd = {},
     thematicBreak = {
-      {\color{footnoteRuleColor}\rule{\textwidth}{0.3pt}}
+      \begin{center}
+        {\color{footnoteRuleColor}\rule{\textwidth}{0.3pt}}
+      \end{center}
       \vspace{0.5em}
     },
   },
@@ -393,6 +394,7 @@
 \makeatletter
 
 \renewcommand{\footnoterule}{
+  \vspace{0.5em}
   \noindent
   {\color{footnoteRuleColor}\rule{\textwidth}{0.3pt}}
   \vspace{0.5em}

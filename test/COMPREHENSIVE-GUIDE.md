@@ -362,14 +362,6 @@ Text with reference footnote[^1].
 
 [[Ctrl] + [C]]
 
-### Key Combination with Minus
-
-```markdown
-[[Alt] - [Tab]]
-```
-
-[[Alt] - [Tab]]
-
 ## Line Break
 
 ### Using Two Spaces

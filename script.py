@@ -526,20 +526,14 @@ def process_keyboard_shortcuts(content: str) -> str:
     def convert_shortcut(match):
         captured = match.group(1)
         shortcut_content = "[" + captured + "]"
-        parts = re.findall(r"\[([^\]]+)\]|(\s*[\+\-]\s*)", shortcut_content)
+        parts = re.findall(r"\[([^\]]+)\]|(\s*\+\s*)", shortcut_content)
 
         latex_parts = []
         for key, separator in parts:
             if key:
                 latex_parts.append(f"\\kbdkey{{{key}}}")
             elif separator:
-                sep = separator.strip()
-                if sep == "+":
-                    latex_parts.append("\\kbdplus")
-                elif sep == "-":
-                    latex_parts.append("\\kbdminus")
-                else:
-                    latex_parts.append(separator)
+                latex_parts.append("\\kbdplus")
 
         joined_latex = "".join(latex_parts)
         return f"\\kbdshortcut{{{joined_latex}}}"
