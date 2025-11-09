@@ -287,21 +287,16 @@
       \codeblockplain{#1}
     },
     dlBegin = {
-      \begin{description}
-        },
+    \begin{description}},
         dlEnd = {
-      \end{description}
-    },
+    \end{description}},
     dlItem = {
     \item[#1]\mbox{}\newline
     },
     dlItemEnd = {},
     thematicBreak = {
-      \vspace{1em}
-      \begin{center}
-        {\color{footnoteRuleColor}\rule{\textwidth}{0.5pt}}
-      \end{center}
-      \vspace{1em}
+      {\color{footnoteRuleColor}\rule{\textwidth}{0.3pt}}
+      \vspace{0.5em}
     },
   },
   fencedCode = true,
@@ -398,28 +393,22 @@
 \makeatletter
 
 \renewcommand{\footnoterule}{
-  \kern-3pt
-  {\color{footnoteRuleColor}\hrule width 3in height 0.8pt}
-  \kern 2.5pt
+  \noindent
+  {\color{footnoteRuleColor}\rule{\textwidth}{0.3pt}}
+  \vspace{0.5em}
 }
-
-\setlength{\footnotesep}{1.2em}
-
-\setlength{\footnotemargin}{1.5em}
 
 \renewcommand{\@makefnmark}{
   \hbox{\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
 }
 
-\long\def\@makefntext#1{
-  \parindent 0em
-  \noindent
+\renewcommand{\@makefntext}[1]{
+  \parindent 1.5em
   \makebox[0pt][r]{
-    \hspace{-1.5em}
     {\normalfont\small\color{footnoteNumColor}[\@thefnmark]}
-    \hspace{0.5em}
   }
   {\footnotesize#1}
+  \vspace{0.5em}
 }
 
 \renewcommand{\footnotesize}{\fontsize{9}{11}\selectfont}
