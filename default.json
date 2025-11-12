@@ -12,7 +12,9 @@
   "submittedto": "Professor Name",
   "titleTemplate": 1,
   "enableContentPage": false,
+  "tocDepth": 3,
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
-  "enableThatsAllPage": false
+  "enableThatsAllPage": false,
+  "variables": {}
 }

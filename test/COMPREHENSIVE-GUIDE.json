@@ -12,8 +12,10 @@
   "submittedto": "Professor Name",
   "titleTemplate": 0,
   "enableContentPage": false,
+  "tocDepth": 2,
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
   "enableThatsAllPage": false,
-  "date": "November 09, 2025"
+  "variables": {},
+  "date": "November 12, 2025"
 }

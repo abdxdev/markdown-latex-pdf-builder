@@ -1,6 +1,6 @@
 # Markdown to LaTeX Comprehensive Guide
 
-This guide demonstrates all supported markdown syntax features for the md-to-luatex converter.
+This guide demonstrates all supported markdown syntax features for the md-to-luatex converter. 🚀
 
 ## Headings
 
@@ -87,6 +87,22 @@ _italic text_ or *italic text*
 ```
 
 ~subscript~ (e.g., H~2~O)
+
+### Small Caps
+
+```markdown
+:sc[Small Caps Text]
+```
+
+:sc[Small Caps Text]
+
+### Underline
+
+```markdown
+:u[Underlined Text]
+```
+
+:u[Underlined Text]
 
 ## Inline Code
 
@@ -409,16 +425,24 @@ Line 2
 ```markdown
 Line 1
 
-
 Line 2
 ```
 
 Line 1
 
-
 Line 2
 
 ## Blockquotes
+
+### Basic Blockquote
+
+```markdown
+> This is a blockquote.
+```
+
+> This is a blockquote.
+
+### Multi-line Blockquote
 
 ```markdown
 > This is a blockquote.
@@ -448,161 +472,107 @@ Line 2
 > >
 > > > Level 3
 
-### Blockquotes with Styled Content
-
-Blockquotes can contain inline code, keyboard shortcuts, tables, and other formatted elements:
-
-```markdown
-> This blockquote contains `inline code` and keyboard shortcuts like [[Ctrl] + [C]].
->
-> It can also have **bold**, _italic_, and ==highlighted== text.
->
-> | Feature | Supported |
-> | ------- | --------- |
-> | Tables  | Yes       |
-> | Code    | Yes       |
-```
-
-> This blockquote contains `inline code` and keyboard shortcuts like [[Ctrl] + [C]].
->
-> It can also have **bold**, _italic_, and ==highlighted== text.
->
-> | Feature | Supported |
-> | ------- | --------- |
-> | Tables  | Yes       |
-> | Code    | Yes       |
-
-### Blockquotes with Code Blocks
-
-````markdown
-> Here's a code example inside a blockquote:
->
-> ```python
-> def greet(name):
->     return f"Hello, {name}!"
-> ```
->
-> The code block maintains its syntax highlighting.
-````
-
-> Here's a code example inside a blockquote:
->
-> ```python
-> def greet(name):
->     return f"Hello, {name}!"
-> ```
->
-> The code block maintains its syntax highlighting.
-
-## GitHub Alerts
+## Container Alerts
 
 ### Note Alert
 
 ```markdown
-> [!NOTE]
-> This is a note alert with blue styling.
+::: note
+This is a note alert with blue styling.
+:::
 ```
 
-> [!NOTE]
-> This is a note alert with blue styling.
+::: note
+This is a note alert with blue styling.
+:::
 
 ### Tip Alert
 
 ```markdown
-> [!TIP]
-> This is a tip alert with green styling.
+::: tip
+This is a tip alert with green styling.
+:::
 ```
 
-> [!TIP]
-> This is a tip alert with green styling.
+::: tip
+This is a tip alert with green styling.
+:::
 
 ### Important Alert
 
 ```markdown
-> [!IMPORTANT]
-> This is an important alert with purple styling.
+::: important
+This is an important alert with purple styling.
+:::
 ```
 
-> [!IMPORTANT]
-> This is an important alert with purple styling.
+::: important
+This is an important alert with purple styling.
+:::
 
 ### Warning Alert
 
 ```markdown
-> [!WARNING]
-> This is a warning alert with yellow/orange styling.
+::: warning
+This is a warning alert with yellow/orange styling.
+:::
 ```
 
-> [!WARNING]
-> This is a warning alert with yellow/orange styling.
+::: warning
+This is a warning alert with yellow/orange styling.
+:::
 
 ### Caution Alert
 
 ```markdown
-> [!CAUTION]
-> This is a caution alert with red styling.
+::: caution
+This is a caution alert with red styling.
+:::
 ```
 
-> [!CAUTION]
-> This is a caution alert with red styling.
+::: caution
+This is a caution alert with red styling.
+:::
 
-### Alerts with Rich Content
+## Text Alignment Containers
 
-GitHub alerts can also contain formatted text, code, tables, and keyboard shortcuts:
+### Center Alignment
 
 ```markdown
-> [!TIP]
-> **Pro Tip:** Use `git commit -m "message"` to commit changes.
->
-> Common keyboard shortcuts:
->
-> - Save: [[Ctrl] + [S]]
-> - Undo: [[Ctrl] + [Z]]
->
-> | Command      | Description             |
-> | ------------ | ----------------------- |
-> | `git status` | Check repository status |
-> | `git log`    | View commit history     |
+::: center
+This text is centered
+:::
 ```
 
-> [!TIP]
-> **Pro Tip:** Use `git commit -m "message"` to commit changes.
->
-> Common keyboard shortcuts:
->
-> - Save: [[Ctrl] + [S]]
-> - Undo: [[Ctrl] + [Z]]
->
-> | Command      | Description             |
-> | ------------ | ----------------------- |
-> | `git status` | Check repository status |
-> | `git log`    | View commit history     |
+::: center
+This text is centered
+:::
 
-````markdown
-> [!WARNING]
-> This contains ==highlighted text==, ~~strikethrough~~, and ^superscript^!
->
-> Code example:
->
-> ```bash
-> rm -rf /
-> ```
->
-> **Never** run the above command!
-````
+### Right Alignment
 
-> [!WARNING]
-> This contains ==highlighted text==, ~~strikethrough~~, and ^superscript^!
->
-> Code example:
->
-> ```bash
-> rm -rf /
-> ```
->
-> **Never** run the above command!
+```markdown
+::: right
+Right-aligned text
+:::
+```
 
----
+::: right
+Right-aligned text
+:::
+
+## Box Container
+
+### Basic Box
+
+```markdown
+::: box
+Text in a bordered box
+:::
+```
+
+::: box
+Text in a bordered box
+:::
 
 ## Executable Python Code Blocks
 
@@ -616,30 +586,15 @@ For Python code execution to work, you need Python installed on your system. To 
 python -m pip install matplotlib numpy
 ```
 
-> [!NOTE]
-> Mermaid diagram support is already documented in the [Mermaid Diagrams](#mermaid-diagrams) section and requires separate installation of `@mermaid-js/mermaid-cli` via npm.
-
-### Basic Syntax
-
-Mark a Python code block for execution using properties in curly braces:
-
-````markdown
-```python {.execute}
-print("Hello, World!")
-```
-````
-
 ### Available Properties
 
 - **`.execute`** - Execute the code block (required)
 - **`.show-code`** - Display the source code in the output
-- **`.show-output`** - Display execution output/plot (enabled by default)
+- **`.show-output`** - Display execution output/plot (default)
 - **`.hide-code`** - Explicitly hide the source code (default)
 - **`.hide-output`** - Hide execution output/plot
 
-### Simple Print Example
-
-**Output only** (default):
+### Examples 1
 
 ````markdown
 ```python {.execute}
@@ -651,62 +606,10 @@ print("Hello, World!")
 print("Hello, World!")
 ```
 
-**Show both code and output**:
-
-````markdown
-```python {.execute .show-code}
-print("Hello, World!")
-```
-````
-
-```python {.execute .show-code}
-print("Hello, World!")
-```
-
-### Matplotlib Plots
-
-When your code uses matplotlib, the plot is automatically saved as a PDF and embedded in the document.
-
-**Simple plot example (plot only):**
+### Examples 2
 
 ````markdown
 ```python {.execute}
-import numpy as np
-import matplotlib.pyplot as plt
-
-x = np.linspace(0, 2 * np.pi, 100)
-y = np.sin(x)
-
-plt.figure(figsize=(8, 4))
-plt.plot(x, y)
-plt.title('Sine Wave')
-plt.xlabel('x')
-plt.ylabel('sin(x)')
-plt.grid(True)
-plt.show()
-```
-````
-
-```python {.execute}
-import numpy as np
-import matplotlib.pyplot as plt
-
-x = np.linspace(0, 2 * np.pi, 100)
-y = np.sin(x)
-
-plt.figure(figsize=(8, 4))
-plt.plot(x, y)
-plt.title('Sine Wave')
-plt.xlabel('x')
-plt.ylabel('sin(x)')
-plt.grid(True)
-plt.show()
-```
-
-**Polar plot with code shown:**
-
-````markdown
-```python {.execute .show-code}
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -722,7 +625,7 @@ plt.show()
 ```
 ````
 
-```python {.execute .show-code}
+```python {.execute}
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -734,58 +637,6 @@ fig, ax = plt.subplots(
 ax.plot(theta, r)
 ax.set_rticks([0.5, 1, 1.5, 2])
 ax.grid(True)
-plt.show()
-```
-
-**Multiple subplots:**
-
-````markdown
-```python {.execute}
-import numpy as np
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-x = np.linspace(0, 2 * np.pi, 100)
-
-axes[0, 0].plot(x, np.sin(x))
-axes[0, 0].set_title('Sine')
-
-axes[0, 1].plot(x, np.cos(x))
-axes[0, 1].set_title('Cosine')
-
-axes[1, 0].plot(x, np.tan(x))
-axes[1, 0].set_title('Tangent')
-axes[1, 0].set_ylim(-10, 10)
-
-axes[1, 1].plot(x, np.exp(-x/3) * np.sin(x))
-axes[1, 1].set_title('Damped Sine')
-
-plt.tight_layout()
-plt.show()
-```
-````
-
-```python {.execute}
-import numpy as np
-import matplotlib.pyplot as plt
-
-fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-x = np.linspace(0, 2 * np.pi, 100)
-
-axes[0, 0].plot(x, np.sin(x))
-axes[0, 0].set_title('Sine')
-
-axes[0, 1].plot(x, np.cos(x))
-axes[0, 1].set_title('Cosine')
-
-axes[1, 0].plot(x, np.tan(x))
-axes[1, 0].set_title('Tangent')
-axes[1, 0].set_ylim(-10, 10)
-
-axes[1, 1].plot(x, np.exp(-x/3) * np.sin(x))
-axes[1, 1].set_title('Damped Sine')
-
-plt.tight_layout()
 plt.show()
 ```
 
@@ -811,7 +662,9 @@ Document metadata is configured in a separate JSON file:
   "enableContentPage": false,
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
-  "enableThatsAllPage": true
+  "enableThatsAllPage": false,
+  "tocDepth": 3,
+  "variables": {}
 }
 ```
 
@@ -824,4 +677,34 @@ The `titleTemplate` setting controls how the title page is displayed:
 - **`2`**: Title header above content - Good for notes
 - **`3`**: Title on separate page - Good for when the contents are enabled
 
-Controls document structure, metadata, and optional pages.
+### JSON Variables
+
+You can define variables in the JSON metadata file and use them throughout your markdown document. Variables are defined under the `"variables"` key and referenced using `{{variable_name}}` syntax.
+
+**Example JSON with variables:**
+
+```json
+{
+  "variables": {
+    "author": "abd",
+    "version": "1.2.3",
+    "course": "CS 101",
+    "semester": "Fall 2025",
+    "university_full": "University of Engineering and Technology"
+  }
+}
+```
+
+```markdown
+This report was written by {{author}} for {{course}} during {{semester}}.
+
+Software version: {{version}}
+
+Institution: {{university_full}}
+```
+
+This report was written by abd for CS 101 during Fall 2025.
+
+Software version: 1.2.3
+
+Institution: University of Engineering and Technology

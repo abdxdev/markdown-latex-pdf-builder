@@ -1,5 +1,6 @@
 \documentclass[a4paper,twoside]{article}
 
+\usepackage{emoji}
 \usepackage{fontspec}
 \usepackage[margin=1in]{geometry}
 \usepackage{fancyhdr}
@@ -82,6 +83,10 @@
 \definecolor{alertCautionBg}{RGB}{255,226,221}
 \definecolor{alertCautionBorder}{RGB}{255,103,79}
 
+% Container Box Colors
+\definecolor{boxBg}{RGB}{250,250,250}
+\definecolor{boxBorder}{RGB}{200,200,200}
+
 % Miscellaneous Colors
 \definecolor{highlightBg}{RGB}{255,255,152}
 
@@ -93,11 +98,19 @@
 
 % ============================================================
 
-\newcommand{\inlinecode}[1]{
-  \begingroup
-  \setlength{\fboxsep}{2pt}
-  \colorbox{inlineCodeBg}{\ttfamily\color{inlineCodeFg}#1}
-  \endgroup
+\newtcbox{\inlinecode}{%
+  enhanced,%
+  on line,%
+  arc=2pt,%
+  colback=inlineCodeBg,%
+  colframe=inlineCodeBg,%
+  boxrule=0pt,%
+  left=4pt,%
+  right=4pt,%
+  top=2pt,%
+  bottom=2pt,%
+  boxsep=0pt,%
+  before upper={\ttfamily\color{inlineCodeFg}},%
 }
 
 \newcommand{\mdstrikethrough}[1]{\sout{#1}}
@@ -121,7 +134,7 @@
 }
 
 % Functional alert box generator
-\newcommand{\createalertbox}[4]{%
+\newcommand{\createalertbox}[4]{
   \newtcolorbox{#1}{
     enhanced,
     breakable,
@@ -145,6 +158,30 @@
 \createalertbox{mdalertimportant}{alertImportantBg}{alertImportantBorder}{IMPORTANT}
 \createalertbox{mdalertwarning}{alertWarningBg}{alertWarningBorder}{WARNING}
 \createalertbox{mdalertcaution}{alertCautionBg}{alertCautionBorder}{CAUTION}
+
+% Create container environments (truly transparent alignment)
+\newenvironment{mdcenter}{
+\begin{center}}{
+\end{center}}
+
+\newenvironment{mdright}{
+\begin{flushright}}{
+\end{flushright}}
+
+% Box environment with complete border and transparent background using tcolorbox
+\newtcolorbox{mdbox}{
+  enhanced,
+  breakable,
+  frame hidden,
+  interior hidden,
+  borderline={1pt}{0pt}{boxBorder},
+  left=10pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt,
+  boxsep=0pt,
+  sharp corners
+}
 
 \newtcbox{\kbdkeybox}{
   enhanced,
@@ -176,7 +213,7 @@
 % #2 = language (can be empty)
 % #3 = top padding (5pt or 20pt)
 % #4 = whether to show overlay label (true/false)
-\newcommand{\codeblockwrapper}[4]{%
+\newcommand{\codeblockwrapper}[4]{
   \begin{tcolorbox}[
       enhanced,
       colback=codeBlockBg,
@@ -188,17 +225,17 @@
       top=#3,
       bottom=5pt,
       breakable,
-      overlay={%
-        \ifstrequal{#4}{true}{%
-          \node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#2};%
-        }{}%
+      overlay={
+        \ifstrequal{#4}{true}{
+          \node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#2};
+        }{}
       }
-    ]%
-    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#2}{#1}%
-  \end{tcolorbox}%
+    ]
+    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#2}{#1}
+  \end{tcolorbox}
 }
 
-\newcommand{\codeblockplain}[1]{%
+\newcommand{\codeblockplain}[1]{
   \begin{tcolorbox}[
       colback=codeBlockBg,
       colframe=codeBlockBorder,
@@ -209,9 +246,9 @@
       top=5pt,
       bottom=5pt,
       breakable
-    ]%
-    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}%
-  \end{tcolorbox}%
+    ]
+    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}
+  \end{tcolorbox}
 }
 
 \newcommand{\mdcheckboxchecked}{
@@ -227,14 +264,14 @@
   \hspace{0.4em}
 }
 
-\newcommand{\creditblock}{%
+\newcommand{\creditblock}{
   \begin{center}
     \includegraphics[width=2.5cm]{credit-sign.pdf}\par
     \footnotesize
     \LaTeX{} Document by abd, more @ \href{https://github.com/abdxdev/notes-maker}{github.com/abdxdev/notes-maker} \\
     Report errors: \href{mailto:abdulrahman.abd.dev@gmail.com?subject=Report for \assignmenttitle\%20- \assignmentsubtitle&body=I want to talk about \assignmenttitle\%20- \assignmentsubtitle}{abdulrahman.abd.dev@gmail.com} | \href{https://wa.me/923124996133?text=I want to talk about \assignmenttitle\%20- \assignmentsubtitle}{+92 312 4996133} \\
     \color{gray}\textit{Compiled on: \today\ at \currenttime}
-  \end{center}%
+  \end{center}
 }
 
 \renewcommand{\markdownRendererTickedBox}{\mdcheckboxchecked}
@@ -590,6 +627,7 @@
 
 \ifenablecontentpage
 \renewcommand{\contentsname}{\centerline{Contents}}
+@@TOC_DEPTH@@
 \tableofcontents
 \thispagestyle{empty}
 \clearpage

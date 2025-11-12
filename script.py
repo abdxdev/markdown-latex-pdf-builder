@@ -37,7 +37,7 @@ import hashlib
 import tempfile
 import os
 
-PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@ENABLE_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
+PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@TOC_DEPTH@@", "@@ENABLE_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
 
 
@@ -89,20 +89,12 @@ class Logger:
         cls._print(f"{cls.COLORS['ERROR']}[ERROR]{cls.COLORS['RESET']} {msg}", persist)
 
 
-def log(msg: str):
-    Logger.info(msg)
-
-
-def err(msg: str):
-    Logger.error(msg)
-
-
 def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
     def is_similar_json(s1: dict, s2: dict, except_keys: set) -> bool:
         """Check if two JSON objects have the same keys with matching data types."""
         s1_filtered = {k: v for k, v in s1.items() if k not in except_keys}
         s2_filtered = {k: v for k, v in s2.items() if k not in except_keys}
-        
+
         if s1_filtered.keys() != s2_filtered.keys():
             return False
         for key in s1_filtered.keys():
@@ -198,6 +190,11 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     enable_content = bool(meta.get("enableContentPage"))
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
 
+    toc_depth = int(meta.get("tocDepth", 3))
+    if toc_depth < 1 or toc_depth > 6:
+        toc_depth = 3
+    toc_depth_cmd = f"\\setcounter{{tocdepth}}{{{toc_depth}}}"
+
     enable_credits = bool(meta.get("enablePageCredits", False))
     page_credits_toggle = "\\enablepagecreditstrue" if enable_credits else "\\enablepagecreditsfalse"
 
@@ -215,6 +212,7 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@INPUT_FILE@@": md_path.name,
         "@@TITLE_TEMPLATE@@": title_template_cmd,
         "@@ENABLE_CONTENT_PAGE@@": content_page_toggle,
+        "@@TOC_DEPTH@@": toc_depth_cmd,
         "@@ENABLE_PAGE_CREDITS@@": page_credits_toggle,
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
         "@@ENABLE_THATS_ALL_PAGE@@": thats_all_toggle,
@@ -268,7 +266,7 @@ def _display_latex_output(filtered_output: str, returncode: int) -> None:
             print(filtered_output)
 
 
-def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True, passes_reason: str = "multiple passes required"):
+def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True):
     cmd = [
         "lualatex",
         "--shell-escape",
@@ -279,7 +277,6 @@ def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True, passes_
     ]
 
     max_passes = 2 if requires_multiple_passes else 1
-    Logger.info(f"Compiling LaTeX ({max_passes} pass{'es' if max_passes > 1 else ''}, {passes_reason})...")
 
     for pass_num in range(1, max_passes + 1):
         try:
@@ -544,79 +541,101 @@ def process_keyboard_shortcuts(content: str) -> str:
     return content
 
 
-def process_github_alerts(content: str) -> str:
-    """Convert GitHub-style alert blocks to LaTeX alert environments."""
-    alert_types = {
-        "NOTE": "mdalertnote",
-        "TIP": "mdalerttip",
-        "IMPORTANT": "mdalertimportant",
-        "WARNING": "mdalertwarning",
-        "CAUTION": "mdalertcaution",
+def process_container_blocks(content: str) -> str:
+    """Convert container-style blocks (alerts, alignment, boxes) to LaTeX environments with proper nesting support."""
+    content, protected_blocks = protect_code_and_math_blocks(content)
+
+    container_types = {
+        "note": "mdalertnote",
+        "tip": "mdalerttip",
+        "important": "mdalertimportant",
+        "warning": "mdalertwarning",
+        "caution": "mdalertcaution",
+        "center": "mdcenter",
+        "right": "mdright",
+        "box": "mdbox",
     }
 
-    for alert_type, latex_env in alert_types.items():
+    lines = content.split("\n")
+    processed_lines = []
+    i = 0
+    alert_counter = 0
 
-        lines = content.split("\n")
-        processed_lines = []
-        i = 0
-        alert_counter = 0
+    while i < len(lines):
+        line = lines[i]
 
-        while i < len(lines):
-            line = lines[i]
+        match = re.match(r"^(\s*):::\s*(note|tip|important|warning|caution|center|right|box)\s*$", line, re.IGNORECASE)
+        if match:
+            indent = match.group(1)
+            alert_type = match.group(2).lower()
+            latex_env = container_types[alert_type]
+            alert_id = alert_counter
+            alert_counter += 1
 
-            match = re.match(rf"^(\s*)>\s*\[!{alert_type}\]\s*$", line)
-            if match:
-                indent = match.group(1)
-                alert_id = alert_counter
-                alert_counter += 1
+            alert_lines = []
+            i += 1
 
-                alert_lines = []
-                i += 1
+            nesting_level = 1
+            while i < len(lines) and nesting_level > 0:
+                current_line = lines[i]
 
-                while i < len(lines):
-                    current_line = lines[i]
-
-                    if current_line.startswith(indent + ">"):
-
-                        if current_line.startswith(indent + "> "):
-                            clean_line = current_line[len(indent) + 2 :]
-                        elif current_line.startswith(indent + ">"):
-                            clean_line = current_line[len(indent) + 1 :]
+                if re.match(r"^(\s*):::\s*(note|tip|important|warning|caution|center|right|box)\s*$", current_line, re.IGNORECASE):
+                    nesting_level += 1
+                    if current_line.startswith(indent) and len(current_line) > len(indent):
+                        clean_line = current_line[len(indent) :]
+                    elif current_line.strip() == "":
+                        clean_line = ""
+                    else:
+                        clean_line = current_line
+                    alert_lines.append(clean_line)
+                elif re.match(r"^(\s*):::\s*$", current_line):
+                    nesting_level -= 1
+                    if nesting_level > 0:
+                        if current_line.startswith(indent) and len(current_line) > len(indent):
+                            clean_line = current_line[len(indent) :]
+                        elif current_line.strip() == "":
+                            clean_line = ""
                         else:
                             clean_line = current_line
                         alert_lines.append(clean_line)
-                        i += 1
-                    elif current_line.strip() == "" and i + 1 < len(lines) and lines[i + 1].startswith(indent + ">"):
-
-                        alert_lines.append("")
-                        i += 1
+                else:
+                    if current_line.startswith(indent) and len(current_line) > len(indent):
+                        clean_line = current_line[len(indent) :]
+                    elif current_line.strip() == "":
+                        clean_line = ""
                     else:
+                        clean_line = current_line
+                    alert_lines.append(clean_line)
 
-                        break
-
-                while alert_lines and alert_lines[-1].strip() == "":
-                    alert_lines.pop()
-
-                alert_content = "\n".join(alert_lines)
-                processed_lines.append(f"{indent}__ALERT_BEGIN_{alert_id}_{latex_env}__")
-                processed_lines.append("")
-
-                for alert_line in alert_lines:
-                    processed_lines.append(f"{indent}{alert_line}")
-
-                processed_lines.append("")
-                processed_lines.append(f"{indent}__ALERT_END_{alert_id}_{latex_env}__")
-            else:
-                processed_lines.append(line)
                 i += 1
 
-        content = "\n".join(processed_lines)
+            while alert_lines and alert_lines[-1].strip() == "":
+                alert_lines.pop()
 
-    return content
+            alert_content = "\n".join(alert_lines)
+            processed_alert_content = process_container_blocks(alert_content)  # Recursive call
+            processed_alert_lines = processed_alert_content.split("\n") if processed_alert_content else []
+
+            processed_lines.append(f"{indent}__ALERT_BEGIN_{alert_id}_{latex_env}__")
+            processed_lines.append("")
+
+            for alert_line in processed_alert_lines:
+                processed_lines.append(f"{indent}{alert_line}")
+
+            processed_lines.append("")
+            processed_lines.append(f"{indent}__ALERT_END_{alert_id}_{latex_env}__")
+        else:
+            processed_lines.append(line)
+            i += 1
+
+    result = "\n".join(processed_lines)
+    result = restore_protected_blocks(result, protected_blocks)
+    return result
 
 
 def post_process_alerts(content: str) -> str:
     """Convert alert placeholders to raw LaTeX blocks after markdown processing."""
+    content, protected_blocks = protect_code_and_math_blocks(content)
 
     def replace_begin(match):
         env_name = match.group(1)
@@ -629,6 +648,7 @@ def post_process_alerts(content: str) -> str:
     content = re.sub(r"__ALERT_BEGIN_\d+_([a-z]+)__", replace_begin, content)
     content = re.sub(r"__ALERT_END_\d+_([a-z]+)__", replace_end, content)
 
+    content = restore_protected_blocks(content, protected_blocks)
     return content
 
 
@@ -642,9 +662,9 @@ def protect_code_and_math_blocks(content: str) -> tuple[str, list[str]]:
 
     content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
-    content = re.sub(r"`[^`\n]+`", store_protected_block, content)
+    content = re.sub(r"`[^`\n]*`", store_protected_block, content)
     content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
-    content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
+    content = re.sub(r"\$[^$\n]*\$", store_protected_block, content)
 
     return content, protected_blocks
 
@@ -656,6 +676,45 @@ def restore_protected_blocks(content: str, protected_blocks: list[str]) -> str:
     return content
 
 
+def process_emojis(content: str) -> str:
+    """Convert emoji characters in content to LaTeX \\emoji{shortcode} using emoji-table.def mapping."""
+
+    content, protected_blocks = protect_code_and_math_blocks(content)
+
+    if not hasattr(process_emojis, "_emoji_map"):
+        emoji_map = {}
+        emoji_table_path = subprocess.check_output(["kpsewhich", "emoji-table.def"], text=True).strip()
+        if emoji_table_path and os.path.exists(emoji_table_path):
+            with open(emoji_table_path, encoding="utf-8") as f:
+                data = f.read()
+            pattern = r"\\__emoji_def:nnnnn\s*{([^}]*)}\s*{([^}]*)}"
+            for m in re.findall(pattern, data):
+                hex_seq, shortcode = m
+                chars = []
+                for cp in re.findall(r"\^+([0-9a-fA-F]+)", hex_seq):
+                    chars.append(chr(int(cp, 16)))
+                emoji = "".join(chars)
+                emoji_map[emoji] = shortcode
+        process_emojis._emoji_map = emoji_map
+    else:
+        emoji_map = process_emojis._emoji_map
+
+    def replace_emoji(match):
+        emoji = match.group(0)
+        shortcode = emoji_map.get(emoji)
+        if shortcode:
+            return f"\\emoji{{{shortcode}}}"
+        return emoji
+
+    if emoji_map:
+        emoji_regex = re.compile("|".join(re.escape(e) for e in sorted(emoji_map, key=len, reverse=True)))
+        content = emoji_regex.sub(replace_emoji, content)
+
+    content = restore_protected_blocks(content, protected_blocks)
+
+    return content
+
+
 def apply_markdown_formatting_math_safe(content: str) -> str:
     """Apply markdown formatting while protecting LaTeX math blocks and code blocks."""
     content, protected_blocks = protect_code_and_math_blocks(content)
@@ -664,6 +723,8 @@ def apply_markdown_formatting_math_safe(content: str) -> str:
     content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
     content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", content)
     content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
+    content = re.sub(r":sc\[([^\]]+)\]", r"\\textsc{\1}", content)
+    content = re.sub(r":u\[([^\]]+)\]", r"\\underline{\1}", content)
 
     content = restore_protected_blocks(content, protected_blocks)
     return content
@@ -699,7 +760,7 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
             try:
                 shutil.copy(img, dest)
             except Exception as e:
-                err(f"Failed to copy image {img}: {e}")
+                Logger.error(f"Failed to copy image {img}: {e}")
 
 
 def process_executable_python_blocks(content: str, build_dir: Path) -> str:
@@ -831,6 +892,52 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
     return processed_content
 
 
+def substitute_variables(content: str, meta: dict) -> str:
+    """Substitute variables from metadata into markdown content.
+
+    Variables in markdown are in the format {{variable_name}}.
+    Variables are defined in the metadata JSON under the "variables" key.
+
+    Args:
+        content: Markdown content
+        meta: Metadata dictionary containing variables
+
+    Returns:
+        Content with variables substituted
+    """
+    variables = meta.get("variables", {})
+
+    all_variables = re.findall(r"\{\{[^}]+\}\}", content)
+    if not all_variables:
+        return content
+
+    Logger.info(f"Substituting {len(all_variables)} variable(s)...", persist=False)
+    content, protected_blocks = protect_code_and_math_blocks(content)
+    substituted_variables = set()
+    for var_name, var_value in variables.items():
+        pattern = r"\{\{\s*" + re.escape(var_name) + r"\s*\}\}"
+        if re.search(pattern, content):
+            escaped_value = str(var_value).replace("\\", "\\\\").replace("%", "\\%").replace("&", "\\&").replace("$", "\\$").replace("#", "\\#").replace("^", "\\^").replace("_", "\\_").replace("{", "\\{").replace("}", "\\}")
+            content = re.sub(pattern, escaped_value, content)
+            substituted_variables.add(var_name)
+    unresolved_pattern = r"\{\{([^}]+)\}\}"
+    unresolved_matches = re.findall(unresolved_pattern, content)
+    if unresolved_matches:
+        unique_unresolved = list(set(match.strip() for match in unresolved_matches))
+        Logger.warning(f"Unresolved variables: {', '.join(unique_unresolved)}")
+
+        def replace_unresolved_variable(match):
+            var_name = match.group(1).strip()
+            return f"[UNDEFINED: {var_name}]"
+
+        content = re.sub(unresolved_pattern, replace_unresolved_variable, content)
+
+    if len(all_variables) > 0:
+        Logger.info(f"Resolved {len(substituted_variables)} unique variable(s)", persist=True)
+    content = restore_protected_blocks(content, protected_blocks)
+    return content
+
+
 def open_pdf_file(pdf_path: Path):
     """Open PDF file using the default system application."""
     try:
@@ -876,10 +983,10 @@ Steps:
 
     md_path = Path(args.markdown_file).expanduser().resolve()
     if not md_path.exists():
-        err(f"Markdown file not found: {md_path}")
+        Logger.error(f"Markdown file not found: {md_path}")
         sys.exit(1)
     if md_path.suffix.lower() != ".md":
-        err("Provided file must have .md extension.")
+        Logger.error("Provided file must have .md extension.")
         sys.exit(1)
 
     md_dir = md_path.parent
@@ -890,7 +997,7 @@ Steps:
 
     template_tex = script_root / "template.tex"
     if not template_tex.exists():
-        err(f"Template template.tex not found at {template_tex}")
+        Logger.error(f"Template template.tex not found at {template_tex}")
         sys.exit(1)
     logo = script_root / "uni-logo.pdf"
     credit_sign = script_root / "credit-sign.pdf"
@@ -907,12 +1014,14 @@ Steps:
                 pass
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
+    md_content = substitute_variables(md_content, meta)
     md_content = convert_markdown_footnotes_to_latex(md_content)
     md_content = process_mermaid_diagrams(md_content, build_dir)
     md_content = normalize_language_identifiers(md_content)
     md_content = process_keyboard_shortcuts(md_content)
-    md_content = process_github_alerts(md_content)
+    md_content = process_container_blocks(md_content)
     md_content = apply_markdown_formatting_math_safe(md_content)
+    md_content = process_emojis(md_content)
     md_content = escape_signs(md_content, ["%"])
     md_content = post_process_alerts(md_content)
     md_content = process_executable_python_blocks(md_content, build_dir)
@@ -920,16 +1029,6 @@ Steps:
     has_code = has_code_blocks(md_content)
     has_content_page = bool(meta.get("enableContentPage"))
     needs_multiple_passes = has_code or has_content_page
-    
-    if needs_multiple_passes:
-        reasons = []
-        if has_code:
-            reasons.append("code blocks detected")
-        if has_content_page:
-            reasons.append("content page enabled")
-        passes_reason = " and ".join(reasons)
-    else:
-        passes_reason = "no special features"
 
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
@@ -943,9 +1042,9 @@ Steps:
     copy_image_assets(md_path, build_dir, md_dir)
     replace_placeholders(md_path, build_dir / "template.tex", meta)
     try:
-        rc, produced, pdf_path = run_lualatex(build_dir, needs_multiple_passes, passes_reason)
+        rc, produced, pdf_path = run_lualatex(build_dir, needs_multiple_passes)
     except BuildError as e:
-        err(str(e))
+        Logger.error(str(e))
         sys.exit(1)
 
     target_pdf = md_dir / f"{md_base}.pdf"
@@ -970,7 +1069,7 @@ Steps:
 
         sys.exit(0)
     else:
-        err(f"LuaLaTeX failed (exit code {rc}) and no PDF produced.")
+        Logger.error(f"LuaLaTeX failed (exit code {rc}) and no PDF produced.")
         sys.exit(1)
 
 
