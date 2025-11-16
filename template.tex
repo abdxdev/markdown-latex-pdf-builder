@@ -89,6 +89,7 @@
 
 % Miscellaneous Colors
 \definecolor{highlightBg}{RGB}{255,255,152}
+\definecolor{codeHighlightBg}{RGB}{223,240,216}
 
 % Title Header Colors (for mode 2)
 \definecolor{titleBoxBg}{RGB}{252,252,252}
@@ -213,7 +214,8 @@
 % #2 = language (can be empty)
 % #3 = top padding (5pt or 20pt)
 % #4 = whether to show overlay label (true/false)
-\newcommand{\codeblockwrapper}[4]{
+% #5 = extra minted options (e.g., highlightlines)
+\newcommand{\codeblockwrapper}[5]{
   \begin{tcolorbox}[
       enhanced,
       colback=codeBlockBg,
@@ -231,7 +233,7 @@
         }{}
       }
     ]
-    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{#2}{#1}
+    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
   \end{tcolorbox}
 }
 
@@ -312,10 +314,10 @@
       \ifx\templang\terminallang
       {
         \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}
-        \codeblockwrapper{#1}{text}{20pt}{true}
+        \codeblockwrapper{#1}{text}{20pt}{true}{}
       }
       \else
-      \codeblockwrapper{#1}{#3}{20pt}{true}
+      \codeblockwrapper{#1}{#3}{20pt}{true}{}
       \fi
       \fi
     },
@@ -361,7 +363,8 @@
   breaklines=true,
   fontsize=\footnotesize,
   linenos=false,
-  style=default
+  style=default,
+  highlightcolor=codeHighlightBg
 }
 
 \newcommand{\university}{@@UNIVERSITY@@}

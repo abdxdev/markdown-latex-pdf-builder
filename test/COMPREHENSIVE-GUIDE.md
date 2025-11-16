@@ -1,6 +1,20 @@
 # Markdown to LaTeX Comprehensive Guide
 
-This guide demonstrates all supported markdown syntax features for the md-to-luatex converter. 🚀
+## Features at a Glance
+
+- ✅ **Standard Markdown Support**: Headings, lists, tables, links, images, blockquotes, and more.
+- 📝 **Text Formatting**: Bold, italic, underline, strikethrough, highlight, superscript, subscript, small caps.
+- 💻 **Code Blocks**: Syntax highlighting, inline code, executable Python code with output/plots.
+- 📊 **Diagrams**: Mermaid diagrams for flowcharts and graphs.
+- 📋 **Task Lists**: Checkboxes for to-do and progress tracking.
+- 🦶 **Footnotes**: Inline and reference footnotes.
+- 🧮 **Math**: Inline and display math with LaTeX syntax.
+- 🏷️ **Definition Lists**: Term-definition pairs.
+- 📑 **Tables**: Pipe tables, captions, and alignment.
+- ⚠️ **Alerts & Containers**: Note, tip, important, warning, caution, box, and alignment containers.
+- 🎨 **Custom Extensions**: Center/right alignment, keyboard shortcuts, line breaks, and more.
+- 🏷️ **Metadata & Variables**: JSON metadata, document variables, and title page templates.
+- 🌐 **Emoji Support**: Use emojis anywhere in your markdown for expressive documents! 😃
 
 ## Headings
 
@@ -35,26 +49,26 @@ This guide demonstrates all supported markdown syntax features for the md-to-lua
 ### Bold
 
 ```markdown
-**bold text** or __bold text__
+**bold text** or **bold text**
 ```
 
-**bold text** or __bold text__
+**bold text** or **bold text**
 
 ### Italic
 
 ```markdown
-_italic text_ or *italic text*
+_italic text_ or _italic text_
 ```
 
-_italic text_ or *italic text*
+_italic text_ or _italic text_
 
 ### Bold + Italic
 
 ```markdown
-**_bold and italic_** or ***bold and italic***
+**_bold and italic_** or **_bold and italic_**
 ```
 
-**_bold and italic_** or ***bold and italic***
+**_bold and italic_** or **_bold and italic_**
 
 ### Strikethrough
 
@@ -186,16 +200,42 @@ output result
 
 ````markdown
 ```mermaid
-graph TD
-    A[Start] --> B[Process]
-    B --> C[End]
+graph TD;
+  A[Start] --> B{Decision 1};
+  B -- Yes --> C[Process 1];
+  B -- No  --> D[Process 2];
+  C --> E{Decision 2};
+  D --> F[Process 3];
+  E -- True --> G[End 1];
+  E -- False --> H[Process 4];
+  H --> I{Decision 3};
+  I -- Option 1 --> J[Process 5];
+  I -- Option 2 --> K[Process 6];
+  J --> L[End 2];
+  K --> L;
+  F --> L;
+  G --> M[Archive];
+  L --> M;
 ```
 ````
 
 ```mermaid
-graph TD
-    A[Start] --> B[Process]
-    B --> C[End]
+graph TD;
+  A[Start] --> B{Decision 1};
+  B -- Yes --> C[Process 1];
+  B -- No  --> D[Process 2];
+  C --> E{Decision 2};
+  D --> F[Process 3];
+  E -- True --> G[End 1];
+  E -- False --> H[Process 4];
+  H --> I{Decision 3};
+  I -- Option 1 --> J[Process 5];
+  I -- Option 2 --> K[Process 6];
+  J --> L[End 2];
+  K --> L;
+  F --> L;
+  G --> M[Archive];
+  L --> M;
 ```
 
 ## Lists
@@ -305,16 +345,16 @@ Term 2
 ---
 
 ```markdown
-___
+---
 ```
 
-___
+---
 
 ```markdown
-***
+---
 ```
 
-***
+---
 
 ## Math Expressions
 

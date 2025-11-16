@@ -12,6 +12,7 @@ Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs au
 - [Changing the University Logo](#changing-the-university-logo)
 - [Updating Notes Maker](#updating-notes-maker)
 - [Uninstallation](#uninstallation)
+- [Tested Environments](#tested-environments)
 
 ## Prerequisites
 
@@ -20,6 +21,9 @@ Before starting, make sure you have the following:
 ### Python
 
 Download and install it from [python.org](https://www.python.org/downloads/). Preferably, between versions 3.10 and 3.13 inclusive.
+
+> [!WARNING]
+> Syntax highlighting for code blocks doesnt work with Python 3.14. Please use Python 3.13 or lower.
 
 Check installation:
 
@@ -75,6 +79,7 @@ $env:PATH += ";$env:APPDATA\TinyTeX\bin\windows"
 tlmgr path add
 tlmgr option repository ctan
 tlmgr postaction install script xetex
+
 ```
 
 #### Step 2: Install LaTeX packages
@@ -84,6 +89,7 @@ Install required LaTeX packages using `tlmgr`:
 ```powershell
 tlmgr update --self
 tlmgr install adjustbox csvsimple datetime emoji endnotes fancyhdr fmtcount footmisc grfext hyphenat lineno listings lua-ul markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote
+
 ```
 
 > [!NOTE]
@@ -113,6 +119,7 @@ wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile
 Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
 Remove-Item "$env:TEMP\main.zip"
 Copy-Item "$env:APPDATA\Notes Maker\notes-maker-main\default.json" "$env:APPDATA\Notes Maker\default.json"
+
 ```
 
 #### Step 5 (Optional): Install Mermaid CLI for diagram support
@@ -123,7 +130,15 @@ Install Mermaid CLI globally using npm:
 npm install -g @mermaid-js/mermaid-cli
 ```
 
-#### Step 6: Verify installation
+#### Step 6 (Optional): Install Python dependencies
+
+Install required Python packages for plotting inside python execution blocks:
+
+```powershell
+python -m pip install numpy matplotlib
+```
+
+#### Step 7: Verify installation
 
 Run this command to test Notes Maker with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
 
@@ -151,8 +166,8 @@ python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes
 1. Open any folder in VS Code.
 2. Create a new Markdown file (for example, `report.md`).
 3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/notes-maker/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
-4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**.
-5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date.
+4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
+5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date. (To permanently change default values, see the next section.)
 6. Re-run the build command from step 4 to generate the updated PDF.
 
 > [!NOTE]
@@ -191,6 +206,7 @@ Remove-Item "$env:APPDATA\Notes Maker\notes-maker-main" -Recurse -Force
 wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
 Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
 Remove-Item "$env:TEMP\main.zip"
+
 ```
 
 #### Step 2: Reinstall LaTeX packages
@@ -204,6 +220,7 @@ Install latex packages from [step 2](#step-2-install-latex-packages) of the inst
 ```powershell
 tlmgr path remove
 Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
+
 ```
 
 > [!NOTE]
