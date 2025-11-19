@@ -49,8 +49,6 @@
 % ============================================================
 
 % Code Block Colors
-\definecolor{codeBlockBg}{RGB}{247,247,247}
-\definecolor{codeBlockBorder}{RGB}{208,215,222}
 \definecolor{terminalCommandBg}{RGB}{232,234,237}
 \definecolor{terminalCommandFg}{RGB}{0,92,197}
 
@@ -218,9 +216,9 @@
 \newcommand{\codeblock}[5]{
   \begin{tcolorbox}[
       enhanced,
-      colback=codeBlockBg,
-      colframe=codeBlockBorder,
-      boxrule=0pt,
+      colback=black!3,
+      colframe=black!10,
+      boxrule=0.5pt,
       arc=3pt,
       left=5pt,
       right=5pt,
@@ -229,7 +227,8 @@
       breakable,
       overlay={
         \ifstrequal{#4}{true}{
-          \node[anchor=north east,font=\tiny\ttfamily,text=gray] at ([xshift=-5pt,yshift=-3pt]frame.north east) {#2};
+          \node[anchor=north east, font=\scriptsize\ttfamily, text=black!50, fill=black!7, rounded corners=1pt]
+          at ([xshift=-5pt,yshift=-5pt]frame.north east) {#2};
         }{}
       }
     ]
@@ -238,23 +237,23 @@
     \edef\templang{#2}
     % Terminal mode
     \ifx\templang\terminallang
-      {
-        \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}
-        \inputminted[fontsize=\footnotesize,breaklines,linenos=false,highlightcolor=codeHighlightBg]{text}{#1}
-      }
-    \else        
+    {
+      \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}
+      \inputminted[breaklines=true,linenos=false,highlightcolor=codeHighlightBg]{text}{#1}
+    }
+    \else
     % Plain text mode (no language specified)
     \edef\templang{#2}
     \ifx\templang\empty
-    \inputminted[fontsize=\footnotesize,breaklines,linenos=false]{text}{#1}
+    \inputminted[breaklines=true,linenos=false]{text}{#1}
     \else
     % Language-specific mode with optional extra options
     \def\extraopts{#5}
     \ifx\extraopts\empty
-    \inputminted[fontsize=\footnotesize,breaklines,linenos=false,highlightcolor=codeHighlightBg]{#2}{#1}
+    \inputminted[breaklines=true,linenos=false,highlightcolor=codeHighlightBg]{#2}{#1}
     \else
     % With extra options
-    \inputminted[fontsize=\footnotesize,breaklines,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
+    \inputminted[breaklines=true,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
     \fi
     \fi
     \fi
