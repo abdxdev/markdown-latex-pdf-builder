@@ -11,11 +11,12 @@
   ],
   "submittedto": "Professor Name",
   "variables": {},
-  
-  "titleTemplate": 1,
+
+  "titleTemplate": 0,
   "enableContentPage": false,
   "tocDepth": 3,
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
+  "footnotesAsComments": false,
   "enableThatsAllPage": false
 }

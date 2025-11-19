@@ -85,7 +85,7 @@ Install required LaTeX packages using `tlmgr`:
 
 ```powershell
 tlmgr update --self
-tlmgr install adjustbox csvsimple datetime emoji endnotes fancyhdr fmtcount footmisc grfext hyphenat lineno listings lua-ul markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft ulem upquote
+tlmgr install adjustbox csvsimple datetime emoji endnotes fancyhdr fmtcount footmisc grfext hyphenat lineno listings lua-ul markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft todonotes ulem upquote
 
 ```
 

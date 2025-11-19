@@ -51,6 +51,7 @@ PLACEHOLDERS = [
     "@@TOC_DEPTH@@",
     "@@ENABLE_PAGE_CREDITS@@",
     "@@ENABLE_FOOTNOTES_AT_END@@",
+    "@@ENABLE_FOOTNOTES_AS_COMMENTS@@",
     "@@ENABLE_THATS_ALL_PAGE@@",
     "@@UNIVERSITY@@",
     "@@DEPARTMENT@@",
@@ -227,6 +228,10 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
 
     enable_footnotes_at_end = bool(meta.get("moveFootnotesToEnd"))
     footnotes_at_end_toggle = "\\enablefootnotesatendtrue" if enable_footnotes_at_end else "\\enablefootnotesatendfalse"
+
+    enable_footnotes_as_comments = bool(meta.get("footnotesAsComments"))
+    footnotes_as_comments_toggle = "\\enablefootnotesascommentstrue" if enable_footnotes_as_comments else "\\enablefootnotesascommentsfalse"
+
     enable_thats_all = bool(meta.get("enableThatsAllPage"))
     thats_all_toggle = "\\enablethatsalltrue" if enable_thats_all else "\\enablethatsallfalse"
 
@@ -242,6 +247,7 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@TOC_DEPTH@@": toc_depth_cmd,
         "@@ENABLE_PAGE_CREDITS@@": page_credits_toggle,
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
+        "@@ENABLE_FOOTNOTES_AS_COMMENTS@@": footnotes_as_comments_toggle,
         "@@ENABLE_THATS_ALL_PAGE@@": thats_all_toggle,
         "@@UNIVERSITY@@": meta.get("university", ""),
         "@@DEPARTMENT@@": meta.get("department", ""),
@@ -357,7 +363,7 @@ def find_markdown_images(md_path: Path) -> list[Path]:
     return paths
 
 
-def convert_markdown_footnotes_to_latex(content: str) -> str:
+def convert_markdown_footnotes_to_latex(content: str, use_comments: bool = False) -> str:
     content, protected_blocks = protect_code_and_math_blocks(content)
     footnote_defs = {}
 
@@ -369,20 +375,36 @@ def convert_markdown_footnotes_to_latex(content: str) -> str:
 
     content = re.sub(r"^\[(\^[^\]]+)\]:\s*(.+?)(?=\n\s*\n|\n\s*\[|\Z)", extract_definition, content, flags=re.MULTILINE | re.DOTALL)
 
-    def replace_inline(match):
-        footnote_content = match.group(1)
-        return f"\\footnote{{{footnote_content}}}"
+    if use_comments:
+        def replace_inline(match):
+            footnote_content = match.group(1)
+            return f"\\todoComment{{{footnote_content}}}"
 
-    content = re.sub(r"\^\[([^\]]+)\]", replace_inline, content)
+        content = re.sub(r"\^\[([^\]]+)\]", replace_inline, content)
 
-    def replace_reference(match):
-        label = match.group(1)
-        if label in footnote_defs:
-            footnote_content = footnote_defs[label]
+        def replace_reference(match):
+            label = match.group(1)
+            if label in footnote_defs:
+                footnote_content = footnote_defs[label]
+                return f"\\todoComment{{{footnote_content}}}"
+            return match.group(0)
+
+        content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
+    else:
+        def replace_inline(match):
+            footnote_content = match.group(1)
             return f"\\footnote{{{footnote_content}}}"
-        return match.group(0)
 
-    content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
+        content = re.sub(r"\^\[([^\]]+)\]", replace_inline, content)
+
+        def replace_reference(match):
+            label = match.group(1)
+            if label in footnote_defs:
+                footnote_content = footnote_defs[label]
+                return f"\\footnote{{{footnote_content}}}"
+            return match.group(0)
+
+        content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
 
     content = restore_protected_blocks(content, protected_blocks)
     return content
@@ -988,6 +1010,7 @@ Steps:
     parser.add_argument("--tocDepth", type=int, choices=[1, 2, 3, 4, 5, 6])
     parser.add_argument("--enablePageCredits", type=str, choices=["true", "false"])
     parser.add_argument("--moveFootnotesToEnd", type=str, choices=["true", "false"])
+    parser.add_argument("--footnotesAsComments", type=str, choices=["true", "false"])
     parser.add_argument("--enableThatsAllPage", type=str, choices=["true", "false"])
 
     args = parser.parse_args()
@@ -1008,6 +1031,9 @@ Steps:
 
         if args.moveFootnotesToEnd is not None:
             meta["moveFootnotesToEnd"] = args.moveFootnotesToEnd.lower() == "true"
+
+        if args.footnotesAsComments is not None:
+            meta["footnotesAsComments"] = args.footnotesAsComments.lower() == "true"
 
         if args.enableThatsAllPage is not None:
             meta["enableThatsAllPage"] = args.enableThatsAllPage.lower() == "true"
@@ -1052,7 +1078,13 @@ Steps:
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = substitute_variables(md_content, meta)
-    md_content = convert_markdown_footnotes_to_latex(md_content)
+
+    if meta.get("footnotesAsComments"):
+        # This function will be modified to handle todo comments directly
+        md_content = convert_markdown_footnotes_to_latex(md_content, use_comments=True)
+    else:
+        md_content = convert_markdown_footnotes_to_latex(md_content)
+
     md_content = process_mermaid_diagrams(md_content, build_dir)
     md_content = normalize_language_identifiers(md_content)
     md_content = process_keyboard_shortcuts(md_content)

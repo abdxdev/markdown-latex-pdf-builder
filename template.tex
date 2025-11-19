@@ -11,6 +11,7 @@
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{tikz}
+\usepackage[]{todonotes}
 \usepackage{titling}
 \usepackage{tocloft}
 \usepackage{titletoc}
@@ -41,9 +42,24 @@
   taskLists,
 ]{markdown}
 
+
+
 \settimeformat{ampmtime}
 \sloppy
 
+\setlength{\marginparwidth}{1.8cm}
+
+\newcommand{\todoComment}[1]{
+  \todo[
+    % fancyline,
+    linecolor=black!10,
+    bordercolor=black!10,
+    textcolor=black!50,
+    backgroundcolor=black!3,
+    tickmarkheight=0.3cm,
+    size=\scriptsize
+  ]{#1}
+}
 % ============================================================
 % COLOR DEFINITIONS
 % ============================================================
@@ -97,19 +113,19 @@
 
 % ============================================================
 
-\newtcbox{\inlinecode}{%
-  enhanced,%
-  on line,%
-  arc=2pt,%
-  colback=inlineCodeBg,%
-  colframe=inlineCodeBg,%
-  boxrule=0pt,%
-  left=4pt,%
-  right=4pt,%
-  top=2pt,%
-  bottom=2pt,%
-  boxsep=0pt,%
-  before upper={\ttfamily\color{inlineCodeFg}},%
+\newtcbox{\inlinecode}{
+  enhanced,
+  on line,
+  arc=2pt,
+  colback=inlineCodeBg,
+  colframe=inlineCodeBg,
+  boxrule=0pt,
+  left=4pt,
+  right=4pt,
+  top=2pt,
+  bottom=2pt,
+  boxsep=0pt,
+  before upper={\ttfamily\color{inlineCodeFg}},
 }
 
 \newcommand{\mdstrikethrough}[1]{\sout{#1}}
@@ -315,7 +331,7 @@
     inputFencedCode = {
       \edef\templang{#3}
       \ifx\templang\empty
-      \codeblock{#1}{}{5pt}{false}{}%
+      \codeblock{#1}{}{5pt}{false}{}
       \else
       \def\terminallang{terminal}
       \ifx\templang\terminallang
@@ -326,7 +342,7 @@
       \fi
     },
     inputVerbatim = {
-      \codeblock{#1}{}{5pt}{false}{}%
+      \codeblock{#1}{}{5pt}{false}{}
     },
     dlBegin = {
     \begin{description}},
@@ -395,6 +411,11 @@
 \enablefootnotesatendfalse
 
 @@ENABLE_FOOTNOTES_AT_END@@
+
+\newif\ifenablefootnotesascomments
+\enablefootnotesascommentsfalse
+
+@@ENABLE_FOOTNOTES_AS_COMMENTS@@
 
 \newif\ifenablethatsall
 \enablethatsalltrue

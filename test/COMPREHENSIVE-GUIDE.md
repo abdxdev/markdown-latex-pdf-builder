@@ -703,6 +703,7 @@ Document metadata is configured in a separate JSON file:
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
   "enableThatsAllPage": false,
+  "footnotesAsComments": false,
   "tocDepth": 3,
   "variables": {}
 }
