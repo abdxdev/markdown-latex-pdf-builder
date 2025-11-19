@@ -20,10 +20,7 @@ Before starting, make sure you have the following:
 
 ### Python
 
-Download and install it from [python.org](https://www.python.org/downloads/). Preferably, between versions 3.10 and 3.13 inclusive.
-
-> [!WARNING]
-> Syntax highlighting for code blocks doesnt work with Python 3.14. Please use Python 3.13 or lower.
+Download and install it from [python.org](https://www.python.org/downloads/). Preferably, above version 3.10.
 
 Check installation:
 
@@ -154,9 +151,12 @@ python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes
 
    ```jsonc
    // ...other settings...,
-   "command-runner.commands": {
-       "Build LaTeX Document": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\""
-   }
+    "command-runner.commands": {
+        "Notes Maker: Build Document (follow json settings)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\"",
+        "Notes Maker: Build Assignment (add university title page)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\" --titleTemplate 1 --enableContentPage false",
+        "Notes Maker: Build Notes (add title)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\" --titleTemplate 2 --enableContentPage false",
+        "Notes Maker: Build Publication (add contents and title page)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\" --titleTemplate 3 --enableContentPage true"
+    }
    ```
 
 4. Save the file.
@@ -166,7 +166,7 @@ python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes
 1. Open any folder in VS Code.
 2. Create a new Markdown file (for example, `report.md`).
 3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/notes-maker/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
-4. Press `Ctrl + Shift + R` and select **Build LaTeX Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
+4. Press `Ctrl + Shift + R` and select **Notes Maker: Build Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
 5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date. (To permanently change default values, see the next section.)
 6. Re-run the build command from step 4 to generate the updated PDF.
 

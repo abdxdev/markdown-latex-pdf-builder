@@ -981,9 +981,39 @@ Steps:
     )
     parser.add_argument("markdown_file", help="Path to the markdown file to process")
     parser.add_argument("--show", action="store_true", help="Open the generated PDF file after successful build")
-    parser.add_argument("--latex-log", type=int, choices=[0, 1, 2], default=0, help="LaTeX compilation output verbosity: 0=silent (default), 1=errors/warnings only, 2=verbose")
+    parser.add_argument("--latex-log", "-l", type=int, choices=[0, 1, 2], default=0, help="LaTeX compilation output verbosity: 0=silent (default), 1=errors/warnings only, 2=verbose")
+
+    parser.add_argument("--titleTemplate", type=int, choices=[0, 1, 2, 3])
+    parser.add_argument("--enableContentPage", type=str, choices=["true", "false"])
+    parser.add_argument("--tocDepth", type=int, choices=[1, 2, 3, 4, 5, 6])
+    parser.add_argument("--enablePageCredits", type=str, choices=["true", "false"])
+    parser.add_argument("--moveFootnotesToEnd", type=str, choices=["true", "false"])
+    parser.add_argument("--enableThatsAllPage", type=str, choices=["true", "false"])
 
     args = parser.parse_args()
+
+    def apply_cli_overrides(meta, args):
+        """Override metadata fields only if user provided CLI args."""
+        if args.titleTemplate is not None:
+            meta["titleTemplate"] = args.titleTemplate
+
+        if args.enableContentPage is not None:
+            meta["enableContentPage"] = args.enableContentPage.lower() == "true"
+
+        if args.tocDepth is not None:
+            meta["tocDepth"] = args.tocDepth
+
+        if args.enablePageCredits is not None:
+            meta["enablePageCredits"] = args.enablePageCredits.lower() == "true"
+
+        if args.moveFootnotesToEnd is not None:
+            meta["moveFootnotesToEnd"] = args.moveFootnotesToEnd.lower() == "true"
+
+        if args.enableThatsAllPage is not None:
+            meta["enableThatsAllPage"] = args.enableThatsAllPage.lower() == "true"
+
+        return meta
+
 
     global LATEX_LOG_LEVEL
     LATEX_LOG_LEVEL = args.latex_log
@@ -1000,6 +1030,7 @@ Steps:
     md_base = md_path.stem
 
     meta = load_or_create_metadata(md_dir, md_base)
+    meta = apply_cli_overrides(meta, args)
 
     template_tex = ROOT / "template.tex"
     if not template_tex.exists():
