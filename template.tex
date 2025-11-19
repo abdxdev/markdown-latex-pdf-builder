@@ -24,7 +24,7 @@
 \usepackage[none]{hyphenat}
 \usepackage{titlesec}
 \usepackage{datetime}
-\usepackage[cache=true,cachedir=.]{minted}
+\usepackage[highlightmode=immediate]{minted1}
 \usepackage[
   contentBlocks,
   rawAttribute,
@@ -233,7 +233,7 @@
         }{}
       }
     ]
-    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
+    \inputminted[ignorelexererrors=true,fontsize=\footnotesize,breaklines=true,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
   \end{tcolorbox}
 }
 
@@ -249,7 +249,7 @@
       bottom=5pt,
       breakable
     ]
-    \inputminted[fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}
+    \inputminted[ignorelexererrors=true,fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}
   \end{tcolorbox}
 }
 
@@ -358,14 +358,14 @@
   urlcolor=cyan
 }
 
-\setminted{
-  frame=none,
-  breaklines=true,
-  fontsize=\footnotesize,
-  linenos=false,
-  style=default,
-  highlightcolor=codeHighlightBg
-}
+% \setminted{
+%   frame=none,
+%   breaklines=true,
+%   fontsize=\footnotesize,
+%   linenos=false,
+%   style=default,
+%   highlightcolor=codeHighlightBg
+% }
 
 \newcommand{\university}{@@UNIVERSITY@@}
 \newcommand{\department}{@@DEPARTMENT@@}

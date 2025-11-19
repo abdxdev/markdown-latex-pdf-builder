@@ -37,8 +37,35 @@ import hashlib
 import tempfile
 import os
 
-PLACEHOLDERS = ["@@TITLE@@", "@@SUBTITLE@@", "@@SUBMITTEDTO@@", "@@AUTHORS@@", "@@DATE@@", "@@INPUT_FILE@@", "@@TITLE_TEMPLATE@@", "@@ENABLE_CONTENT_PAGE@@", "@@TOC_DEPTH@@", "@@ENABLE_PAGE_CREDITS@@", "@@ENABLE_FOOTNOTES_AT_END@@", "@@ENABLE_THATS_ALL_PAGE@@", "@@UNIVERSITY@@", "@@DEPARTMENT@@"]
-IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".svg", ".eps", ".bmp", ".webp"}
+ROOT = Path(__file__).parent.resolve()
+
+PLACEHOLDERS = [
+    "@@TITLE@@",
+    "@@SUBTITLE@@",
+    "@@SUBMITTEDTO@@",
+    "@@AUTHORS@@",
+    "@@DATE@@",
+    "@@INPUT_FILE@@",
+    "@@TITLE_TEMPLATE@@",
+    "@@ENABLE_CONTENT_PAGE@@",
+    "@@TOC_DEPTH@@",
+    "@@ENABLE_PAGE_CREDITS@@",
+    "@@ENABLE_FOOTNOTES_AT_END@@",
+    "@@ENABLE_THATS_ALL_PAGE@@",
+    "@@UNIVERSITY@@",
+    "@@DEPARTMENT@@",
+]
+IMAGE_EXTS = {
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".pdf",
+    ".svg",
+    ".eps",
+    ".bmp",
+    ".webp",
+}
 
 
 LATEX_LOG_SILENT = 0
@@ -89,7 +116,7 @@ class Logger:
         cls._print(f"{cls.COLORS['ERROR']}[ERROR]{cls.COLORS['RESET']} {msg}", persist)
 
 
-def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> dict:
+def load_or_create_metadata(md_dir: Path, md_base: str) -> dict:
     def is_similar_json(s1: dict, s2: dict, except_keys: set) -> bool:
         """Check if two JSON objects have the same keys with matching data types."""
         s1_filtered = {k: v for k, v in s1.items() if k not in except_keys}
@@ -123,11 +150,11 @@ def load_or_create_metadata(script_root: Path, md_dir: Path, md_base: str) -> di
 
     """Load metadata JSON file, creating default if missing."""
     meta_path = md_dir / f"{md_base}.json"
-    json_file = load_json_file(script_root / "default.json")
+    json_file = load_json_file(ROOT / "default.json")
 
     if not meta_path.exists():
 
-        parent_default_path = script_root.parent / "default.json"
+        parent_default_path = ROOT.parent / "default.json"
         if parent_default_path.exists():
             try:
                 modified_default = load_json_file(parent_default_path)
@@ -266,7 +293,7 @@ def _display_latex_output(filtered_output: str, returncode: int) -> None:
             print(filtered_output)
 
 
-def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True):
+def run_lualatex(build_dir: Path):
     cmd = [
         "lualatex",
         "--shell-escape",
@@ -276,29 +303,23 @@ def run_lualatex(build_dir: Path, requires_multiple_passes: bool = True):
         "template.tex",
     ]
 
-    max_passes = 2 if requires_multiple_passes else 1
-
-    for pass_num in range(1, max_passes + 1):
-        try:
-            Logger.info(f"Pass {pass_num}/{max_passes}...", persist=False)
-            proc = subprocess.run(
-                cmd,
-                cwd=build_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                check=False,
-            )
-        except FileNotFoundError as e:
-            raise BuildError("lualatex not found") from e
-        if pass_num == max_passes:
-            final_returncode = proc.returncode
-            output = proc.stdout
-
-            filtered_output = _filter_latex_output(output, final_returncode)
-
-            _display_latex_output(filtered_output, final_returncode)
+    try:
+        Logger.info(f"Compiling into PDF...", persist=False)
+        proc = subprocess.run(
+            cmd,
+            cwd=build_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+    except FileNotFoundError as e:
+        raise BuildError("lualatex not found") from e
+    final_returncode = proc.returncode
+    output = proc.stdout
+    filtered_output = _filter_latex_output(output, final_returncode)
+    _display_latex_output(filtered_output, final_returncode)
 
     pdf_path = build_dir / "template.pdf"
     produced = pdf_path.exists()
@@ -730,20 +751,6 @@ def apply_markdown_formatting_math_safe(content: str) -> str:
     return content
 
 
-def has_code_blocks(content: str) -> bool:
-    """Check if the markdown content contains any code blocks that require syntax highlighting."""
-    if re.search(r"```\w+", content):
-        return True
-
-    if re.search(r"```", content):
-        return True
-
-    if "`" in content:
-        return True
-
-    return False
-
-
 def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
     images = find_markdown_images(md_path)
     if not images:
@@ -991,17 +998,16 @@ Steps:
 
     md_dir = md_path.parent
     md_base = md_path.stem
-    script_root = Path(__file__).parent.resolve()
 
-    meta = load_or_create_metadata(script_root, md_dir, md_base)
+    meta = load_or_create_metadata(md_dir, md_base)
 
-    template_tex = script_root / "template.tex"
+    template_tex = ROOT / "template.tex"
     if not template_tex.exists():
         Logger.error(f"Template template.tex not found at {template_tex}")
         sys.exit(1)
-    logo = script_root / "uni-logo.pdf"
-    credit_sign = script_root / "credit-sign.pdf"
-    fonts_dir = script_root / "fonts"
+    logo = ROOT / "uni-logo.pdf"
+    credit_sign = ROOT / "credit-sign.pdf"
+    fonts_dir = ROOT / "fonts"
     build_dir = md_dir / f"_build_{md_base}"
     if not build_dir.exists():
         build_dir.mkdir()
@@ -1026,10 +1032,6 @@ Steps:
     md_content = post_process_alerts(md_content)
     md_content = process_executable_python_blocks(md_content, build_dir)
 
-    has_code = has_code_blocks(md_content)
-    has_content_page = bool(meta.get("enableContentPage"))
-    needs_multiple_passes = has_code or has_content_page
-
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")
     if logo.exists():
@@ -1042,7 +1044,7 @@ Steps:
     copy_image_assets(md_path, build_dir, md_dir)
     replace_placeholders(md_path, build_dir / "template.tex", meta)
     try:
-        rc, produced, pdf_path = run_lualatex(build_dir, needs_multiple_passes)
+        rc, produced, pdf_path = run_lualatex(build_dir)
     except BuildError as e:
         Logger.error(str(e))
         sys.exit(1)

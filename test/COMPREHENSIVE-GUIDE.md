@@ -49,26 +49,26 @@
 ### Bold
 
 ```markdown
-**bold text** or **bold text**
+**bold text** or __bold text__
 ```
 
-**bold text** or **bold text**
+**bold text** or __bold text__
 
 ### Italic
 
 ```markdown
-_italic text_ or _italic text_
+_italic text_ or *italic text*
 ```
 
-_italic text_ or _italic text_
+_italic text_ or *italic text*
 
 ### Bold + Italic
 
 ```markdown
-**_bold and italic_** or **_bold and italic_**
+**_bold and italic_** or ***bold and italic***
 ```
 
-**_bold and italic_** or **_bold and italic_**
+**_bold and italic_** or ***bold and italic***
 
 ### Strikethrough
 
@@ -185,22 +185,22 @@ output result
 ## Images
 
 ```markdown
-![alt text](image.png)
+![alt text](image.jpg)
 ```
 
-![alt text](image.png)
+![alt text](image.jpg)
 
 ```markdown
-![alt text](image.png "title")
+![alt text](image.jpg "title")
 ```
 
-![alt text](image.png "title")
+![alt text](image.jpg "title")
 
 ## Mermaid Diagrams
 
 ````markdown
 ```mermaid
-graph TD;
+graph LR;
   A[Start] --> B{Decision 1};
   B -- Yes --> C[Process 1];
   B -- No  --> D[Process 2];
@@ -220,7 +220,7 @@ graph TD;
 ````
 
 ```mermaid
-graph TD;
+graph LR;
   A[Start] --> B{Decision 1};
   B -- Yes --> C[Process 1];
   B -- No  --> D[Process 2];
@@ -339,16 +339,16 @@ Term 2
 ## Horizontal Rule
 
 ```markdown
----
+___
 ```
 
----
+___
 
 ```markdown
----
+***
 ```
 
----
+***
 
 ```markdown
 ---
