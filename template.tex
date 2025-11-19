@@ -24,7 +24,7 @@
 \usepackage[none]{hyphenat}
 \usepackage{titlesec}
 \usepackage{datetime}
-\usepackage[highlightmode=immediate]{minted1}
+\usepackage{minted1}
 \usepackage[
   contentBlocks,
   rawAttribute,
@@ -209,13 +209,13 @@
 \newcommand{\kbdplus}{\,{\small +}\,}
 \newcommand{\kbdshortcut}[1]{#1}
 
-% Functional code block wrapper
+% Unified code block wrapper
 % #1 = file path to input
-% #2 = language (can be empty)
+% #2 = language (can be empty for plain text)
 % #3 = top padding (5pt or 20pt)
 % #4 = whether to show overlay label (true/false)
 % #5 = extra minted options (e.g., highlightlines)
-\newcommand{\codeblockwrapper}[5]{
+\newcommand{\codeblock}[5]{
   \begin{tcolorbox}[
       enhanced,
       colback=codeBlockBg,
@@ -233,23 +233,31 @@
         }{}
       }
     ]
-    \inputminted[ignorelexererrors=true,fontsize=\footnotesize,breaklines=true,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
-  \end{tcolorbox}
-}
 
-\newcommand{\codeblockplain}[1]{
-  \begin{tcolorbox}[
-      colback=codeBlockBg,
-      colframe=codeBlockBorder,
-      boxrule=0pt,
-      arc=3pt,
-      left=5pt,
-      right=5pt,
-      top=5pt,
-      bottom=5pt,
-      breakable
-    ]
-    \inputminted[ignorelexererrors=true,fontsize=\footnotesize,breaklines=true,linenos=false]{text}{#1}
+    % if #2 contains terminal, replace it with text
+    \edef\templang{#2}
+    % Terminal mode
+    \ifx\templang\terminallang
+      {
+        \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}
+        \inputminted[fontsize=\footnotesize,breaklines,linenos=false,highlightcolor=codeHighlightBg]{text}{#1}
+      }
+    \else        
+    % Plain text mode (no language specified)
+    \edef\templang{#2}
+    \ifx\templang\empty
+    \inputminted[fontsize=\footnotesize,breaklines,linenos=false]{text}{#1}
+    \else
+    % Language-specific mode with optional extra options
+    \def\extraopts{#5}
+    \ifx\extraopts\empty
+    \inputminted[fontsize=\footnotesize,breaklines,linenos=false,highlightcolor=codeHighlightBg]{#2}{#1}
+    \else
+    % With extra options
+    \inputminted[fontsize=\footnotesize,breaklines,linenos=false,highlightcolor=codeHighlightBg,#5]{#2}{#1}
+    \fi
+    \fi
+    \fi
   \end{tcolorbox}
 }
 
@@ -308,21 +316,18 @@
     inputFencedCode = {
       \edef\templang{#3}
       \ifx\templang\empty
-      \codeblockplain{#1}
+      \codeblock{#1}{}{5pt}{false}{}%
       \else
       \def\terminallang{terminal}
       \ifx\templang\terminallang
-      {
-        \def\FancyVerbFormatLine##1{\ifnum\value{FancyVerbLine}=1{\color{terminalCommandFg}##1}\else##1\fi}
-        \codeblockwrapper{#1}{text}{20pt}{true}{}
-      }
+      \codeblock{#1}{terminal}{20pt}{true}{}
       \else
-      \codeblockwrapper{#1}{#3}{20pt}{true}{}
+      \codeblock{#1}{#3}{20pt}{true}{}
       \fi
       \fi
     },
     inputVerbatim = {
-      \codeblockplain{#1}
+      \codeblock{#1}{}{5pt}{false}{}%
     },
     dlBegin = {
     \begin{description}},
@@ -357,15 +362,6 @@
   filecolor=magenta,
   urlcolor=cyan
 }
-
-% \setminted{
-%   frame=none,
-%   breaklines=true,
-%   fontsize=\footnotesize,
-%   linenos=false,
-%   style=default,
-%   highlightcolor=codeHighlightBg
-% }
 
 \newcommand{\university}{@@UNIVERSITY@@}
 \newcommand{\department}{@@DEPARTMENT@@}
