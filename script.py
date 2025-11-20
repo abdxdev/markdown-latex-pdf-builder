@@ -795,7 +795,7 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
 def process_executable_python_blocks(content: str, build_dir: Path) -> str:
     """Execute Python code blocks with property-based control.
 
-    Syntax: ```python {.execute .show-code .show-output}
+    Syntax: ```python {.execute .show-code .show-output .no-cache}
 
     Properties:
     - .execute - Execute the code block
@@ -803,6 +803,8 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
     - .show-output - Display execution output/plot (default: shown)
     - .hide-code - Explicitly hide the source code
     - .hide-output - Hide execution output/plot
+    - .cache - Cache the execution output
+    - .no-cache - Do not use cache and force re-execution
     """
     protected_blocks = []
 
@@ -834,6 +836,8 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             return match.group(0)
 
         code = match.group(2)
+        
+        use_cache = ".no-cache" not in properties
 
         show_code = ".show-code" in properties and ".hide-code" not in properties
         show_output = ".hide-output" not in properties
@@ -845,6 +849,15 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             if has_matplotlib:
                 plot_filename = f"python_plot_{code_hash}.pdf"
                 plot_path = build_dir / plot_filename
+                
+                if use_cache and plot_path.exists():
+                    Logger.info(f"Cached plot {block_counter}/{total_blocks}", persist=False)
+                    parts = []
+                    if show_code:
+                        parts.append(f"```python\n{code}\n```")
+                    if show_output:
+                        parts.append(f"![Python Plot]({plot_filename})")
+                    return "\n\n".join(parts) if parts else ""
 
                 wrapped_code = code.replace("plt.show()", "")
                 wrapped_code += f"\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()"
@@ -877,6 +890,22 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
                         parts.append(f"```output\nNo plot generated\n```")
                     return "\n\n".join(parts) if parts else ""
             else:
+                output_filename = f"python_output_{code_hash}.txt"
+                output_path = build_dir / output_filename
+                
+                if use_cache and output_path.exists():
+                    Logger.info(f"Cached output {block_counter}/{total_blocks}", persist=False)
+                    output = output_path.read_text(encoding="utf-8")
+                    parts = []
+                    if show_code:
+                        parts.append(f"```python\n{code}\n```")
+                    if show_output:
+                        if output:
+                            parts.append(f"```output\n{output}\n```")
+                        else:
+                            parts.append(f"```output\n(No output)\n```")
+                    return "\n\n".join(parts) if parts else ""
+
                 result = subprocess.run(["python", "-c", code], capture_output=True, text=True, timeout=30, check=False)
                 if result.returncode != 0:
                     Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
@@ -887,6 +916,10 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
                         return f"```output\nError executing code:\n{error_msg}\n```"
 
                 output = result.stdout.strip()
+                
+                if use_cache:
+                    output_path.write_text(output, encoding="utf-8")
+
                 Logger.info(f"Executed Python block {block_counter}/{total_blocks}", persist=False)
 
                 parts = []

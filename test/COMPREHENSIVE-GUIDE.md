@@ -633,6 +633,8 @@ python -m pip install matplotlib numpy
 - **`.show-output`** - Display execution output/plot (default)
 - **`.hide-code`** - Explicitly hide the source code (default)
 - **`.hide-output`** - Hide execution output/plot
+- **`.cache`** - Cache the execution output (default)
+- **`.no-cache`** - Do not use cache and force re-execution
 
 ### Examples 1
 

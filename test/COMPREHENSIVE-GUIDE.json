@@ -10,12 +10,13 @@
     }
   ],
   "submittedto": "Professor Name",
+  "variables": {},
   "titleTemplate": 0,
   "enableContentPage": false,
   "tocDepth": 2,
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
+  "footnotesAsComments": false,
   "enableThatsAllPage": false,
-  "variables": {},
-  "date": "November 12, 2025"
+  "date": "November 20, 2025"
 }
