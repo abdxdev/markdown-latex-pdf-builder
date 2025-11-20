@@ -1143,7 +1143,7 @@ Steps:
         rc, produced, pdf_path = run_lualatex(build_dir)
 
         if meta.get("enableContentPage") or meta.get("footnotesAsComments"):
-            Logger.info("Rerunning LuaLaTeX for table of contents/footnotes...")
+            Logger.info("Rerunning LuaLaTeX for table of contents/footnotes...", persist=True)
             rc, produced, pdf_path = run_lualatex(build_dir)
     except BuildError as e:
         Logger.error(str(e))
