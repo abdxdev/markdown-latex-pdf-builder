@@ -1141,6 +1141,10 @@ Steps:
     replace_placeholders(md_path, build_dir / "template.tex", meta)
     try:
         rc, produced, pdf_path = run_lualatex(build_dir)
+
+        if meta.get("enableContentPage") or meta.get("footnotesAsComments"):
+            Logger.info("Rerunning LuaLaTeX for table of contents/footnotes...")
+            rc, produced, pdf_path = run_lualatex(build_dir)
     except BuildError as e:
         Logger.error(str(e))
         sys.exit(1)
