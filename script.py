@@ -450,6 +450,34 @@ def normalize_language_identifiers(content: str) -> str:
     return content
 
 
+def process_code_highlights(content: str, build_dir: Path) -> str:
+    def replace_highlight_attribute(match):
+        header = match.group(1)
+        code_content = match.group(2)
+        highlight_match = re.search(r'\.highlightlines=([\d,-]+)', header)
+        if highlight_match:
+            lang_match = re.match(r'(\w+)', header)
+            lang = lang_match.group(1) if lang_match else 'text'
+            
+            clean_code_content = code_content.strip()
+            code_hash = hashlib.md5(clean_code_content.encode('utf-8')).hexdigest()
+            code_filename = f"code_{code_hash}.txt"
+            code_filepath = build_dir / code_filename
+            
+            code_filepath.write_text(clean_code_content, encoding='utf-8')
+
+            line_spec = highlight_match.group(1)
+            highlight_option = f"highlightlines={{{line_spec}}}"    
+
+            return f"```{{=latex}}\n\\codeblock{{{code_filename}}}{{{lang}}}{{20pt}}{{true}}{{{highlight_option}}}\n```"
+        else:
+            return match.group(0)
+
+    pattern = r"^```([^\n]*)\n(.*?)\n^```"
+    processed_content = re.sub(pattern, replace_highlight_attribute, content, flags=re.DOTALL | re.MULTILINE)
+    return processed_content
+
+
 def find_mmdc_command():
     """Return path to mermaid-cli (mmdc) if available in PATH."""
     candidates = ["mmdc"]
@@ -1111,6 +1139,7 @@ Steps:
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = substitute_variables(md_content, meta)
+    md_content = process_code_highlights(md_content, build_dir)
 
     if meta.get("footnotesAsComments"):
         # This function will be modified to handle todo comments directly
