@@ -411,19 +411,27 @@ def convert_markdown_footnotes_to_latex(content: str, use_comments: bool = False
 
 
 def escape_signs(content: str, to_escape: list[str]) -> str:
-    """Escape special characters while protecting code blocks and raw latex blocks."""
+    """Escape special characters while protecting code blocks, raw latex blocks, and URLs."""
     protected_blocks = []
 
     def store_protected_block(match):
         protected_blocks.append(match.group(0))
         return f"__ESCAPE_PROTECTED_{len(protected_blocks)-1}__"
 
+    # Protect raw latex
     content = re.sub(r"`+\{=latex\}.*?`+", store_protected_block, content, flags=re.DOTALL)
+    # Protect code blocks
     content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"`[^`\n]+`", store_protected_block, content)
+    # Protect math
     content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
     content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
+    # Protect markdown links
+    content = re.sub(r"\[[^\]]*\]\([^)]+\)", store_protected_block, content)
+    # Protect raw URLs (best effort)
+    content = re.sub(r"https?://\S+", store_protected_block, content)
+
 
     for sign in to_escape:
         content = content.replace(sign, f"\\{sign}")
@@ -450,32 +458,91 @@ def normalize_language_identifiers(content: str) -> str:
     return content
 
 
-def process_code_highlights(content: str, build_dir: Path) -> str:
-    def replace_highlight_attribute(match):
-        header = match.group(1)
-        code_content = match.group(2)
-        highlight_match = re.search(r'\.highlightlines=([\d,-]+)', header)
-        if highlight_match:
-            lang_match = re.match(r'(\w+)', header)
-            lang = lang_match.group(1) if lang_match else 'text'
-            
-            clean_code_content = code_content.strip()
-            code_hash = hashlib.md5(clean_code_content.encode('utf-8')).hexdigest()
-            code_filename = f"code_{code_hash}.txt"
-            code_filepath = build_dir / code_filename
-            
-            code_filepath.write_text(clean_code_content, encoding='utf-8')
+def process_code_blocks(content: str, build_dir: Path) -> str:
+    lines = content.split('\n')
+    processed_lines = []
+    in_code_block = False
+    code_block_lines = []
+    header = ""
+    opening_fence = ""
 
-            line_spec = highlight_match.group(1)
-            highlight_option = f"highlightlines={{{line_spec}}}"    
+    for line in lines:
+        if not in_code_block:
+            match = re.match(r"^(`{3,})(.*)", line)
+            if match:
+                in_code_block = True
+                opening_fence = match.group(1)
+                header = match.group(2).strip()
+                # Don't add this line to processed_lines yet
+            else:
+                processed_lines.append(line)
+        else: # We are in a code block
+            # Check for closing fence that is at least as long
+            if line.strip().startswith(opening_fence) and len(line.strip()) >= len(opening_fence):
+                in_code_block = False
+                # Now we have the full block, process it
+                code_content = "\n".join(code_block_lines)
+                
+                lang_match = re.match(r'(\w+)', header)
+                lang = lang_match.group(1) if lang_match else 'text'
 
-            return f"```{{=latex}}\n\\codeblock{{{code_filename}}}{{{lang}}}{{20pt}}{{true}}{{{highlight_option}}}\n```"
-        else:
-            return match.group(0)
+                # If it's a block we should skip, reconstruct it and continue
+                if lang == 'mermaid' or '.execute' in header:
+                    original_block = f"{opening_fence}{header}\n{code_content}\n{line.strip()}"
+                    processed_lines.append(original_block)
+                else:
+                    # This is a block we need to process
+                    clean_code_content = code_content # No strip needed here
+                    code_hash = hashlib.md5(clean_code_content.encode('utf-8')).hexdigest()
+                    code_filename = f"code_{code_hash}.txt"
+                    code_filepath = build_dir / code_filename
+                    code_filepath.write_text(clean_code_content, encoding='utf-8')
 
-    pattern = r"^```([^\n]*)\n(.*?)\n^```"
-    processed_content = re.sub(pattern, replace_highlight_attribute, content, flags=re.DOTALL | re.MULTILINE)
-    return processed_content
+                    highlight_match = re.search(r'\.highlightlines=([\d,-]+)', header)
+                    if highlight_match:
+                        line_spec = highlight_match.group(1)
+                        minted_options = f"breaklines=true,linenos=false,highlightcolor=codeHighlightBg,highlightlines={{{line_spec}}}"
+                    else:
+                        minted_options = "breaklines=true,linenos=false,highlightcolor=codeHighlightBg"
+
+                    pygments_lang = lang
+                    if lang == 'terminal' or lang == 'bash':
+                        pygments_lang = 'console'
+
+                    if lang == 'terminal':
+                        top_padding = '20pt'
+                        show_label = 'true'
+                    elif lang == 'text' or not lang:
+                        top_padding = '5pt'
+                        show_label = 'false'
+                    else:
+                        top_padding = '20pt'
+                        show_label = 'true'
+
+                    latex_command = f"""
+\\begin{{tcolorbox}}[
+enhanced, colback=black!3, colframe=black!10, boxrule=0.5pt, arc=3pt,
+left=5pt, right=5pt, top={top_padding}, bottom=5pt, breakable,
+overlay={{\\ifstrequal{{{show_label}}}{{true}}{{\\node[anchor=north east, font=\\scriptsize\\ttfamily, text=black!50, fill=black!7, rounded corners=1pt] at ([xshift=-5pt,yshift=-5pt]frame.north east) {{{lang}}};}}{{}} }}
+]
+\\inputminted[{minted_options}]{{{pygments_lang if pygments_lang else 'text'}}}{{{code_filename}}}
+\\end{{tcolorbox}}"""
+                    raw_latex_block = f"```{{=latex}}\n{latex_command}\n```"
+                    processed_lines.append(raw_latex_block)
+                
+                # Reset state
+                code_block_lines = []
+                header = ""
+                opening_fence = ""
+            else:
+                code_block_lines.append(line)
+
+    # If file ends while in a code block, append the unterminated block
+    if in_code_block:
+        processed_lines.append(opening_fence + header)
+        processed_lines.extend(code_block_lines)
+
+    return "\n".join(processed_lines)
 
 
 def find_mmdc_command():
@@ -1139,7 +1206,7 @@ Steps:
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
     md_content = substitute_variables(md_content, meta)
-    md_content = process_code_highlights(md_content, build_dir)
+    md_content = process_code_blocks(md_content, build_dir)
 
     if meta.get("footnotesAsComments"):
         # This function will be modified to handle todo comments directly
@@ -1153,7 +1220,7 @@ Steps:
     md_content = process_container_blocks(md_content)
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = process_emojis(md_content)
-    md_content = escape_signs(md_content, ["%"])
+    md_content = escape_signs(md_content, ["%", "&"])
     md_content = post_process_alerts(md_content)
     md_content = process_executable_python_blocks(md_content, build_dir)
 
