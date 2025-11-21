@@ -1,29 +1,3 @@
-"""Build PDF from a markdown file using template.tex template with JSON metadata.
-
-Usage:
-    python script.py path/to/templatexyz.md [--show] [--latex-log LEVEL]
-
-Options:
-    --show              Open the generated PDF file after successful build
-    --latex-log LEVEL   LaTeX compilation output verbosity:
-                        0 = silent (default, no LaTeX output shown)
-                        1 = errors/warnings only
-                        2 = verbose (show all LaTeX output)
-
-LaTeX Output Control:
-    Use --latex-log argument to control LaTeX compilation output visibility.
-    Set SUPPRESS_HYBRID_WARNING to True/False to control hybrid warning suppression.
-
-Steps:
-1. Validate markdown path.
-2. Ensure metadata.json exists (create default if missing).
-3. Create build directory _build_<basename> next to markdown.
-4. Copy template (template.tex), fonts/, uni-logo.pdf, markdown file, metadata.json into build dir.
-5. Replace placeholders in template.tex: @@TITLE@@, @@SUBTITLE@@, @@SUBMITTEDTO@@, @@AUTHORS@@, @@DATE@@.
-6. Run: lualatex --shell-escape -synctex=1 -interaction=nonstopmode -file-line-error template.tex
-7. Move template.pdf to <basename>.pdf next to markdown.
-"""
-
 from __future__ import annotations
 import argparse
 import json
@@ -36,6 +10,8 @@ import re
 import hashlib
 import tempfile
 import os
+import urllib.request
+import urllib.parse
 
 ROOT = Path(__file__).parent.resolve()
 
@@ -68,13 +44,7 @@ IMAGE_EXTS = {
     ".webp",
 }
 
-
-LATEX_LOG_SILENT = 0
-LATEX_LOG_ERROR_ONLY = 1
-LATEX_LOG_VERBOSE = 2
-
-
-LATEX_LOG_LEVEL = LATEX_LOG_SILENT
+LATEX_LOG_LEVEL = "SILENT"
 
 
 class BuildError(Exception):
@@ -84,7 +54,13 @@ class BuildError(Exception):
 class Logger:
     """Colored console logging utility with single-line overwriting."""
 
-    COLORS = {"INFO": "\033[94m", "SUCCESS": "\033[92m", "WARNING": "\033[93m", "ERROR": "\033[91m", "RESET": "\033[0m"}
+    COLORS = {
+        "INFO": "\033[94m",
+        "SUCCESS": "\033[92m",
+        "WARNING": "\033[93m",
+        "ERROR": "\033[91m",
+        "RESET": "\033[0m",
+    }
     _last_length = 0
 
     @classmethod
@@ -259,46 +235,6 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     tex_path.write_text(content, encoding="utf-8")
 
 
-def set_latex_log_level(level: int) -> None:
-    """Set the LaTeX output log level.
-
-    Args:
-        level: Log level (LATEX_LOG_SILENT, LATEX_LOG_ERROR_ONLY, or LATEX_LOG_VERBOSE)
-    """
-    global LATEX_LOG_LEVEL
-    if level in (LATEX_LOG_SILENT, LATEX_LOG_ERROR_ONLY, LATEX_LOG_VERBOSE):
-        LATEX_LOG_LEVEL = level
-    else:
-        Logger.warning(f"Invalid log level {level}. Valid levels: 0 (SILENT), 1 (ERROR_ONLY), 2 (VERBOSE)")
-
-
-def _filter_latex_output(output: str, returncode: int) -> str:
-    """Filter LaTeX output based on suppression settings."""
-    lines = output.split("\n")
-    filtered_lines = []
-    skip_next = False
-
-    for line in lines:
-        if skip_next and line.strip() and not line.strip().startswith("("):
-            skip_next = False
-        if not skip_next:
-            filtered_lines.append(line)
-
-    return "\n".join(filtered_lines)
-
-
-def _display_latex_output(filtered_output: str, returncode: int) -> None:
-    """Display LaTeX output based on the current log level setting."""
-    has_errors_or_warnings = returncode != 0 or "warning" in filtered_output.lower() or "error" in filtered_output.lower()
-
-    if LATEX_LOG_LEVEL == LATEX_LOG_VERBOSE:
-        if filtered_output.strip():
-            print(filtered_output)
-    elif LATEX_LOG_LEVEL == LATEX_LOG_ERROR_ONLY:
-        if has_errors_or_warnings:
-            print(filtered_output)
-
-
 def run_lualatex(build_dir: Path):
     cmd = [
         "lualatex",
@@ -324,8 +260,9 @@ def run_lualatex(build_dir: Path):
         raise BuildError("lualatex not found") from e
     final_returncode = proc.returncode
     output = proc.stdout
-    filtered_output = _filter_latex_output(output, final_returncode)
-    _display_latex_output(filtered_output, final_returncode)
+
+    if LATEX_LOG_LEVEL == "DEBUG":
+        print(output)
 
     pdf_path = build_dir / "template.pdf"
     produced = pdf_path.exists()
@@ -363,6 +300,41 @@ def find_markdown_images(md_path: Path) -> list[Path]:
     return paths
 
 
+def download_remote_images_from_markdown(md_content: str, build_dir: Path) -> str:
+    """Download remote images referenced in markdown and replace URLs with local paths."""
+
+    images_dir = build_dir / "images"
+    images_dir.mkdir(exist_ok=True)
+
+    def download_and_replace_url(match):
+        url = match.group(2).strip()
+
+        if not ("http://" in url or "https://" in url):
+            return match.group(0)
+
+        try:
+            clean_url = url.split("?")[0] if "?" in url else url
+            filename = Path(urllib.parse.urlparse(clean_url).path).name
+
+            if not filename or "." not in filename:
+                filename = "image_" + hashlib.md5(url.encode()).hexdigest()[:8] + ".jpg"
+
+            local_path = images_dir / filename
+
+            if not local_path.exists():
+                Logger.info(f"Downloading: {filename}", persist=False)
+                urllib.request.urlretrieve(url, local_path)
+
+            relative_path = f"images/{filename}"
+            return f"![{match.group(1)}]({relative_path})"
+
+        except Exception as e:
+            Logger.warning(f"Failed to download image: {e}")
+            return match.group(0)
+
+    return re.sub(r"!\[([^\]]*)\]\(([^)]+)\)", download_and_replace_url, md_content)
+
+
 def convert_markdown_footnotes_to_latex(content: str, use_comments: bool = False) -> str:
     content, protected_blocks = protect_code_and_math_blocks(content)
     footnote_defs = {}
@@ -376,6 +348,7 @@ def convert_markdown_footnotes_to_latex(content: str, use_comments: bool = False
     content = re.sub(r"^\[(\^[^\]]+)\]:\s*(.+?)(?=\n\s*\n|\n\s*\[|\Z)", extract_definition, content, flags=re.MULTILINE | re.DOTALL)
 
     if use_comments:
+
         def replace_inline(match):
             footnote_content = match.group(1)
             return f"\\todoComment{{{footnote_content}}}"
@@ -391,6 +364,7 @@ def convert_markdown_footnotes_to_latex(content: str, use_comments: bool = False
 
         content = re.sub(r"\[(\^[^\]]+)\]", replace_reference, content)
     else:
+
         def replace_inline(match):
             footnote_content = match.group(1)
             return f"\\footnote{{{footnote_content}}}"
@@ -410,34 +384,57 @@ def convert_markdown_footnotes_to_latex(content: str, use_comments: bool = False
     return content
 
 
+def escape_latex_url(url: str) -> str:
+    """Escapes characters in a URL for LaTeX."""
+    # The hyperref package is smart, but & and % are still issues.
+    # It's generally safer to escape them.
+    return url.replace("&", r"\&").replace("%", r"\%")
+
+
 def escape_signs(content: str, to_escape: list[str]) -> str:
     """Escape special characters while protecting code blocks, raw latex blocks, and URLs."""
     protected_blocks = []
 
-    def store_protected_block(match):
+    def protect_and_store(match):
+        placeholder = f"__PROTECTED_BLOCK_{len(protected_blocks)}__"
         protected_blocks.append(match.group(0))
-        return f"__ESCAPE_PROTECTED_{len(protected_blocks)-1}__"
+        return placeholder
 
-    # Protect raw latex
-    content = re.sub(r"`+\{=latex\}.*?`+", store_protected_block, content, flags=re.DOTALL)
-    # Protect code blocks
-    content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
-    content = re.sub(r"```.*?```", store_protected_block, content, flags=re.DOTALL)
-    content = re.sub(r"`[^`\n]+`", store_protected_block, content)
-    # Protect math
-    content = re.sub(r"\$\$.*?\$\$", store_protected_block, content, flags=re.DOTALL)
-    content = re.sub(r"\$[^$\n]+\$", store_protected_block, content)
-    # Protect markdown links
-    content = re.sub(r"\[[^\]]*\]\([^)]+\)", store_protected_block, content)
-    # Protect raw URLs (best effort)
-    content = re.sub(r"https?://\S+", store_protected_block, content)
+    # Protect blocks where no escaping should happen
+    content = re.sub(r"````+.*?````+", protect_and_store, content, flags=re.DOTALL)
+    content = re.sub(r"```.*?```", protect_and_store, content, flags=re.DOTALL)
+    content = re.sub(r"`[^`\n]+`", protect_and_store, content)
+    content = re.sub(r"\$\$.*?\$\$", protect_and_store, content, flags=re.DOTALL)
+    content = re.sub(r"\$[^$\n]+\$", protect_and_store, content)
 
+    # For markdown links, escape the URL part separately
+    def protect_and_escape_link_url(match):
+        link_text = match.group(1)
+        url = match.group(2)
+        escaped_url = escape_latex_url(url)
+        placeholder = f"__PROTECTED_BLOCK_{len(protected_blocks)}__"
+        protected_blocks.append(escaped_url)
+        return f"[{link_text}]({placeholder})"
 
+    content = re.sub(r"\[([^\]]*)\]\(([^)]+)\)", protect_and_escape_link_url, content)
+
+    # Protect raw URLs that are not in markdown links
+    def protect_and_escape_raw_url(match):
+        url = match.group(1)
+        escaped_url = escape_latex_url(url)
+        placeholder = f"__PROTECTED_BLOCK_{len(protected_blocks)}__"
+        protected_blocks.append(escaped_url)
+        return placeholder
+
+    content = re.sub(r"\b(https?://[^\s<>\"')]+)", protect_and_escape_raw_url, content)
+
+    # Now, escape the characters in the rest of the content
     for sign in to_escape:
         content = content.replace(sign, f"\\{sign}")
 
+    # Restore all protected blocks
     for i, block in enumerate(protected_blocks):
-        content = content.replace(f"__ESCAPE_PROTECTED_{i}__", block)
+        content = content.replace(f"__PROTECTED_BLOCK_{i}__", block, 1)
 
     return content
 
@@ -459,7 +456,7 @@ def normalize_language_identifiers(content: str) -> str:
 
 
 def process_code_blocks(content: str, build_dir: Path) -> str:
-    lines = content.split('\n')
+    lines = content.split("\n")
     processed_lines = []
     in_code_block = False
     code_block_lines = []
@@ -476,29 +473,29 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
                 # Don't add this line to processed_lines yet
             else:
                 processed_lines.append(line)
-        else: # We are in a code block
+        else:  # We are in a code block
             # Check for closing fence that is at least as long
             if line.strip().startswith(opening_fence) and len(line.strip()) >= len(opening_fence):
                 in_code_block = False
                 # Now we have the full block, process it
                 code_content = "\n".join(code_block_lines)
-                
-                lang_match = re.match(r'(\w+)', header)
-                lang = lang_match.group(1) if lang_match else 'text'
+
+                lang_match = re.match(r"(\w+)", header)
+                lang = lang_match.group(1) if lang_match else "text"
 
                 # If it's a block we should skip, reconstruct it and continue
-                if lang == 'mermaid' or '.execute' in header:
+                if lang == "mermaid" or ".execute" in header:
                     original_block = f"{opening_fence}{header}\n{code_content}\n{line.strip()}"
                     processed_lines.append(original_block)
                 else:
                     # This is a block we need to process
-                    clean_code_content = code_content # No strip needed here
-                    code_hash = hashlib.md5(clean_code_content.encode('utf-8')).hexdigest()
+                    clean_code_content = code_content  # No strip needed here
+                    code_hash = hashlib.md5(clean_code_content.encode("utf-8")).hexdigest()
                     code_filename = f"code_{code_hash}.txt"
                     code_filepath = build_dir / code_filename
-                    code_filepath.write_text(clean_code_content, encoding='utf-8')
+                    code_filepath.write_text(clean_code_content, encoding="utf-8")
 
-                    highlight_match = re.search(r'\.highlightlines=([\d,-]+)', header)
+                    highlight_match = re.search(r"\.highlightlines=([\d,-]+)", header)
                     if highlight_match:
                         line_spec = highlight_match.group(1)
                         minted_options = f"breaklines=true,linenos=false,highlightcolor=codeHighlightBg,highlightlines={{{line_spec}}}"
@@ -506,18 +503,12 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
                         minted_options = "breaklines=true,linenos=false,highlightcolor=codeHighlightBg"
 
                     pygments_lang = lang
-                    if lang == 'terminal' or lang == 'bash':
-                        pygments_lang = 'console'
-
-                    if lang == 'terminal':
-                        top_padding = '20pt'
-                        show_label = 'true'
-                    elif lang == 'text' or not lang:
-                        top_padding = '5pt'
-                        show_label = 'false'
+                    if lang == "text" or not lang:
+                        top_padding = "5pt"
+                        show_label = "false"
                     else:
-                        top_padding = '20pt'
-                        show_label = 'true'
+                        top_padding = "20pt"
+                        show_label = "true"
 
                     latex_command = f"""
 \\begin{{tcolorbox}}[
@@ -529,7 +520,7 @@ overlay={{\\ifstrequal{{{show_label}}}{{true}}{{\\node[anchor=north east, font=\
 \\end{{tcolorbox}}"""
                     raw_latex_block = f"```{{=latex}}\n{latex_command}\n```"
                     processed_lines.append(raw_latex_block)
-                
+
                 # Reset state
                 code_block_lines = []
                 header = ""
@@ -931,7 +922,7 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             return match.group(0)
 
         code = match.group(2)
-        
+
         use_cache = ".no-cache" not in properties
 
         show_code = ".show-code" in properties and ".hide-code" not in properties
@@ -944,7 +935,7 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             if has_matplotlib:
                 plot_filename = f"python_plot_{code_hash}.pdf"
                 plot_path = build_dir / plot_filename
-                
+
                 if use_cache and plot_path.exists():
                     Logger.info(f"Cached plot {block_counter}/{total_blocks}", persist=False)
                     parts = []
@@ -987,7 +978,7 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
             else:
                 output_filename = f"python_output_{code_hash}.txt"
                 output_path = build_dir / output_filename
-                
+
                 if use_cache and output_path.exists():
                     Logger.info(f"Cached output {block_counter}/{total_blocks}", persist=False)
                     output = output_path.read_text(encoding="utf-8")
@@ -1011,7 +1002,7 @@ def process_executable_python_blocks(content: str, build_dir: Path) -> str:
                         return f"```output\nError executing code:\n{error_msg}\n```"
 
                 output = result.stdout.strip()
-                
+
                 if use_cache:
                     output_path.write_text(output, encoding="utf-8")
 
@@ -1131,7 +1122,7 @@ Steps:
     )
     parser.add_argument("markdown_file", help="Path to the markdown file to process")
     parser.add_argument("--show", action="store_true", help="Open the generated PDF file after successful build")
-    parser.add_argument("--latex-log", "-l", type=int, choices=[0, 1, 2], default=0, help="LaTeX compilation output verbosity: 0=silent (default), 1=errors/warnings only, 2=verbose")
+    parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
 
     parser.add_argument("--titleTemplate", type=int, choices=[0, 1, 2, 3])
     parser.add_argument("--enableContentPage", type=str, choices=["true", "false"])
@@ -1168,9 +1159,9 @@ Steps:
 
         return meta
 
-
-    global LATEX_LOG_LEVEL
-    LATEX_LOG_LEVEL = args.latex_log
+    if args.debug:
+        global LATEX_LOG_LEVEL
+        LATEX_LOG_LEVEL = "DEBUG"
 
     md_path = Path(args.markdown_file).expanduser().resolve()
     if not md_path.exists():
@@ -1205,24 +1196,19 @@ Steps:
                 pass
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
+    md_content = download_remote_images_from_markdown(md_content, build_dir)
     md_content = substitute_variables(md_content, meta)
     md_content = process_code_blocks(md_content, build_dir)
-
-    if meta.get("footnotesAsComments"):
-        # This function will be modified to handle todo comments directly
-        md_content = convert_markdown_footnotes_to_latex(md_content, use_comments=True)
-    else:
-        md_content = convert_markdown_footnotes_to_latex(md_content)
-
+    md_content = convert_markdown_footnotes_to_latex(md_content, use_comments=meta.get("footnotesAsComments"))
     md_content = process_mermaid_diagrams(md_content, build_dir)
     md_content = normalize_language_identifiers(md_content)
     md_content = process_keyboard_shortcuts(md_content)
     md_content = process_container_blocks(md_content)
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = process_emojis(md_content)
-    md_content = escape_signs(md_content, ["%", "&"])
     md_content = post_process_alerts(md_content)
     md_content = process_executable_python_blocks(md_content, build_dir)
+    md_content = escape_signs(md_content, ["%", "&"])
 
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")
     shutil.copy(md_dir / f"{md_base}.json", build_dir / f"{md_base}.json")

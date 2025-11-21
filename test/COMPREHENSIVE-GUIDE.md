@@ -11,7 +11,7 @@
 - 🧮 **Math**: Inline and display math with LaTeX syntax.
 - 🏷️ **Definition Lists**: Term-definition pairs.
 - 📑 **Tables**: Pipe tables, captions, and alignment.
-- ⚠️ **Alerts & Containers**: Note, tip, important, warning, caution, box, and alignment containers.
+- ⚠️ **Alerts \& Containers**: Note, tip, important, warning, caution, box, and alignment containers.
 - 🎨 **Custom Extensions**: Center/right alignment, keyboard shortcuts, line breaks, and more.
 - 🏷️ **Metadata & Variables**: JSON metadata, document variables, and title page templates.
 - 🌐 **Emoji Support**: Use emojis anywhere in your markdown for expressive documents! 😃
@@ -154,27 +154,31 @@ plain text code block
 plain text code block
 ```
 
-### Terminal Block
+### Console Block
 
 ````markdown
-```terminal
+```console
 $ command
 output result
 ```
 ````
 
-```terminal
+```console
 $ command
 output result
 ```
 
 ## Links
 
+### Basic Link
+
 ```markdown
-[link text](https://example.com)
+[link text](https://example.com?query=1&value=2)
 ```
 
-[link text](https://example.com)
+[link text](https://example.com?query=1&value=2)
+
+### Link with Title
 
 ```markdown
 [link text](https://example.com "title")
@@ -184,17 +188,39 @@ output result
 
 ## Images
 
+### Basic Image
+
 ```markdown
 ![alt text](image.jpg)
 ```
 
 ![alt text](image.jpg)
 
+### Image with Title
+
 ```markdown
 ![alt text](image.jpg "title")
 ```
 
 ![alt text](image.jpg "title")
+
+### Image from URL
+
+```markdown
+![alt text](https://raw.githubusercontent.com/abdxdev/notes-maker/refs/heads/main/test/image.jpg)
+```
+
+![alt text](https://raw.githubusercontent.com/abdxdev/notes-maker/refs/heads/main/test/image.jpg)
+
+<!-- 
+## Image as Link
+
+```markdown
+[![alt text](image.jpg)](https://example.com)
+```
+
+[![alt text](image.jpg)](https://example.com)
+-->
 
 ## Mermaid Diagrams
 
