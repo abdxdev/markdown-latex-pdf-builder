@@ -470,26 +470,21 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
                 in_code_block = True
                 opening_fence = match.group(1)
                 header = match.group(2).strip()
-                # Don't add this line to processed_lines yet
             else:
                 processed_lines.append(line)
-        else:  # We are in a code block
-            # Check for closing fence that is at least as long
+        else:
             if line.strip().startswith(opening_fence) and len(line.strip()) >= len(opening_fence):
                 in_code_block = False
-                # Now we have the full block, process it
                 code_content = "\n".join(code_block_lines)
 
                 lang_match = re.match(r"(\w+)", header)
                 lang = lang_match.group(1) if lang_match else "text"
 
-                # If it's a block we should skip, reconstruct it and continue
                 if lang == "mermaid" or ".execute" in header:
                     original_block = f"{opening_fence}{header}\n{code_content}\n{line.strip()}"
                     processed_lines.append(original_block)
                 else:
-                    # This is a block we need to process
-                    clean_code_content = code_content  # No strip needed here
+                    clean_code_content = code_content
                     code_hash = hashlib.md5(clean_code_content.encode("utf-8")).hexdigest()
                     code_filename = f"code_{code_hash}.txt"
                     code_filepath = build_dir / code_filename
@@ -498,9 +493,9 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
                     highlight_match = re.search(r"\.highlightlines=([\d,-]+)", header)
                     if highlight_match:
                         line_spec = highlight_match.group(1)
-                        minted_options = f"breaklines=true,linenos=false,highlightcolor=codeHighlightBg,highlightlines={{{line_spec}}}"
+                        minted_options = f"breaklines,breakanywhere,linenos=false,highlightcolor=codeHighlightBg,highlightlines={{{line_spec}}}"
                     else:
-                        minted_options = "breaklines=true,linenos=false,highlightcolor=codeHighlightBg"
+                        minted_options = "breaklines,breakanywhere,linenos=false,highlightcolor=codeHighlightBg"
 
                     pygments_lang = lang
                     if lang == "text" or not lang:
@@ -521,14 +516,12 @@ overlay={{\\ifstrequal{{{show_label}}}{{true}}{{\\node[anchor=north east, font=\
                     raw_latex_block = f"```{{=latex}}\n{latex_command}\n```"
                     processed_lines.append(raw_latex_block)
 
-                # Reset state
                 code_block_lines = []
                 header = ""
                 opening_fence = ""
             else:
                 code_block_lines.append(line)
 
-    # If file ends while in a code block, append the unterminated block
     if in_code_block:
         processed_lines.append(opening_fence + header)
         processed_lines.extend(code_block_lines)
@@ -1196,7 +1189,6 @@ Steps:
                 pass
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
-    md_content = download_remote_images_from_markdown(md_content, build_dir)
     md_content = substitute_variables(md_content, meta)
     md_content = process_code_blocks(md_content, build_dir)
     md_content = convert_markdown_footnotes_to_latex(md_content, use_comments=meta.get("footnotesAsComments"))
@@ -1208,6 +1200,7 @@ Steps:
     md_content = process_emojis(md_content)
     md_content = post_process_alerts(md_content)
     md_content = process_executable_python_blocks(md_content, build_dir)
+    md_content = download_remote_images_from_markdown(md_content, build_dir)
     md_content = escape_signs(md_content, ["%", "&"])
 
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")

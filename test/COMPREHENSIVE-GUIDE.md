@@ -168,6 +168,28 @@ $ command
 output result
 ```
 
+### Highlight Specific Lines
+
+````markdown
+```python {.highlightlines=2,4-6}
+print("Line 1")
+print("Line 2")
+print("Line 3")
+print("Line 4")
+print("Line 5")
+print("Line 6")
+```
+````
+
+```python {.highlightlines=2,4-6}
+print("Line 1")
+print("Line 2")
+print("Line 3")
+print("Line 4")
+print("Line 5")
+print("Line 6")
+```
+
 ## Links
 
 ### Basic Link
@@ -191,36 +213,26 @@ output result
 ### Basic Image
 
 ```markdown
-![alt text](image.jpg)
+![image](image.jpg)
 ```
 
-![alt text](image.jpg)
+![image](image.jpg)
 
 ### Image with Title
 
 ```markdown
-![alt text](image.jpg "title")
+![image](image.jpg "title")
 ```
 
-![alt text](image.jpg "title")
+![image](image.jpg "title")
 
 ### Image from URL
 
 ```markdown
-![alt text](https://raw.githubusercontent.com/abdxdev/notes-maker/refs/heads/main/test/image.jpg)
+![image](https://github.com/abdxdev/notes-maker/blob/main/test/image.jpg?raw=true)
 ```
 
-![alt text](https://raw.githubusercontent.com/abdxdev/notes-maker/refs/heads/main/test/image.jpg)
-
-<!-- 
-## Image as Link
-
-```markdown
-[![alt text](image.jpg)](https://example.com)
-```
-
-[![alt text](image.jpg)](https://example.com)
--->
+![image](https://github.com/abdxdev/notes-maker/blob/main/test/image.jpg?raw=true)
 
 ## Mermaid Diagrams
 
