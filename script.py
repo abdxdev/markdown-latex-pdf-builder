@@ -841,12 +841,12 @@ def apply_markdown_formatting_math_safe(content: str) -> str:
     """Apply markdown formatting while protecting LaTeX math blocks and code blocks."""
     content, protected_blocks = protect_code_and_math_blocks(content)
 
-    content = re.sub(r"==([^=\n]+)==", r"\\mdhighlight{\1}", content)
+    content = re.sub(r"==([^=]+)==", r"\\mdhighlight{\1}", content)
     content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
-    content = re.sub(r"\^([^^]+)\^", r"\\textsuperscript{\1}", content)
+    content = re.sub(r"\^\^([^\^]+)\^\^", r"\\textsc{\1}", content)
+    content = re.sub(r"\^([^\^]+)\^", r"\\textsuperscript{\1}", content)
     content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
-    content = re.sub(r":sc\[([^\]]+)\]", r"\\textsc{\1}", content)
-    content = re.sub(r":u\[([^\]]+)\]", r"\\underline{\1}", content)
+    content = re.sub(r"--([^-]+)--", r"\\underline{\1}", content)
 
     content = restore_protected_blocks(content, protected_blocks)
     return content

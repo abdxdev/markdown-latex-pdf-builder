@@ -105,18 +105,18 @@ _italic text_ or *italic text*
 ### Small Caps
 
 ```markdown
-:sc[Small Caps Text]
+^^Small Caps Text^^
 ```
 
-:sc[Small Caps Text]
+^^Small Caps Text^^
 
 ### Underline
 
 ```markdown
-:u[Underlined Text]
+--Underlined Text--
 ```
 
-:u[Underlined Text]
+--Underlined Text--
 
 ## Inline Code
 
