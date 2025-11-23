@@ -485,12 +485,26 @@
   \clearpage
 }
 
+\newcommand{\sectionnumspace}{1em}
+\newcommand{\subsectionnumspace}{1em}
+\newcommand{\subsubsectionnumspace}{1em}
+
+\newcommand{\suppressnumbering}{
+    \renewcommand{\thesection}{}
+    \renewcommand{\thesubsection}{}
+    \renewcommand{\thesubsubsection}{}
+    \renewcommand{\sectionnumspace}{0em}
+    \renewcommand{\subsectionnumspace}{0em}
+    \renewcommand{\subsubsectionnumspace}{0em}
+}
+@@HEADING_NUMBERING@@
+
 \titleformat{\section}
-{\Large\bfseries}{\thesection}{1em}{}
+{\LARGE\bfseries}{\thesection}{\sectionnumspace}{}
 \titleformat{\subsection}
-{\large\bfseries}{\thesubsection}{1em}{}
+{\Large\bfseries}{\thesubsection}{\subsectionnumspace}{}
 \titleformat{\subsubsection}
-{\normalsize\bfseries}{\thesubsubsection}{1em}{}
+{\large\bfseries}{\thesubsubsection}{\subsubsectionnumspace}{}
 \titleformat{\paragraph}
 {\normalsize\bfseries}{\theparagraph}{1em}{}
 \titleformat{\subparagraph}

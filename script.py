@@ -29,6 +29,7 @@ PLACEHOLDERS = [
     "@@ENABLE_FOOTNOTES_AT_END@@",
     "@@ENABLE_FOOTNOTES_AS_COMMENTS@@",
     "@@ENABLE_THATS_ALL_PAGE@@",
+    "@@HEADING_NUMBERING@@",
     "@@UNIVERSITY@@",
     "@@DEPARTMENT@@",
 ]
@@ -211,6 +212,9 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     enable_thats_all = bool(meta.get("enableThatsAllPage"))
     thats_all_toggle = "\\enablethatsalltrue" if enable_thats_all else "\\enablethatsallfalse"
 
+    heading_numbering = bool(meta.get("headingNumbering", False))
+    heading_numbering_toggle = "" if heading_numbering else "\\suppressnumbering"
+
     mapping = {
         "@@TITLE@@": meta.get("title", ""),
         "@@SUBTITLE@@": meta.get("subtitle", ""),
@@ -225,6 +229,7 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "@@ENABLE_FOOTNOTES_AT_END@@": footnotes_at_end_toggle,
         "@@ENABLE_FOOTNOTES_AS_COMMENTS@@": footnotes_as_comments_toggle,
         "@@ENABLE_THATS_ALL_PAGE@@": thats_all_toggle,
+        "@@HEADING_NUMBERING@@": heading_numbering_toggle,
         "@@UNIVERSITY@@": meta.get("university", ""),
         "@@DEPARTMENT@@": meta.get("department", ""),
     }
@@ -274,6 +279,7 @@ def find_markdown_images(md_path: Path) -> list[Path]:
     candidates: set[str] = set()
 
     for m in re.finditer(r"!\[[^\]]*\]\(([^)]+)\)", text):
+        # ![alt text](path)
         raw = m.group(1).strip()
         if raw.startswith("<") and raw.endswith(">"):
             raw = raw[1:-1]
@@ -284,9 +290,11 @@ def find_markdown_images(md_path: Path) -> list[Path]:
         candidates.add(raw)
 
     for m in re.finditer(r'<img[^>]*?src=["\']([^"\']+)["\']', text, re.IGNORECASE):
+        # <img src="path" ...>
         candidates.add(m.group(1).strip())
 
     for m in re.finditer(r"^\s*\[[^\]]+\]:\s*(\S+)", text, re.MULTILINE):
+        # [label]: path
         target = m.group(1).strip()
         candidates.add(target)
 

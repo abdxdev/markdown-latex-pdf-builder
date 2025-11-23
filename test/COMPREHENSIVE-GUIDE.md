@@ -13,7 +13,7 @@
 - 📑 **Tables**: Pipe tables, captions, and alignment.
 - ⚠️ **Alerts \& Containers**: Note, tip, important, warning, caution, box, and alignment containers.
 - 🎨 **Custom Extensions**: Center/right alignment, keyboard shortcuts, line breaks, and more.
-- 🏷️ **Metadata & Variables**: JSON metadata, document variables, and title page templates.
+- 🏷️ **Metadata \& Variables**: JSON metadata, document variables, and title page templates.
 - 🌐 **Emoji Support**: Use emojis anywhere in your markdown for expressive documents! 😃
 
 ## Headings

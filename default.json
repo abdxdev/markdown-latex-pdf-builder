@@ -18,5 +18,6 @@
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
   "footnotesAsComments": false,
-  "enableThatsAllPage": false
+  "enableThatsAllPage": false,
+  "headingNumbering": true
 }
