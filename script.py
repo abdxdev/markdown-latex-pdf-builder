@@ -917,6 +917,8 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
 
     total_blocks = len(re.findall(pattern, content, flags=re.DOTALL))
     if total_blocks == 0:
+        for i, block in enumerate(protected_blocks):
+            content = content.replace(f"__PROTECTED_EXEC_BLOCK_{i}__", block)
         return content
 
     Logger.info(f"Processing {total_blocks} executable block(s)...", persist=False)
@@ -939,9 +941,27 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
         show_output = ".hide-output" not in properties
         use_cache = ".no-cache" not in properties
 
+        known_props_prefixes = [".execute", ".show-code", ".hide-code", ".show-output", ".hide-output", ".cache", ".no-cache"]
+        all_props_list = [p.strip() for p in properties_str.split() if p.strip()]
+        remaining_props = []
+        for p in all_props_list:
+            is_known = False
+            for prefix in known_props_prefixes:
+                if p.startswith(prefix):
+                    is_known = True
+                    break
+            if not is_known:
+                remaining_props.append(p)
+        
+        new_props = []
+        if show_code:
+            new_props.append(".show-code")
+        new_props.extend(remaining_props)
+        new_props_str = " ".join(new_props)
+
         parts = []
         if show_code:
-            parts.append(f"```{lang} {{.show-code}}\n{code}\n```")
+            parts.append(f"```{lang} {{{new_props_str}}}\n{code}\n```")
 
         try:
             # Handle plotting for Python

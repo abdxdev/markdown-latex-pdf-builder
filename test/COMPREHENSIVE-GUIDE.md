@@ -128,20 +128,6 @@ _italic text_ or *italic text*
 
 ## Code Blocks
 
-### Fenced Code Block
-
-````markdown
-```python
-def hello():
-    print("Hello, World!")
-```
-````
-
-```python
-def hello():
-    print("Hello, World!")
-```
-
 ### Code Block Without Language
 
 ````markdown
@@ -154,7 +140,23 @@ plain text code block
 plain text code block
 ```
 
-### Console Block
+### Code Block With Language
+
+#### Example 1
+
+````markdown
+```python
+def hello():
+    print("Hello, World!")
+```
+````
+
+```python
+def hello():
+    print("Hello, World!")
+```
+
+#### Example 2
 
 ````markdown
 ```console
@@ -168,27 +170,9 @@ $ command
 output result
 ```
 
-### Highlight Specific Lines
-
-````markdown
-```python {.highlightlines=2,4-6}
-print("Line 1")
-print("Line 2")
-print("Line 3")
-print("Line 4")
-print("Line 5")
-print("Line 6")
-```
-````
-
-```python {.highlightlines=2,4-6}
-print("Line 1")
-print("Line 2")
-print("Line 3")
-print("Line 4")
-print("Line 5")
-print("Line 6")
-```
+::: note
+For highlighting specific lines in code blocks or making them executable, refer to the **Executable Code Blocks** section below.
+:::
 
 ## Links
 
@@ -342,7 +326,7 @@ Term 2
 
 ## Tables
 
-### Pipe Tables
+### Table without Caption
 
 ```markdown
 | Left | Center | Right | Default |
@@ -356,7 +340,7 @@ Term 2
 | L1   |   C1   |    R1 | Default |
 | L2   |   C2   |    R2 | Default |
 
-## Table with Captions
+### Table with Captions
 
 ```markdown
 | Header 1 | Header 2 | Header 3 |
@@ -652,9 +636,16 @@ Text in a bordered box
 Text in a bordered box
 :::
 
-## Executable Python Code Blocks
+## Executable Code Blocks
 
-The converter supports executing Python code blocks directly within your markdown and including their output or generated plots in the final PDF.
+The converter supports executing code blocks in various languages directly within your markdown and including their output or generated plots in the final PDF.
+
+### Supported Languages
+
+- `python`
+- `javascript`
+- `powershell`
+- `bash`
 
 ### Properties
 
@@ -667,7 +658,7 @@ The converter supports executing Python code blocks directly within your markdow
 - `.no-cache`: Do not use cache and force re-execution
 - `.highlightlines`: Highlight specific lines in the code block
 
-### Example 1
+### Example 1: Python with Output
 
 ````markdown
 ```python {.execute .show-code .highlightlines=2,4-6}
@@ -689,7 +680,23 @@ print("Line 5")
 print("Line 6")
 ```
 
-### Example 2
+### Example 2: JavaScript Execution
+
+````markdown
+```javascript {.execute .show-code}
+const a = 5;
+const b = 10;
+console.log(`The sum of ${a} and ${b} is ${a + b}.`);
+```
+````
+
+```javascript {.execute .show-code}
+const a = 5;
+const b = 10;
+console.log(`The sum of ${a} and ${b} is ${a + b}.`);
+```
+
+### Example 3: Python Plotting
 
 ::: note
 The following example generates a polar plot using matplotlib. Install the required packages if you haven't already.
