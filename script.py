@@ -488,7 +488,7 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
                 lang_match = re.match(r"(\w+)", header)
                 lang = lang_match.group(1) if lang_match else "text"
 
-                if lang == "mermaid" or ".execute" in header:
+                if lang == "mermaid":
                     original_block = f"{opening_fence}{header}\n{code_content}\n{line.strip()}"
                     processed_lines.append(original_block)
                 else:
@@ -849,12 +849,12 @@ def apply_markdown_formatting_math_safe(content: str) -> str:
     """Apply markdown formatting while protecting LaTeX math blocks and code blocks."""
     content, protected_blocks = protect_code_and_math_blocks(content)
 
-    content = re.sub(r"==([^=]+)==", r"\\mdhighlight{\1}", content)
-    content = re.sub(r"~~([^~]+)~~", r"\\mdstrikethrough{\1}", content)
-    content = re.sub(r"\^\^([^\^]+)\^\^", r"\\textsc{\1}", content)
+    content = re.sub(r"(?<=\s)==([^=]+)==(?=\s|[.,!?:;\'\"\)\]\}]|\Z)", r"\\mdhighlight{\1}", content)
+    content = re.sub(r"(?<=\s)~~([^~]+)~~(?=\s|[.,!?:;\'\"\)\]\}]|\Z)", r"\\mdstrikethrough{\1}", content)
+    content = re.sub(r"(?<=\s)--([^-]+)--(?=\s|[.,!?:;\'\"\)\]\}]|\Z)", r"\\underline{\1}", content)
+    content = re.sub(r"(?<=\s)\^\^([^\^]+)\^\^(?=\s|[.,!?:;\'\"\)\]\}]|\Z)", r"\\textsc{\1}", content)
     content = re.sub(r"\^([^\^]+)\^", r"\\textsuperscript{\1}", content)
     content = re.sub(r"~([^~]+)~", r"\\textsubscript{\1}", content)
-    content = re.sub(r"--([^-]+)--", r"\\underline{\1}", content)
 
     content = restore_protected_blocks(content, protected_blocks)
     return content
@@ -879,165 +879,149 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
                 Logger.error(f"Failed to copy image {img}: {e}")
 
 
-def process_executable_python_blocks(content: str, build_dir: Path) -> str:
-    """Execute Python code blocks with property-based control.
+def process_executable_blocks(content: str, build_dir: Path) -> str:
+    """Execute code blocks with property-based control for multiple languages.
 
-    Syntax: ```python {.execute .show-code .show-output .no-cache}
+    Syntax: ```lang {.execute .show-code .show-output .no-cache}
 
     Properties:
-    - .execute - Execute the code block
-    - .show-code - Display the source code (default: hidden)
-    - .show-output - Display execution output/plot (default: shown)
-    - .hide-code - Explicitly hide the source code
-    - .hide-output - Hide execution output/plot
-    - .cache - Cache the execution output
-    - .no-cache - Do not use cache and force re-execution
+    - .execute: Marks the block for execution.
+    - .show-code: Displays the source code.
+    - .hide-code: Hides the source code.
+    - .show-output: Displays the execution output.
+    - .hide-output: Hides the execution output.
+    - .cache / .no-cache: Controls caching of execution results.
     """
+    EXECUTION_CONFIG = {
+        "python": {
+            "command": ["python"],
+            "extension": "py",
+            "plot_check": lambda code: "matplotlib" in code or "plt." in code,
+            "plot_code": "\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()",
+        },
+        "javascript": {"command": ["node"], "extension": "js"},
+        "powershell": {"command": ["powershell", "-File"], "extension": "ps1"},
+        "bash": {"command": ["bash"], "extension": "sh"},
+    }
+
+    supported_langs = "|".join(EXECUTION_CONFIG.keys())
+    pattern = rf"```({supported_langs})\s+{{([^}}]+)}}\n(.*?)\n```"
+
     protected_blocks = []
 
     def store_protected_block(match):
         protected_blocks.append(match.group(0))
-        return f"__PROTECTED_PYTHON_BLOCK_{len(protected_blocks)-1}__"
+        return f"__PROTECTED_EXEC_BLOCK_{len(protected_blocks)-1}__"
 
     content = re.sub(r"````+.*?````+", store_protected_block, content, flags=re.DOTALL)
 
-    pattern = r"```python\s+\{([^}]+)\}\n(.*?)\n```"
-
     total_blocks = len(re.findall(pattern, content, flags=re.DOTALL))
     if total_blocks == 0:
-        for i, block in enumerate(protected_blocks):
-            content = content.replace(f"__PROTECTED_PYTHON_BLOCK_{i}__", block)
         return content
-    Logger.info(f"Processing {total_blocks} executable Python block(s)...", persist=False)
 
+    Logger.info(f"Processing {total_blocks} executable block(s)...", persist=False)
     block_counter = 0
 
-    def execute_python_block(match):
+    def execute_block(match):
         nonlocal block_counter
         block_counter += 1
 
-        properties_str = match.group(1)
-        properties = set(prop.strip() for prop in properties_str.split())
+        lang, properties_str, code = match.groups()
+        properties = {prop.strip() for prop in properties_str.split() if prop.strip()}
 
         if ".execute" not in properties:
             return match.group(0)
 
-        code = match.group(2)
-
-        use_cache = ".no-cache" not in properties
+        config = EXECUTION_CONFIG[lang]
+        code_hash = hashlib.md5(code.encode("utf-8")).hexdigest()[:12]
 
         show_code = ".show-code" in properties and ".hide-code" not in properties
         show_output = ".hide-output" not in properties
+        use_cache = ".no-cache" not in properties
 
-        code_hash = hashlib.md5(code.encode("utf-8")).hexdigest()[:12]
+        parts = []
+        if show_code:
+            parts.append(f"```{lang} {{.show-code}}\n{code}\n```")
 
-        has_matplotlib = "matplotlib" in code or "plt." in code
         try:
-            if has_matplotlib:
-                plot_filename = f"python_plot_{code_hash}.pdf"
+            # Handle plotting for Python
+            if lang == "python" and config.get("plot_check", lambda c: False)(code):
+                plot_filename = f"{lang}_plot_{code_hash}.pdf"
                 plot_path = build_dir / plot_filename
 
                 if use_cache and plot_path.exists():
                     Logger.info(f"Cached plot {block_counter}/{total_blocks}", persist=False)
-                    parts = []
-                    if show_code:
-                        parts.append(f"```python\n{code}\n```")
                     if show_output:
                         parts.append(f"![Python Plot]({plot_filename})")
-                    return "\n\n".join(parts) if parts else ""
-
-                wrapped_code = code.replace("plt.show()", "")
-                wrapped_code += f"\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()"
-
-                result = subprocess.run(["python", "-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
-
-                if result.returncode != 0:
-                    Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
-                    error_msg = result.stderr.strip() if result.stderr else "Unknown error"
-                    parts = []
-                    if show_code:
-                        parts.append(f"```python\n{code}\n```")
-                    parts.append(f"```output\nError executing code:\n{error_msg}\n```")
                     return "\n\n".join(parts)
 
-                if plot_path.exists():
+                wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
+                result = subprocess.run(config["command"] + ["-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
+
+                if result.returncode == 0 and plot_path.exists():
                     Logger.info(f"Generated plot {block_counter}/{total_blocks}", persist=False)
-                    parts = []
-                    if show_code:
-                        parts.append(f"```python\n{code}\n```")
                     if show_output:
                         parts.append(f"![Python Plot]({plot_filename})")
-                    return "\n\n".join(parts) if parts else ""
                 else:
-                    Logger.warning(f"Plot file not created {block_counter}/{total_blocks}")
-                    parts = []
-                    if show_code:
-                        parts.append(f"```python\n{code}\n```")
-                    if show_output:
-                        parts.append(f"```output\nNo plot generated\n```")
-                    return "\n\n".join(parts) if parts else ""
-            else:
-                output_filename = f"python_output_{code_hash}.txt"
-                output_path = build_dir / output_filename
-
-                if use_cache and output_path.exists():
-                    Logger.info(f"Cached output {block_counter}/{total_blocks}", persist=False)
-                    output = output_path.read_text(encoding="utf-8")
-                    parts = []
-                    if show_code:
-                        parts.append(f"```python\n{code}\n```")
-                    if show_output:
-                        if output:
-                            parts.append(f"```output\n{output}\n```")
-                        else:
-                            parts.append(f"```output\n(No output)\n```")
-                    return "\n\n".join(parts) if parts else ""
-
-                result = subprocess.run(["python", "-c", code], capture_output=True, text=True, timeout=30, check=False)
-                if result.returncode != 0:
-                    Logger.warning(f"Failed to execute Python block {block_counter}/{total_blocks}")
+                    Logger.warning(f"Failed to generate plot {block_counter}/{total_blocks}")
                     error_msg = result.stderr.strip() if result.stderr else "Unknown error"
-                    if show_code:
-                        return f"```python\n{code}\n```\n\n```output\nError executing code:\n{error_msg}\n```"
-                    else:
-                        return f"```output\nError executing code:\n{error_msg}\n```"
+                    if show_output:
+                        parts.append(f"```output\nError executing code:\n{error_msg}\n```")
+                return "\n\n".join(parts)
 
+            # Handle general code execution
+            output_filename = f"{lang}_output_{code_hash}.txt"
+            output_path = build_dir / output_filename
+
+            if use_cache and output_path.exists():
+                Logger.info(f"Cached output {block_counter}/{total_blocks}", persist=False)
+                if show_output:
+                    output = output_path.read_text(encoding="utf-8")
+                    parts.append(f"```output\n{output if output.strip() else '(No output)'}\n```")
+                return "\n\n".join(parts)
+
+            temp_file_path = build_dir / f"temp_{code_hash}.{config['extension']}"
+            temp_file_path.write_text(code, encoding="utf-8")
+
+            command = config["command"] + [str(temp_file_path)]
+            result = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
+            temp_file_path.unlink()
+
+            if result.returncode == 0:
                 output = result.stdout.strip()
-
                 if use_cache:
                     output_path.write_text(output, encoding="utf-8")
-
-                Logger.info(f"Executed Python block {block_counter}/{total_blocks}", persist=False)
-
-                parts = []
-                if show_code:
-                    parts.append(f"```python\n{code}\n```")
+                Logger.info(f"Executed {lang} block {block_counter}/{total_blocks}", persist=False)
                 if show_output:
-                    if output:
-                        parts.append(f"```output\n{output}\n```")
-                    else:
-                        parts.append(f"```output\n(No output)\n```")
-                return "\n\n".join(parts) if parts else ""
-        except subprocess.TimeoutExpired:
-            Logger.warning(f"Python block {block_counter}/{total_blocks} timed out")
-            if show_code:
-                return f"```python\n{code}\n```\n\n```output\nExecution timed out (30s limit)\n```"
+                    parts.append(f"```output\n{output if output.strip() else '(No output)'}\n```")
             else:
-                return f"```output\nExecution timed out (30s limit)\n```"
-        except Exception as e:
-            Logger.warning(f"Error executing Python block {block_counter}/{total_blocks}: {str(e)}")
-            if show_code:
-                return f"```python\n{code}\n```\n\n```output\nError: {str(e)}\n```"
-            else:
-                return f"```output\nError: {str(e)}\n```"
+                error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                Logger.warning(f"Failed to execute {lang} block {block_counter}/{total_blocks}")
+                if show_output:
+                    parts.append(f"```output\nError executing code:\n{error_msg}\n```")
+            return "\n\n".join(parts)
 
-    processed_content = re.sub(pattern, execute_python_block, content, flags=re.DOTALL)
+        except subprocess.TimeoutExpired:
+            msg = f"{lang} block {block_counter}/{total_blocks} timed out (30s limit)"
+            Logger.warning(msg)
+            if show_output:
+                parts.append(f"```output\n{msg}\n```")
+        except Exception as e:
+            msg = f"Error executing {lang} block {block_counter}/{total_blocks}: {e}"
+            Logger.warning(msg)
+            if show_output:
+                parts.append(f"```output\n{msg}\n```")
+
+        return "\n\n".join(parts)
+
+    processed_content = re.sub(pattern, execute_block, content, flags=re.DOTALL)
 
     for i, block in enumerate(protected_blocks):
-        processed_content = processed_content.replace(f"__PROTECTED_PYTHON_BLOCK_{i}__", block)
+        processed_content = processed_content.replace(f"__PROTECTED_EXEC_BLOCK_{i}__", block)
 
     if total_blocks > 0:
-        Logger.info(f"Completed {total_blocks} Python block(s)", persist=True)
+        Logger.info(f"Completed {total_blocks} executable block(s)", persist=True)
+
     return processed_content
 
 
@@ -1132,6 +1116,7 @@ Steps:
     parser.add_argument("--moveFootnotesToEnd", type=str, choices=["true", "false"])
     parser.add_argument("--footnotesAsComments", type=str, choices=["true", "false"])
     parser.add_argument("--enableThatsAllPage", type=str, choices=["true", "false"])
+    parser.add_argument("--headingNumbering", type=str, choices=["true", "false"])
 
     args = parser.parse_args()
 
@@ -1157,6 +1142,9 @@ Steps:
 
         if args.enableThatsAllPage is not None:
             meta["enableThatsAllPage"] = args.enableThatsAllPage.lower() == "true"
+
+        if args.headingNumbering is not None:
+            meta["headingNumbering"] = args.headingNumbering.lower() == "true"
 
         return meta
 
@@ -1197,6 +1185,7 @@ Steps:
                 pass
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
+    md_content = process_executable_blocks(md_content, build_dir)
     md_content = substitute_variables(md_content, meta)
     md_content = process_code_blocks(md_content, build_dir)
     md_content = convert_markdown_footnotes_to_latex(md_content, use_comments=meta.get("footnotesAsComments"))
@@ -1207,7 +1196,6 @@ Steps:
     md_content = apply_markdown_formatting_math_safe(md_content)
     md_content = process_emojis(md_content)
     md_content = post_process_alerts(md_content)
-    md_content = process_executable_python_blocks(md_content, build_dir)
     md_content = download_remote_images_from_markdown(md_content, build_dir)
     md_content = escape_signs(md_content, ["%", "&"])
 

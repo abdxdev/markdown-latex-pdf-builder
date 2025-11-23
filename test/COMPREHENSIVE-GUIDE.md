@@ -1,7 +1,5 @@
 # Markdown to LaTeX Comprehensive Guide
 
-## Features at a Glance
-
 - ✅ **Standard Markdown Support**: Headings, lists, tables, links, images, blockquotes, and more.
 - 📝 **Text Formatting**: Bold, italic, underline, strikethrough, highlight, superscript, subscript, small caps.
 - 💻 **Code Blocks**: Syntax highlighting, inline code, executable Python code with output/plots.
@@ -15,6 +13,8 @@
 - 🎨 **Custom Extensions**: Center/right alignment, keyboard shortcuts, line breaks, and more.
 - 🏷️ **Metadata \& Variables**: JSON metadata, document variables, and title page templates.
 - 🌐 **Emoji Support**: Use emojis anywhere in your markdown for expressive documents! 😃
+
+# Basic and Advanced Syntax
 
 ## Headings
 
@@ -656,37 +656,48 @@ Text in a bordered box
 
 The converter supports executing Python code blocks directly within your markdown and including their output or generated plots in the final PDF.
 
-### Prerequisites
+### Properties
 
-For Python code execution to work, you need Python installed on your system. To generate plots with matplotlib, install the required packages:
+- `.execute`: Execute the code block
+- `.show-code`: Display the source code in the output
+- `.show-output`: Display execution output/plot (default)
+- `.hide-code`: Explicitly hide the source code (default)
+- `.hide-output`: Hide execution output/plot
+- `.cache`: Cache the execution output (default)
+- `.no-cache`: Do not use cache and force re-execution
+- `.highlightlines`: Highlight specific lines in the code block
+
+### Example 1
+
+````markdown
+```python {.execute .show-code .highlightlines=2,4-6}
+print("Line 1")
+print("Line 2")
+print("Line 3")
+print("Line 4")
+print("Line 5")
+print("Line 6")
+```
+````
+
+```python {.execute .show-code .highlightlines=2,4-6}
+print("Line 1")
+print("Line 2")
+print("Line 3")
+print("Line 4")
+print("Line 5")
+print("Line 6")
+```
+
+### Example 2
+
+::: note
+The following example generates a polar plot using matplotlib. Install the required packages if you haven't already.
 
 ```powershell
 python -m pip install matplotlib numpy
 ```
-
-### Available Properties
-
-- **`.execute`** - Execute the code block (required)
-- **`.show-code`** - Display the source code in the output
-- **`.show-output`** - Display execution output/plot (default)
-- **`.hide-code`** - Explicitly hide the source code (default)
-- **`.hide-output`** - Hide execution output/plot
-- **`.cache`** - Cache the execution output (default)
-- **`.no-cache`** - Do not use cache and force re-execution
-
-### Examples 1
-
-````markdown
-```python {.execute}
-print("Hello, World!")
-```
-````
-
-```python {.execute}
-print("Hello, World!")
-```
-
-### Examples 2
+:::
 
 ````markdown
 ```python {.execute}
@@ -720,7 +731,7 @@ ax.grid(True)
 plt.show()
 ```
 
-## Document Metadata (JSON)
+# Document Metadata (JSON)
 
 Document metadata is configured in a separate JSON file:
 
@@ -738,31 +749,46 @@ Document metadata is configured in a separate JSON file:
       "roll": "Registration Number"
     }
   ],
-  "titleTemplate": 1,
+  "variables": {},
+  "titleTemplate": 0,
   "enableContentPage": false,
+  "tocDepth": 3,
   "enablePageCredits": false,
   "moveFootnotesToEnd": false,
-  "enableThatsAllPage": false,
   "footnotesAsComments": false,
-  "tocDepth": 3,
-  "variables": {}
+  "enableThatsAllPage": false,
+  "headingNumbering": true
 }
 ```
 
-### Title Template Modes
+## Settings
 
-The `titleTemplate` setting controls how the title page is displayed:
+- `title`: Document title
+- `subtitle`: Document subtitle
+- `submittedto`: Name of the person to whom the document is submitted
+- `university`: Name of the university or institution
+- `department`: Name of the department
+- `date`: Date of submission
+- `submittedby`: List of submitters with their names and registration numbers
+- `variables`: Define custom variables to use throughout the document. See below
+- `titleTemplate`: Controls the style of the title page. Options include:
+  - `0`: No title (disabled) - Default
+  - `1`: Full university title page with logo - Good for assignments and reports
+  - `2`: Title header above content - Good for notes
+  - `3`: Title on separate page - Good for when the contents are enabled
+- `enableContentPage`: Set to `true` to include a table of contents page
+- `tocDepth`: Set the depth of the table of contents (1-6)
+- `enablePageCredits`: Set to `true` to include credits
+- `moveFootnotesToEnd`: Set to `true` to move all footnotes to the end of the document
+- `footnotesAsComments`: Set to `true` to render footnotes as comments
+- `enableThatsAllPage`: Set to `true` to include a "That's All" page at the end of the document
+- `headingNumbering`: Set to `true` to enable automatic numbering of headings
 
-- **`0`**: No title (disabled)
-- **`1`**: Full university title page with logo (default) - Good for assignments and reports
-- **`2`**: Title header above content - Good for notes
-- **`3`**: Title on separate page - Good for when the contents are enabled
-
-### JSON Variables
+### `variables` Usage
 
 You can define variables in the JSON metadata file and use them throughout your markdown document. Variables are defined under the `"variables"` key and referenced using `{{variable_name}}` syntax.
 
-**Example JSON with variables:**
+Example JSON with variables:
 
 ```json
 {
