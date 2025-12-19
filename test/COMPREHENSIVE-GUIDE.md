@@ -49,26 +49,26 @@
 ### Bold
 
 ```markdown
-**bold text** or __bold text__
+**bold text** or **bold text**
 ```
 
-**bold text** or __bold text__
+**bold text** or **bold text**
 
 ### Italic
 
 ```markdown
-_italic text_ or *italic text*
+_italic text_ or _italic text_
 ```
 
-_italic text_ or *italic text*
+_italic text_ or _italic text_
 
 ### Bold + Italic
 
 ```markdown
-**_bold and italic_** or ***bold and italic***
+**_bold and italic_** or **_bold and italic_**
 ```
 
-**_bold and italic_** or ***bold and italic***
+**_bold and italic_** or **_bold and italic_**
 
 ### Strikethrough
 
@@ -361,16 +361,16 @@ Term 2
 ## Horizontal Rule
 
 ```markdown
-___
+---
 ```
 
-___
+---
 
 ```markdown
-***
+---
 ```
 
-***
+---
 
 ```markdown
 ---
@@ -642,7 +642,7 @@ The converter supports executing code blocks in various languages directly withi
 
 ### Supported Languages
 
-- `python`
+- `python` (with persistent state across blocks - like Jupyter notebooks!)
 - `javascript`
 - `powershell`
 - `bash`
@@ -704,6 +704,7 @@ The following example generates a polar plot using matplotlib. Install the requi
 ```powershell
 python -m pip install matplotlib numpy
 ```
+
 :::
 
 ````markdown

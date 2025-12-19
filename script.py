@@ -473,11 +473,11 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
 
     for line in lines:
         if not in_code_block:
-            match = re.match(r"^(`{3,})(.*)", line)
+            match = re.match(r"^(\s*)(`{3,})(.*)", line)
             if match:
                 in_code_block = True
-                opening_fence = match.group(1)
-                header = match.group(2).strip()
+                opening_fence = match.group(2)
+                header = match.group(3).strip()
             else:
                 processed_lines.append(line)
         else:
@@ -879,7 +879,7 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
                 Logger.error(f"Failed to copy image {img}: {e}")
 
 
-def process_executable_blocks(content: str, build_dir: Path) -> str:
+def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = None) -> str:
     """Execute code blocks with property-based control for multiple languages.
 
     Syntax: ```lang {.execute .show-code .show-output .no-cache}
@@ -898,11 +898,21 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
             "extension": "py",
             "plot_check": lambda code: "matplotlib" in code or "plt." in code,
             "plot_code": "\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()",
+            "persistent": True,  # Enable persistent state for Python
         },
         "javascript": {"command": ["node"], "extension": "js"},
         "powershell": {"command": ["powershell", "-File"], "extension": "ps1"},
         "bash": {"command": ["bash"], "extension": "sh"},
     }
+    
+    # Try to use IPython for persistent Python execution
+    python_namespace = {}  # Shared namespace for Python blocks
+    try:
+        from IPython.terminal.embed import InteractiveShellEmbed
+        python_shell = InteractiveShellEmbed()
+        python_shell.run_cell("import sys; import io", silent=True)
+    except ImportError:
+        python_shell = None  # Use simple exec-based persistence
 
     supported_langs = "|".join(EXECUTION_CONFIG.keys())
     pattern = rf"```({supported_langs})\s+{{([^}}]+)}}\n(.*?)\n```"
@@ -952,7 +962,7 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
                     break
             if not is_known:
                 remaining_props.append(p)
-        
+
         new_props = []
         if show_code:
             new_props.append(".show-code")
@@ -975,8 +985,49 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
                         parts.append(f"![Python Plot]({plot_filename})")
                     return "\n\n".join(parts)
 
-                wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
-                result = subprocess.run(config["command"] + ["-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
+                # Use persistent state for Python
+                if config.get("persistent", False):
+                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
+                    
+                    # Simple exec-based persistent execution
+                    from io import StringIO
+                    import sys
+                    import os
+                    
+                    # Capture output and change working directory
+                    old_stdout = sys.stdout
+                    old_stderr = sys.stderr
+                    old_cwd = os.getcwd()
+                    sys.stdout = captured_stdout = StringIO()
+                    sys.stderr = captured_stderr = StringIO()
+                    os.chdir(build_dir)
+                    
+                    try:
+                        exec(wrapped_code, python_namespace)
+                        result_returncode = 0
+                        result_stdout = captured_stdout.getvalue()
+                        result_stderr = ""
+                    except Exception as e:
+                        import traceback
+                        result_returncode = 1
+                        result_stdout = captured_stdout.getvalue()
+                        result_stderr = captured_stderr.getvalue() + traceback.format_exc()
+                    finally:
+                        sys.stdout = old_stdout
+                        sys.stderr = old_stderr
+                        os.chdir(old_cwd)
+                    
+                    # Create a mock result object
+                    class MockResult:
+                        def __init__(self, returncode, stdout, stderr):
+                            self.returncode = returncode
+                            self.stdout = stdout
+                            self.stderr = stderr
+                    
+                    result = MockResult(result_returncode, result_stdout, result_stderr)
+                else:
+                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
+                    result = subprocess.run(config["command"] + ["-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
 
                 if result.returncode == 0 and plot_path.exists():
                     Logger.info(f"Generated plot {block_counter}/{total_blocks}", persist=False)
@@ -989,7 +1040,7 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
                         parts.append(f"```output\nError executing code:\n{error_msg}\n```")
                 return "\n\n".join(parts)
 
-            # Handle general code execution
+            # Handle general code execution with persistent state support
             output_filename = f"{lang}_output_{code_hash}.txt"
             output_path = build_dir / output_filename
 
@@ -1000,12 +1051,52 @@ def process_executable_blocks(content: str, build_dir: Path) -> str:
                     parts.append(f"```output\n{output if output.strip() else '(No output)'}\n```")
                 return "\n\n".join(parts)
 
-            temp_file_path = build_dir / f"temp_{code_hash}.{config['extension']}"
-            temp_file_path.write_text(code, encoding="utf-8")
+            # Use persistent state for supported languages
+            if config.get("persistent", False) and lang == "python":
+                # Simple exec-based persistent execution
+                from io import StringIO
+                import sys
+                import os
+                
+                # Capture output and change working directory
+                old_stdout = sys.stdout
+                old_stderr = sys.stderr
+                old_cwd = os.getcwd()
+                sys.stdout = captured_stdout = StringIO()
+                sys.stderr = captured_stderr = StringIO()
+                os.chdir(source_dir if source_dir else build_dir)
+                
+                try:
+                    exec(code, python_namespace)
+                    result_returncode = 0
+                    result_stdout = captured_stdout.getvalue()
+                    result_stderr = ""
+                except Exception as e:
+                    import traceback
+                    result_returncode = 1
+                    result_stdout = captured_stdout.getvalue()
+                    result_stderr = captured_stderr.getvalue() + traceback.format_exc()
+                finally:
+                    sys.stdout = old_stdout
+                    sys.stderr = old_stderr
+                    os.chdir(old_cwd)
+                
+                # Create a mock result object
+                class MockResult:
+                    def __init__(self, returncode, stdout, stderr):
+                        self.returncode = returncode
+                        self.stdout = stdout
+                        self.stderr = stderr
+                
+                result = MockResult(result_returncode, result_stdout, result_stderr)
+            else:
+                # Non-persistent execution (original behavior)
+                temp_file_path = build_dir / f"temp_{code_hash}.{config['extension']}"
+                temp_file_path.write_text(code, encoding="utf-8")
 
-            command = config["command"] + [str(temp_file_path)]
-            result = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
-            temp_file_path.unlink()
+                command = config["command"] + [str(temp_file_path)]
+                result = subprocess.run(command, capture_output=True, text=True, timeout=30, check=False)
+                temp_file_path.unlink()
 
             if result.returncode == 0:
                 output = result.stdout.strip()
@@ -1205,7 +1296,7 @@ Steps:
                 pass
     shutil.copy(template_tex, build_dir / "template.tex")
     md_content = md_path.read_text(encoding="utf-8", errors="ignore")
-    md_content = process_executable_blocks(md_content, build_dir)
+    md_content = process_executable_blocks(md_content, build_dir, md_path.parent)
     md_content = substitute_variables(md_content, meta)
     md_content = process_code_blocks(md_content, build_dir)
     md_content = convert_markdown_footnotes_to_latex(md_content, use_comments=meta.get("footnotesAsComments"))
