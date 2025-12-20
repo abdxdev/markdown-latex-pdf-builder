@@ -6,7 +6,7 @@
 \usepackage{fontspec}
 \usepackage[margin=1in]{geometry}
 \usepackage{fancyhdr}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -43,8 +43,6 @@
   hybrid,
   taskLists,
 ]{markdown}
-
-
 
 \settimeformat{ampmtime}
 \sloppy
@@ -490,12 +488,12 @@
 \newcommand{\subsubsectionnumspace}{1em}
 
 \newcommand{\suppressnumbering}{
-    \renewcommand{\thesection}{}
-    \renewcommand{\thesubsection}{}
-    \renewcommand{\thesubsubsection}{}
-    \renewcommand{\sectionnumspace}{0em}
-    \renewcommand{\subsectionnumspace}{0em}
-    \renewcommand{\subsubsectionnumspace}{0em}
+  \renewcommand{\thesection}{}
+  \renewcommand{\thesubsection}{}
+  \renewcommand{\thesubsubsection}{}
+  \renewcommand{\sectionnumspace}{0em}
+  \renewcommand{\subsectionnumspace}{0em}
+  \renewcommand{\subsubsectionnumspace}{0em}
 }
 @@HEADING_NUMBERING@@
 
@@ -525,78 +523,78 @@
 
 % Title Template Rendering
 \ifnum\titleTemplate=1
-% Mode 1: Full university title page with logo
-\thispagestyle{empty}
-\maketitle
+  % Mode 1: Full university title page with logo
+  \thispagestyle{empty}
+  \maketitle
 \fi
 
 \ifnum\titleTemplate=2
-% Mode 2: Modern title header above content
-\thispagestyle{empty}
-\begin{center}
-  \vspace*{1cm}
-  % Main title with gradient-like effect using shadow
-  \begin{tcolorbox}[
-      enhanced,
-      colback=titleBoxBg,
-      colframe=titleBoxFrame,
-      boxrule=1pt,
-      arc=8pt,
-      left=20pt,
-      right=20pt,
-      top=25pt,
-      bottom=25pt,
-      shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
-      width=0.9\textwidth
-    ]
-    \centering
-    {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
-    \vspace{0.4cm}
-    {\fontsize{16}{20}\selectfont\color{titleSubText}\assignmentsubtitle\par}
-  \end{tcolorbox}
+  % Mode 2: Modern title header above content
+  \thispagestyle{empty}
+  \begin{center}
+    \vspace*{1cm}
+    % Main title with gradient-like effect using shadow
+    \begin{tcolorbox}[
+        enhanced,
+        colback=titleBoxBg,
+        colframe=titleBoxFrame,
+        boxrule=1pt,
+        arc=8pt,
+        left=20pt,
+        right=20pt,
+        top=25pt,
+        bottom=25pt,
+        shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
+        width=0.9\textwidth
+      ]
+      \centering
+      {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
+      \vspace{0.4cm}
+      {\fontsize{16}{20}\selectfont\color{titleSubText}\assignmentsubtitle\par}
+    \end{tcolorbox}
 
-  \vspace{1cm}
-\end{center}
+    \vspace{1cm}
+  \end{center}
 \fi
 
 \ifnum\titleTemplate=3
-\thispagestyle{empty}
-\begin{center}
-  \vspace*{1cm}
-  \begin{tcolorbox}[
-      enhanced,
-      colback=titleBoxBg,
-      colframe=titleBoxFrame,
-      boxrule=1pt,
-      arc=8pt,
-      left=20pt,
-      right=20pt,
-      top=25pt,
-      bottom=25pt,
-      shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
-      width=0.9\textwidth
-    ]
-    \centering
-    {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
-    \vspace{0.4cm}
-    {\fontsize{16}{20}\selectfont\color{titleSubText}\assignmentsubtitle\par}
-  \end{tcolorbox}
-\end{center}
-\vspace*{\fill}
-\ifenablepagecredits
-\vfill
-\creditblock
-\fi
+  \thispagestyle{empty}
+  \begin{center}
+    \vspace*{1cm}
+    \begin{tcolorbox}[
+        enhanced,
+        colback=titleBoxBg,
+        colframe=titleBoxFrame,
+        boxrule=1pt,
+        arc=8pt,
+        left=20pt,
+        right=20pt,
+        top=25pt,
+        bottom=25pt,
+        shadow={2mm}{-2mm}{0mm}{titleBoxFrame},
+        width=0.9\textwidth
+      ]
+      \centering
+      {\fontsize{36}{40}\selectfont\bfseries\color{titleMainText}\assignmenttitle\par}
+      \vspace{0.4cm}
+      {\fontsize{16}{20}\selectfont\color{titleSubText}\assignmentsubtitle\par}
+    \end{tcolorbox}
+  \end{center}
+  \vspace*{\fill}
+  \ifenablepagecredits
+    \vfill
+    \creditblock
+  \fi
 
-\clearpage
+  \clearpage
 \fi
 
 \ifenablecontentpage
-\renewcommand{\contentsname}{\centerline{Contents}}
-@@TOC_DEPTH@@
-\tableofcontents
-\thispagestyle{empty}
-\clearpage
+  \renewcommand{\contentsname}{\centerline{Contents}}
+  @@TOC_DEPTH@@
+  \tableofcontents
+  \thispagestyle{empty}
+  \clearpage
 \fi
 
 \fancyhf{}
@@ -609,10 +607,14 @@
 
 \raggedbottom
 
+% \AtBeginEnvironment{tabular}{
+% \begin{adjustbox}{max width=\textwidth}}
+%   \AtEndEnvironment{tabular}{
+% \end{adjustbox}}
+
 \AtBeginEnvironment{tabular}{
-\begin{adjustbox}{max width=\textwidth}}
-  \AtEndEnvironment{tabular}{
-\end{adjustbox}}
+  \rowcolors{2}{gray!10}{white}
+}
 
 \let\oldincludegraphics\includegraphics
 \renewcommand{\includegraphics}[2][]{\oldincludegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio,#1]{#2}}
@@ -624,24 +626,24 @@
 \markdownInput{@@INPUT_FILE@@}
 
 \ifenablefootnotesatend
-\clearpage
-\theendnotes
+  \clearpage
+  \theendnotes
 \fi
 
 \ifenablethatsall
-\clearpage
-\thispagestyle{empty}
-\vspace*{\fill}
-\begin{center}
-  {\Huge\bfseries --- That's all for now ---}
-\end{center}
-\vspace*{\fill}
+  \clearpage
+  \thispagestyle{empty}
+  \vspace*{\fill}
+  \begin{center}
+    {\Huge\bfseries --- That's all for now ---}
+  \end{center}
+  \vspace*{\fill}
 \fi
 \ifnum\titleTemplate=3\else
-\ifenablepagecredits
-\vfill
-\creditblock
-\fi
+  \ifenablepagecredits
+    \vfill
+    \creditblock
+  \fi
 \fi
 
 \end{document}

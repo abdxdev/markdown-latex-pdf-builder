@@ -896,7 +896,7 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
         "python": {
             "command": ["python"],
             "extension": "py",
-            "plot_check": lambda code: "matplotlib" in code or "plt." in code,
+            "plot_check": lambda code: ("plt.show()" in code or "plt.subplots(" in code or "plt.plot(" in code or "plt.bar(" in code or "plt.scatter(" in code or "plt.hist(" in code or "plt.figure(" in code),
             "plot_code": "\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()",
             "persistent": True,  # Enable persistent state for Python
         },
@@ -904,11 +904,12 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
         "powershell": {"command": ["powershell", "-File"], "extension": "ps1"},
         "bash": {"command": ["bash"], "extension": "sh"},
     }
-    
+
     # Try to use IPython for persistent Python execution
     python_namespace = {}  # Shared namespace for Python blocks
     try:
         from IPython.terminal.embed import InteractiveShellEmbed
+
         python_shell = InteractiveShellEmbed()
         python_shell.run_cell("import sys; import io", silent=True)
     except ImportError:
@@ -988,27 +989,28 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                 # Use persistent state for Python
                 if config.get("persistent", False):
                     wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
-                    
+
                     # Simple exec-based persistent execution
                     from io import StringIO
                     import sys
                     import os
-                    
+
                     # Capture output and change working directory
                     old_stdout = sys.stdout
                     old_stderr = sys.stderr
                     old_cwd = os.getcwd()
                     sys.stdout = captured_stdout = StringIO()
                     sys.stderr = captured_stderr = StringIO()
-                    os.chdir(build_dir)
-                    
+                    os.chdir(source_dir if source_dir else build_dir)
+
                     try:
-                        exec(wrapped_code, python_namespace)
+                        exec(wrapped_code, python_namespace, python_namespace)
                         result_returncode = 0
                         result_stdout = captured_stdout.getvalue()
                         result_stderr = ""
                     except Exception as e:
                         import traceback
+
                         result_returncode = 1
                         result_stdout = captured_stdout.getvalue()
                         result_stderr = captured_stderr.getvalue() + traceback.format_exc()
@@ -1016,14 +1018,14 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                         sys.stdout = old_stdout
                         sys.stderr = old_stderr
                         os.chdir(old_cwd)
-                    
+
                     # Create a mock result object
                     class MockResult:
                         def __init__(self, returncode, stdout, stderr):
                             self.returncode = returncode
                             self.stdout = stdout
                             self.stderr = stderr
-                    
+
                     result = MockResult(result_returncode, result_stdout, result_stderr)
                 else:
                     wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
@@ -1057,7 +1059,7 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                 from io import StringIO
                 import sys
                 import os
-                
+
                 # Capture output and change working directory
                 old_stdout = sys.stdout
                 old_stderr = sys.stderr
@@ -1065,14 +1067,15 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                 sys.stdout = captured_stdout = StringIO()
                 sys.stderr = captured_stderr = StringIO()
                 os.chdir(source_dir if source_dir else build_dir)
-                
+
                 try:
-                    exec(code, python_namespace)
+                    exec(code, python_namespace, python_namespace)
                     result_returncode = 0
                     result_stdout = captured_stdout.getvalue()
                     result_stderr = ""
                 except Exception as e:
                     import traceback
+
                     result_returncode = 1
                     result_stdout = captured_stdout.getvalue()
                     result_stderr = captured_stderr.getvalue() + traceback.format_exc()
@@ -1080,14 +1083,14 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                     sys.stdout = old_stdout
                     sys.stderr = old_stderr
                     os.chdir(old_cwd)
-                
+
                 # Create a mock result object
                 class MockResult:
                     def __init__(self, returncode, stdout, stderr):
                         self.returncode = returncode
                         self.stdout = stdout
                         self.stderr = stderr
-                
+
                 result = MockResult(result_returncode, result_stdout, result_stderr)
             else:
                 # Non-persistent execution (original behavior)
