@@ -1,8 +1,8 @@
 Windows | [Linux](README-LINUX.md)
 
-# Automated LaTeX Document Builder
+# md2lualatex
 
-Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs automatically.
+A vscode tool that converts advanced Markdown with diagrams, code execution, and custom macros into publication-ready LaTeX PDFs.
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -10,7 +10,7 @@ Notes Maker converts your Markdown notes into professional-looking LaTeX PDFs au
 - [Usage](#usage)
 - [Changing Default Values](#changing-default-values)
 - [Changing the University Logo](#changing-the-university-logo)
-- [Updating Notes Maker](#updating-notes-maker)
+- [Updating md2lualatex](#updating-md2lualatex)
 - [Uninstallation](#uninstallation)
 - [Tested Environments](#tested-environments)
 
@@ -107,15 +107,15 @@ Install the Pygments syntax highlighter for code blocks:
 python -m pip install Pygments
 ```
 
-#### Step 4: Download Notes Maker
+#### Step 4: Download md2lualatex
 
-Download Notes Maker to your user AppData folder:
+Download md2lualatex to your user AppData folder:
 
 ```powershell
-wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
-Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
+wget https://github.com/abdxdev/md2lualatex/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
+Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\md2lualatex"
 Remove-Item "$env:TEMP\main.zip"
-Copy-Item "$env:APPDATA\Notes Maker\notes-maker-main\default.json" "$env:APPDATA\Notes Maker\default.json"
+Copy-Item "$env:APPDATA\md2lualatex\md2lualatex-main\default.json" "$env:APPDATA\md2lualatex\default.json"
 
 ```
 
@@ -137,10 +137,10 @@ python -m pip install numpy matplotlib
 
 #### Step 7: Verify installation
 
-Run this command to test Notes Maker with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
+Run this command to test md2lualatex with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
 
 ```powershell
-python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes Maker\notes-maker-main\test\COMPREHENSIVE-GUIDE.md" --show
+python "$env:APPDATA\md2lualatex\md2lualatex-main\script.py" "$env:APPDATA\md2lualatex\md2lualatex-main\test\COMPREHENSIVE-GUIDE.md" --show
 ```
 
 ## VS Code Setup
@@ -152,10 +152,10 @@ python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes
    ```jsonc
    // ...other settings...,
     "command-runner.commands": {
-        "Notes Maker: Build Document (follow json settings)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\"",
-        "Notes Maker: Build Assignment (add university title page)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\" --titleTemplate 1 --enableContentPage false",
-        "Notes Maker: Build Notes (add title)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\" --titleTemplate 2 --enableContentPage false",
-        "Notes Maker: Build Publication (add contents and title page)": "python \"$env:APPDATA\\Notes Maker\\notes-maker-main\\script.py\" \"${file}\" --titleTemplate 3 --enableContentPage true"
+        "md2lualatex: Build Document (follow json settings)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\"",
+        "md2lualatex: Build Assignment (add university title page)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\" --titleTemplate 1 --enableContentPage false",
+        "md2lualatex: Build Notes (add title)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\" --titleTemplate 2 --enableContentPage false",
+        "md2lualatex: Build Publication (add contents and title page)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\" --titleTemplate 3 --enableContentPage true"
     }
    ```
 
@@ -165,8 +165,8 @@ python "$env:APPDATA\Notes Maker\notes-maker-main\script.py" "$env:APPDATA\Notes
 
 1. Open any folder in VS Code.
 2. Create a new Markdown file (for example, `report.md`).
-3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/notes-maker/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
-4. Press `Ctrl + Shift + R` and select **Notes Maker: Build Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
+3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/md2lualatex/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
+4. Press `Ctrl + Shift + R` and select **md2lualatex: Build Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
 5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date. (To permanently change default values, see the next section.)
 6. Re-run the build command from step 4 to generate the updated PDF.
 
@@ -180,7 +180,7 @@ You can edit the default settings for document generation by modifying the `defa
 Run this command to open it in VS Code:
 
 ```powershell
-code "$env:APPDATA\Notes Maker\default.json"
+code "$env:APPDATA\md2lualatex\default.json"
 ```
 
 The next time you generate a document, it will use the updated defaults.
@@ -190,21 +190,21 @@ The next time you generate a document, it will use the updated defaults.
 To replace the default logo, open the script directory:
 
 ```powershell
-explorer $env:APPDATA\Notes Maker\notes-maker-main\
+explorer $env:APPDATA\md2lualatex\md2lualatex-main\
 ```
 
 Replace the existing `uni-logo.pdf` file with your logo file (use the same name).
 
-## Updating Notes Maker
+## Updating md2lualatex
 
-To update Notes Maker, run these commands in PowerShell:
+To update md2lualatex, run these commands in PowerShell:
 
 #### Step 1: Remove old version and download the latest
 
 ```powershell
-Remove-Item "$env:APPDATA\Notes Maker\notes-maker-main" -Recurse -Force
-wget https://github.com/abdxdev/notes-maker/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
-Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\Notes Maker"
+Remove-Item "$env:APPDATA\md2lualatex\md2lualatex-main" -Recurse -Force
+wget https://github.com/abdxdev/md2lualatex/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
+Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\md2lualatex"
 Remove-Item "$env:TEMP\main.zip"
 
 ```
@@ -227,10 +227,10 @@ Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
 > Microsoft Edge may lock certain files related to the uninstallation process if it is running in the background.  
 > To avoid issues, open Task Manager, locate "Microsoft Edge" under the "Processes" tab, and select "End Task" before proceeding.
 
-#### Step 2: Remove Notes Maker
+#### Step 2: Remove md2lualatex
 
 ```powershell
-Remove-Item "$env:APPDATA\Notes Maker" -Recurse -Force
+Remove-Item "$env:APPDATA\md2lualatex" -Recurse -Force
 ```
 
 ## Tested Environments
