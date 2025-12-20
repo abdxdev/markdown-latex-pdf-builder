@@ -2,6 +2,9 @@ Windows | [Linux](README-LINUX.md)
 
 # md2lualatex
 
+![alt text](screenshots/screenshot_1.png)
+<!-- ![alt text](screenshots/screenshot_2.png) -->
+
 A vscode tool that converts advanced Markdown with diagrams, code execution, and custom macros into publication-ready LaTeX PDFs.
 
 - [Prerequisites](#prerequisites)
