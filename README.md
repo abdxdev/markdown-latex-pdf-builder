@@ -1,6 +1,6 @@
 Windows | [Linux](README-LINUX.md)
 
-# markdown-latex-pdf-builder
+# Markdown Latex PDF Builder
 
 ![alt text](screenshots/screenshot_1.png)
 
