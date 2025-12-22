@@ -1,6 +1,6 @@
 [Windows](README.md) | Linux
 
-# md2lualatex
+# markdown-latex-pdf-builder
 
 A vscode tool that converts advanced Markdown with diagrams, code execution, and custom macros into publication-ready LaTeX PDFs.
 

@@ -1,8 +1,9 @@
 Windows | [Linux](README-LINUX.md)
 
-# md2lualatex
+# markdown-latex-pdf-builder
 
 ![alt text](screenshots/screenshot_1.png)
+
 <!-- ![alt text](screenshots/screenshot_2.png) -->
 
 A vscode tool that converts advanced Markdown with diagrams, code execution, and custom macros into publication-ready LaTeX PDFs.
@@ -13,7 +14,7 @@ A vscode tool that converts advanced Markdown with diagrams, code execution, and
 - [Usage](#usage)
 - [Changing Default Values](#changing-default-values)
 - [Changing the University Logo](#changing-the-university-logo)
-- [Updating md2lualatex](#updating-md2lualatex)
+- [Updating markdown-latex-pdf-builder](#updating-markdown-latex-pdf-builder)
 - [Uninstallation](#uninstallation)
 - [Tested Environments](#tested-environments)
 
@@ -110,15 +111,15 @@ Install the Pygments syntax highlighter for code blocks:
 python -m pip install Pygments
 ```
 
-#### Step 4: Download md2lualatex
+#### Step 4: Download markdown-latex-pdf-builder
 
-Download md2lualatex to your user AppData folder:
+Download markdown-latex-pdf-builder to your user AppData folder:
 
 ```powershell
-wget https://github.com/abdxdev/md2lualatex/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
-Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\md2lualatex"
+wget https://github.com/abdxdev/markdown-latex-pdf-builder/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
+Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\markdown-latex-pdf-builder"
 Remove-Item "$env:TEMP\main.zip"
-Copy-Item "$env:APPDATA\md2lualatex\md2lualatex-main\default.json" "$env:APPDATA\md2lualatex\default.json"
+Copy-Item "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main\default.json" "$env:APPDATA\markdown-latex-pdf-builder\default.json"
 
 ```
 
@@ -140,10 +141,10 @@ python -m pip install numpy matplotlib
 
 #### Step 7: Verify installation
 
-Run this command to test md2lualatex with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
+Run this command to test markdown-latex-pdf-builder with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
 
 ```powershell
-python "$env:APPDATA\md2lualatex\md2lualatex-main\script.py" "$env:APPDATA\md2lualatex\md2lualatex-main\test\COMPREHENSIVE-GUIDE.md" --show
+python "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main\script.py" "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main\test\COMPREHENSIVE-GUIDE.md" --show
 ```
 
 ## VS Code Setup
@@ -155,10 +156,10 @@ python "$env:APPDATA\md2lualatex\md2lualatex-main\script.py" "$env:APPDATA\md2lu
    ```jsonc
    // ...other settings...,
     "command-runner.commands": {
-        "md2lualatex: Build Document (follow json settings)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\"",
-        "md2lualatex: Build Assignment (add university title page)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\" --titleTemplate 1 --enableContentPage false",
-        "md2lualatex: Build Notes (add title)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\" --titleTemplate 2 --enableContentPage false",
-        "md2lualatex: Build Publication (add contents and title page)": "python \"$env:APPDATA\\md2lualatex\\md2lualatex-main\\script.py\" \"${file}\" --titleTemplate 3 --enableContentPage true"
+        "markdown-latex-pdf-builder: Build Document (follow json settings)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\"",
+        "markdown-latex-pdf-builder: Build Assignment (add university title page)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate 1 --enableContentPage false",
+        "markdown-latex-pdf-builder: Build Notes (add title)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate 2 --enableContentPage false",
+        "markdown-latex-pdf-builder: Build Publication (add contents and title page)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate 3 --enableContentPage true"
     }
    ```
 
@@ -168,8 +169,8 @@ python "$env:APPDATA\md2lualatex\md2lualatex-main\script.py" "$env:APPDATA\md2lu
 
 1. Open any folder in VS Code.
 2. Create a new Markdown file (for example, `report.md`).
-3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/md2lualatex/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
-4. Press `Ctrl + Shift + R` and select **md2lualatex: Build Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
+3. Add your content. Check out our [comprehensive guide](https://github.com/abdxdev/markdown-latex-pdf-builder/blob/main/test/COMPREHENSIVE-GUIDE.pdf) for advanced features and examples.
+4. Press `Ctrl + Shift + R` and select **markdown-latex-pdf-builder: Build Document**. (Extension: Command Runner must be installed. Follow prerequisites if you haven't done so.)
 5. After a few moments, the PDF will be generated along with a `.json` metadata file. Edit this file to change document settings like title, university, and date. (To permanently change default values, see the next section.)
 6. Re-run the build command from step 4 to generate the updated PDF.
 
@@ -183,7 +184,7 @@ You can edit the default settings for document generation by modifying the `defa
 Run this command to open it in VS Code:
 
 ```powershell
-code "$env:APPDATA\md2lualatex\default.json"
+code "$env:APPDATA\markdown-latex-pdf-builder\default.json"
 ```
 
 The next time you generate a document, it will use the updated defaults.
@@ -193,21 +194,21 @@ The next time you generate a document, it will use the updated defaults.
 To replace the default logo, open the script directory:
 
 ```powershell
-explorer $env:APPDATA\md2lualatex\md2lualatex-main\
+explorer $env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main\
 ```
 
 Replace the existing `uni-logo.pdf` file with your logo file (use the same name).
 
-## Updating md2lualatex
+## Updating markdown-latex-pdf-builder
 
-To update md2lualatex, run these commands in PowerShell:
+To update markdown-latex-pdf-builder, run these commands in PowerShell:
 
 #### Step 1: Remove old version and download the latest
 
 ```powershell
-Remove-Item "$env:APPDATA\md2lualatex\md2lualatex-main" -Recurse -Force
-wget https://github.com/abdxdev/md2lualatex/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
-Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\md2lualatex"
+Remove-Item "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main" -Recurse -Force
+wget https://github.com/abdxdev/markdown-latex-pdf-builder/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
+Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\markdown-latex-pdf-builder"
 Remove-Item "$env:TEMP\main.zip"
 
 ```
@@ -230,10 +231,10 @@ Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
 > Microsoft Edge may lock certain files related to the uninstallation process if it is running in the background.  
 > To avoid issues, open Task Manager, locate "Microsoft Edge" under the "Processes" tab, and select "End Task" before proceeding.
 
-#### Step 2: Remove md2lualatex
+#### Step 2: Remove markdown-latex-pdf-builder
 
 ```powershell
-Remove-Item "$env:APPDATA\md2lualatex" -Recurse -Force
+Remove-Item "$env:APPDATA\markdown-latex-pdf-builder" -Recurse -Force
 ```
 
 ## Tested Environments
