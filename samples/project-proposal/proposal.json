@@ -1,0 +1,27 @@
+{
+  "university": "University of Engineering and Technology",
+  "department": "Department of Computer Science",
+  "title": "Multi-Process Image Processor",
+  "subtitle": "Operating Systems Lab",
+  "submittedby": [
+    {
+      "name": "Rabia Nadeem",
+      "roll": "2023-CS-705"
+    },
+    {
+      "name": "Abdul Rahman",
+      "roll": "2023-CS-725"
+    }
+  ],
+  "submittedto": "Prof. Mariyam Manzoor",
+  "variables": {},
+  "titleTemplate": 0,
+  "enableContentPage": false,
+  "tocDepth": 3,
+  "enablePageCredits": false,
+  "moveFootnotesToEnd": false,
+  "footnotesAsComments": false,
+  "enableThatsAllPage": false,
+  "headingNumbering": false,
+  "date": "December 08, 2025"
+}
