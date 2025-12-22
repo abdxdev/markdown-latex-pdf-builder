@@ -4,9 +4,11 @@ Windows | [Linux](README-LINUX.md)
 
 ![alt text](screenshots/screenshot_1.png)
 
-<!-- ![alt text](screenshots/screenshot_2.png) -->
-
 A vscode tool that converts advanced Markdown with diagrams, code execution, and custom macros into publication-ready LaTeX PDFs.
+
+![alt text](screenshots/screenshot_2.png)
+
+## Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
