@@ -1,4 +1,4 @@
-# Markdown to LaTeX Comprehensive Guide
+# Markdown Latex PDF Builder Comprehensive Guide
 
 - ✅ **Standard Markdown Support**: Headings, lists, tables, links, images, blockquotes, and more.
 - 📝 **Text Formatting**: Bold, italic, underline, strikethrough, highlight, superscript, subscript, small caps.
@@ -49,26 +49,26 @@
 ### Bold
 
 ```markdown
-**bold text** or **bold text**
+**bold text** or __bold text__
 ```
 
-**bold text** or **bold text**
+**bold text** or __bold text__
 
 ### Italic
 
 ```markdown
-_italic text_ or _italic text_
+*italic text* or _italic text_
 ```
 
-_italic text_ or _italic text_
+*italic text* or _italic text_
 
 ### Bold + Italic
 
 ```markdown
-**_bold and italic_** or **_bold and italic_**
+**_bold and italic_** or __*bold and italic*__
 ```
 
-**_bold and italic_** or **_bold and italic_**
+**_bold and italic_** or __*bold and italic*__
 
 ### Strikethrough
 
@@ -197,26 +197,26 @@ For highlighting specific lines in code blocks or making them executable, refer 
 ### Basic Image
 
 ```markdown
-![image](image.jpg)
+![alt text](image.jpg)
 ```
 
-![image](image.jpg)
+![alt text](image.jpg)
 
 ### Image with Title
 
 ```markdown
-![image](image.jpg "title")
+![alt text](image.jpg "title")
 ```
 
-![image](image.jpg "title")
+![alt text](image.jpg "title")
 
 ### Image from URL
 
 ```markdown
-![image](https://github.com/abdxdev/notes-maker/blob/main/test/image.jpg?raw=true)
+![alt text](https://github.com/abdxdev/markdown-latex-pdf-builder/blob/main/test/image.jpg?raw=true)
 ```
 
-![image](https://github.com/abdxdev/notes-maker/blob/main/test/image.jpg?raw=true)
+![alt text](https://github.com/abdxdev/markdown-latex-pdf-builder/blob/main/test/image.jpg?raw=true)
 
 ## Mermaid Diagrams
 
@@ -333,12 +333,14 @@ Term 2
 | :--- | :----: | ----: | ------- |
 | L1   |   C1   |    R1 | Default |
 | L2   |   C2   |    R2 | Default |
+| L3   |   C3   |    R3 | Default |
 ```
 
 | Left | Center | Right | Default |
 | :--- | :----: | ----: | ------- |
 | L1   |   C1   |    R1 | Default |
 | L2   |   C2   |    R2 | Default |
+| L3   |   C3   |    R3 | Default |
 
 ### Table with Captions
 
@@ -347,6 +349,7 @@ Term 2
 | -------- | -------- | -------- |
 | Cell 1   | Cell 2   | Cell 3   |
 | Cell 4   | Cell 5   | Cell 6   |
+| Cell 7   | Cell 8   | Cell 9   |
 
 : Sample Table with Caption
 ```
@@ -355,22 +358,23 @@ Term 2
 | -------- | -------- | -------- |
 | Cell 1   | Cell 2   | Cell 3   |
 | Cell 4   | Cell 5   | Cell 6   |
+| Cell 7   | Cell 8   | Cell 9   |
 
 : Sample Table with Caption
 
 ## Horizontal Rule
 
 ```markdown
----
+***
 ```
 
----
+***
 
 ```markdown
----
+___
 ```
 
----
+___
 
 ```markdown
 ---
