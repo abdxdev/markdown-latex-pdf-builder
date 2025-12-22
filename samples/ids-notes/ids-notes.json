@@ -1,0 +1,20 @@
+{
+  "university": "University of Engineering and Technology",
+  "department": "Department of Computer Science",
+  "title": "Introduction to Data Science",
+  "subtitle": "Notes",
+  "submittedby": [
+    {
+      "name": "Abdul Rahman",
+      "roll": "2023-CS-725"
+    }
+  ],
+  "submittedto": "Prof. abd",
+  "titleTemplate": 3,
+  "enableContentPage": true,
+  "tocDepth": 2,
+  "enablePageCredits": true,
+  "moveFootnotesToEnd": false,
+  "enableThatsAllPage": false,
+  "date": "November 11, 2025"
+}

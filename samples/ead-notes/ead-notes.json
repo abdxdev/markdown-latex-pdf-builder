@@ -1,0 +1,23 @@
+{
+  "university": "University of Engineering and Technology",
+  "department": "Department of Computer Science",
+  "title": "Enterprise Application Development",
+  "subtitle": "Notes",
+  "submittedby": [
+    {
+      "name": "Student Name",
+      "roll": "Roll Number"
+    }
+  ],
+  "submittedto": "Instructor Name",
+  "variables": {},
+  "titleTemplate": 2,
+  "enableContentPage": false,
+  "tocDepth": 3,
+  "enablePageCredits": true,
+  "moveFootnotesToEnd": false,
+  "footnotesAsComments": false,
+  "enableThatsAllPage": false,
+  "headingNumbering": true,
+  "date": "December 20, 2025"
+}

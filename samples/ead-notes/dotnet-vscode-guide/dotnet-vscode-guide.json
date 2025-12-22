@@ -1,0 +1,23 @@
+{
+  "university": "University of Engineering and Technology",
+  "department": "Department of Computer Science",
+  "title": "Dotnet with VSCode Guide",
+  "subtitle": "A Comprehensive Guide to Setting Up and Using .NET with Visual Studio Code",
+  "submittedby": [
+    {
+      "name": "Abdul Rahman",
+      "roll": "2023-CS-725"
+    }
+  ],
+  "submittedto": "Prof. Mariyam Manzoor",
+  "variables": {},
+  "titleTemplate": 3,
+  "enableContentPage": true,
+  "tocDepth": 3,
+  "enablePageCredits": true,
+  "moveFootnotesToEnd": false,
+  "footnotesAsComments": false,
+  "enableThatsAllPage": false,
+  "headingNumbering": true,
+  "date": "December 09, 2025"
+}
