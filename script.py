@@ -188,9 +188,24 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
     authors_block = build_authors(meta)
     to_value = meta.get("submittedto", "")
 
-    title_template = int(meta.get("titleTemplate", 1))
-    if title_template < 0 or title_template > 3:
-        title_template = 1
+    # Map string template names to numeric values for LaTeX
+    title_template_map = {
+        "no-title": 0,
+        "university-title": 1,
+        "header-title": 2,
+        "separate-page-title": 3,
+    }
+    
+    title_template_value = meta.get("titleTemplate", "no-title")
+    
+    # Support both old numeric format and new string format for backward compatibility
+    if isinstance(title_template_value, int):
+        title_template = title_template_value
+        if title_template < 0 or title_template > 3:
+            title_template = 0
+    else:
+        title_template = title_template_map.get(title_template_value, 0)
+    
     title_template_cmd = f"\\renewcommand{{\\titleTemplate}}{{{title_template}}}"
     enable_content = bool(meta.get("enableContentPage"))
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
@@ -882,7 +897,7 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
 def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = None) -> str:
     """Execute code blocks with property-based control for multiple languages.
 
-    Syntax: ```lang {.execute .show-code .show-output .no-cache}
+    Syntax: ```lang {.execute .show-code .show-output .no-cache .format=png}
 
     Properties:
     - .execute: Marks the block for execution.
@@ -891,13 +906,16 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
     - .show-output: Displays the execution output.
     - .hide-output: Hides the execution output.
     - .cache / .no-cache: Controls caching of execution results.
+    - .format=png|pdf: Sets plot output format (default: pdf, Python only).
     """
     EXECUTION_CONFIG = {
         "python": {
             "command": ["python"],
             "extension": "py",
             "plot_check": lambda code: ("plt.show()" in code or "plt.subplots(" in code or "plt.plot(" in code or "plt.bar(" in code or "plt.scatter(" in code or "plt.hist(" in code or "plt.figure(" in code),
-            "plot_code": "\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='pdf', bbox_inches='tight')\nplt.close()",
+            "plot_code": "\nimport matplotlib.pyplot as plt\nplt.savefig(r'{plot_path}', format='{format}', bbox_inches='tight'{dpi_param})\nplt.close()",
+            "plot_formats": ["pdf", "png"],
+            "default_format": "pdf",
             "persistent": True,  # Enable persistent state for Python
         },
         "javascript": {"command": ["node"], "extension": "js"},
@@ -951,8 +969,19 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
         show_code = ".show-code" in properties and ".hide-code" not in properties
         show_output = ".hide-output" not in properties
         use_cache = ".no-cache" not in properties
+        
+        # Extract plot format
+        plot_format = config.get("default_format", "pdf")
+        for prop in properties:
+            if prop.startswith(".format="):
+                requested_format = prop.split("=", 1)[1].lower()
+                if requested_format in config.get("plot_formats", ["pdf"]):
+                    plot_format = requested_format
+                else:
+                    Logger.warning(f"Unsupported format '{requested_format}', using '{plot_format}'")
+                break
 
-        known_props_prefixes = [".execute", ".show-code", ".hide-code", ".show-output", ".hide-output", ".cache", ".no-cache"]
+        known_props_prefixes = [".execute", ".show-code", ".hide-code", ".show-output", ".hide-output", ".cache", ".no-cache", ".format="]
         all_props_list = [p.strip() for p in properties_str.split() if p.strip()]
         remaining_props = []
         for p in all_props_list:
@@ -977,7 +1006,7 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
         try:
             # Handle plotting for Python
             if lang == "python" and config.get("plot_check", lambda c: False)(code):
-                plot_filename = f"{lang}_plot_{code_hash}.pdf"
+                plot_filename = f"{lang}_plot_{code_hash}.{plot_format}"
                 plot_path = build_dir / plot_filename
 
                 if use_cache and plot_path.exists():
@@ -988,7 +1017,12 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
 
                 # Use persistent state for Python
                 if config.get("persistent", False):
-                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
+                    dpi_param = ", dpi=300" if plot_format == "png" else ""
+                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(
+                        plot_path=plot_path, 
+                        format=plot_format,
+                        dpi_param=dpi_param
+                    )
 
                     # Simple exec-based persistent execution
                     from io import StringIO
@@ -1028,7 +1062,12 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
 
                     result = MockResult(result_returncode, result_stdout, result_stderr)
                 else:
-                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path)
+                    dpi_param = ", dpi=300" if plot_format == "png" else ""
+                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(
+                        plot_path=plot_path,
+                        format=plot_format,
+                        dpi_param=dpi_param
+                    )
                     result = subprocess.run(config["command"] + ["-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
 
                 if result.returncode == 0 and plot_path.exists():
@@ -1223,7 +1262,7 @@ Steps:
     parser.add_argument("--show", action="store_true", help="Open the generated PDF file after successful build")
     parser.add_argument("--debug", "-d", action="store_true", help="Enable debug mode")
 
-    parser.add_argument("--titleTemplate", type=int, choices=[0, 1, 2, 3])
+    parser.add_argument("--titleTemplate", type=str, choices=["no-title", "university-title", "header-title", "separate-page-title"])
     parser.add_argument("--enableContentPage", type=str, choices=["true", "false"])
     parser.add_argument("--tocDepth", type=int, choices=[1, 2, 3, 4, 5, 6])
     parser.add_argument("--enablePageCredits", type=str, choices=["true", "false"])

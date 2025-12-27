@@ -11,7 +11,7 @@
   ],
   "submittedto": "Instructor Name",
   "variables": {},
-  "titleTemplate": 2,
+  "titleTemplate": "header-title",
   "enableContentPage": false,
   "tocDepth": 3,
   "enablePageCredits": true,

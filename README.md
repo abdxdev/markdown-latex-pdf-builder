@@ -159,9 +159,9 @@ python "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main\
    // ...other settings...,
     "command-runner.commands": {
         "markdown-latex-pdf-builder: Build Document (follow json settings)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\"",
-        "markdown-latex-pdf-builder: Build Assignment (add university title page)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate 1 --enableContentPage false",
-        "markdown-latex-pdf-builder: Build Notes (add title)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate 2 --enableContentPage false",
-        "markdown-latex-pdf-builder: Build Publication (add contents and title page)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate 3 --enableContentPage true"
+        "markdown-latex-pdf-builder: Build Assignment (add university title page)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate university-title --enableContentPage false",
+        "markdown-latex-pdf-builder: Build Notes (add title)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate header-title --enableContentPage false",
+        "markdown-latex-pdf-builder: Build Publication (add contents and title page)": "python \"$env:APPDATA\\markdown-latex-pdf-builder\\markdown-latex-pdf-builder-main\\script.py\" \"${file}\" --titleTemplate separate-page-title --enableContentPage true"
     }
    ```
 

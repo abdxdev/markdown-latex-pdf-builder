@@ -49,26 +49,26 @@
 ### Bold
 
 ```markdown
-**bold text** or __bold text__
+**bold text** or **bold text**
 ```
 
-**bold text** or __bold text__
+**bold text** or **bold text**
 
 ### Italic
 
 ```markdown
-*italic text* or _italic text_
+_italic text_ or _italic text_
 ```
 
-*italic text* or _italic text_
+_italic text_ or _italic text_
 
 ### Bold + Italic
 
 ```markdown
-**_bold and italic_** or __*bold and italic*__
+**_bold and italic_** or **_bold and italic_**
 ```
 
-**_bold and italic_** or __*bold and italic*__
+**_bold and italic_** or **_bold and italic_**
 
 ### Strikethrough
 
@@ -365,16 +365,16 @@ Term 2
 ## Horizontal Rule
 
 ```markdown
-***
+---
 ```
 
-***
+---
 
 ```markdown
-___
+---
 ```
 
-___
+---
 
 ```markdown
 ---
@@ -661,6 +661,7 @@ The converter supports executing code blocks in various languages directly withi
 - `.cache`: Cache the execution output (default)
 - `.no-cache`: Do not use cache and force re-execution
 - `.highlightlines`: Highlight specific lines in the code block
+- `.format=png|pdf`: Set plot output format (default: pdf, Python only)
 
 ### Example 1: Python with Output
 
@@ -754,7 +755,7 @@ Document metadata is configured in a separate JSON file:
   "submittedto": "Professor Name",
   "university": "University Name",
   "department": "Department Name",
-  "date": "January 1, 2024",
+  "date": "January 1, 2025",
   "submittedby": [
     {
       "name": "Student Name",
@@ -762,7 +763,7 @@ Document metadata is configured in a separate JSON file:
     }
   ],
   "variables": {},
-  "titleTemplate": 0,
+  "titleTemplate": "no-title",
   "enableContentPage": false,
   "tocDepth": 3,
   "enablePageCredits": false,
@@ -784,10 +785,10 @@ Document metadata is configured in a separate JSON file:
 - `submittedby`: List of submitters with their names and registration numbers
 - `variables`: Define custom variables to use throughout the document. See below
 - `titleTemplate`: Controls the style of the title page. Options include:
-  - `0`: No title (disabled) - Default
-  - `1`: Full university title page with logo - Good for assignments and reports
-  - `2`: Title header above content - Good for notes
-  - `3`: Title on separate page - Good for when the contents are enabled
+  - `no-title`: No title (disabled) - Default
+  - `university-title`: Full university title page with logo - Good for assignments and reports
+  - `header-title`: Title header above content - Good for notes
+  - `separate-page-title`: Title on separate page - Good for when table of content is enabled
 - `enableContentPage`: Set to `true` to include a table of contents page
 - `tocDepth`: Set the depth of the table of contents (1-6)
 - `enablePageCredits`: Set to `true` to include credits
