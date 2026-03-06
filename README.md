@@ -104,6 +104,7 @@ tlmgr install adjustbox csvsimple datetime emoji endnotes fancyhdr fmtcount foot
 >    ```
 >
 > 2. Then manually add the output path to your system PATH variable.
+> 3. Restart your terminal
 
 #### Step 3: Install Pygments
 
