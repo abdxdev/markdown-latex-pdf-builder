@@ -2,11 +2,11 @@ Windows | [Linux](README-LINUX.md)
 
 # Markdown Latex PDF Builder
 
-![alt text](screenshots/screenshot_1.png)
+![alt text](https://github.com/abdxdev/markdown-latex-pdf-builder/blob/main/screenshots/screenshot_1.png?raw=true)
 
 A vscode tool that converts advanced Markdown with diagrams, code execution, and custom macros into publication-ready LaTeX PDFs.
 
-![alt text](screenshots/screenshot_2.png)
+![alt text](https://github.com/abdxdev/markdown-latex-pdf-builder/blob/main/screenshots/screenshot_2.png?raw=true)
 
 ## Table of Contents
 
