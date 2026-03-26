@@ -1,0 +1,431 @@
+%%
+%% This is file `markdown.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% markdown.dtx  (with options: `latex')
+%% 
+%% Copyright (C) 2016-2026 Vít Starý Novotný, Andrej Genčur
+%% 
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3c
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% This work has the LPPL maintenance status `maintained'.
+%% The Current Maintainer of this work is Vít Starý Novotný.
+%% 
+%% Send bug reports, requests for additions and questions
+%% either to the GitHub issue tracker at
+%% 
+%%   https://github.com/Witiko/markdown/issues
+%% 
+%% or to the e-mail address <witiko@mail.muni.cz>.
+%% 
+%% MODIFICATION ADVICE:
+%% 
+%% If you want to customize this file, it is best to make a copy of
+%% the source file(s) from which it was produced.  Use a different
+%% name for your copy(ies) and modify the copy(ies); this will ensure
+%% that your modifications do not get overwritten when you install a
+%% new release of the standard system.  You should also ensure that
+%% your modified source file does not generate any modified file with
+%% the same name as a standard file.
+%% 
+%% You will also need to produce your own, suitably named, .ins file to
+%% control the generation of files from your source file; this file
+%% should contain your own preambles for the files it generates, not
+%% those in the standard .ins files.
+%% 
+%% The names of the source files used are shown above.
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\RequirePackage{expl3}
+\ExplSyntaxOn
+\tl_const:Nn \c__markdown_option_layer_latex_tl { latex }
+\cs_generate_variant:Nn
+  \tl_const:Nn
+  { NV }
+\tl_if_exist:NF
+  \c__markdown_top_layer_tl
+  {
+    \tl_const:NV
+      \c__markdown_top_layer_tl
+      \c__markdown_option_layer_latex_tl
+  }
+\ExplSyntaxOff
+\input markdown/markdown
+\newenvironment{markdown}\relax\relax
+\newenvironment{markdown*}[1]\relax\relax
+\newenvironment{yaml}\relax\relax
+\DeclareOption{finalizecache}{\markdownSetup{finalizeCache}}
+\DeclareOption{frozencache}{\markdownSetup{frozenCache}}
+\ExplSyntaxOn
+\str_if_eq:VVT
+  \c__markdown_top_layer_tl
+  \c__markdown_option_layer_latex_tl
+  {
+    \__markdown_define_option_commands_and_keyvals:
+    \__markdown_define_renderers:
+    \__markdown_define_renderer_prototypes:
+  }
+\ExplSyntaxOff
+\newif\ifmarkdownLaTeXLoaded
+  \markdownLaTeXLoadedfalse
+\ExplSyntaxOn
+\prop_new:N
+  \g__markdown_latex_built_in_themes_prop
+\ExplSyntaxOff
+\AtEndOfPackage{\markdownLaTeXLoadedtrue}
+\ExplSyntaxOn
+\str_if_eq:VVT
+  \c__markdown_top_layer_tl
+  \c__markdown_option_layer_latex_tl
+  {
+    \use:c
+      { ExplSyntaxOff }
+    \AtEndOfPackage
+      {
+        \__markdown_if_option:nF
+          { noDefaults }
+          {
+            \__markdown_if_option:nTF
+              { experimental }
+              {
+                \__markdown_setup:n
+                  { theme = witiko/markdown/defaults@experimental }
+              }
+              {
+                \__markdown_setup:n
+                  { theme = witiko/markdown/defaults }
+              }
+          }
+      }
+    \use:c
+      { ExplSyntaxOn }
+  }
+\ExplSyntaxOff
+\def\markdownVersionSpace{ }%
+\ProvidesPackage{markdown}[\markdownLastModified\markdownVersionSpace v%
+  \markdownVersion\markdownVersionSpace markdown renderer]%
+\ExplSyntaxOn
+\cs_gset_eq:NN
+  \markinlinePlainTeX
+  \markinline
+\cs_gset:Npn
+  \markinline
+  {
+    \peek_regex_replace_once:nn
+      { ( \[ (.*?) \] ) ? }
+      {
+        \c { group_begin: }
+        \c { __markdown_setup:n }
+          \cB { \2 \cE }
+        \c { tl_put_right:Nn }
+          \c { g__markdown_after_markinline_tl }
+          \cB { \c { group_end: } \cE }
+        \c { markinlinePlainTeX }
+      }
+  }
+\ExplSyntaxOff
+\let\markdownInputPlainTeX\markdownInput
+\renewcommand\markdownInput[2][]{%
+  \begingroup
+    \markdownSetup{#1}%
+    \markdownInputPlainTeX{#2}%
+  \endgroup}%
+\renewcommand\yamlInput[2][]{%
+  \begingroup
+    \yamlSetup{jekyllData, expectJekyllData, ensureJekyllData, #1}%
+    \markdownInputPlainTeX{#2}%
+  \endgroup}%
+\ExplSyntaxOn
+\renewenvironment
+  { markdown }
+  {
+    \group_begin:
+    \char_set_catcode_active:n { 13 }
+    \char_set_catcode_letter:n { 35 }
+    \peek_regex_replace_once:nnF
+      { \ *\[\r*([^]]*)\][^\r]* }
+      {
+        \c { group_end: }
+        \c { tl_set_rescan:Nnn } \c { l_tmpa_tl } { } { \1 }
+        \c { __markdown_setup:V } \c { l_tmpa_tl }
+        \c { exp_args:NV }
+          \c { markdownReadAndConvert@ }
+          \c { @currenvir }
+      }
+      {
+        \group_end:
+        \exp_args:NV
+          \markdownReadAndConvert@
+          \@currenvir
+      }
+  }
+  { \markdownEnd }
+\renewenvironment
+  { markdown* }
+  [ 1 ]
+  {
+    \__markdown_if_option:nTF
+      { experimental }
+      {
+        \msg_error:nn
+          { markdown }
+          { latex-markdown-star-deprecated }
+      }
+      {
+        \msg_warning:nn
+          { markdown }
+          { latex-markdown-star-deprecated }
+      }
+    \__markdown_setup:n
+      { #1 }
+    \markdownReadAndConvert@
+      { markdown* }
+  }
+  { \markdownEnd }
+\renewenvironment
+  { yaml }
+  {
+    \group_begin:
+    \yamlSetup
+      { jekyllData, expectJekyllData, ensureJekyllData }
+    \markdown
+  }
+  { \yamlEnd }
+\msg_new:nnn
+  { markdown }
+  { latex-markdown-star-deprecated }
+  {
+    The~markdown*~LaTeX~environment~has~been~deprecated~and~will~
+    be~removed~in~the~next~major~version~of~the~Markdown~package.
+  }
+\cs_generate_variant:Nn  % noqa: w402
+  \__markdown_setup:n
+  { V }
+\ExplSyntaxOff
+\begingroup
+  \catcode`\|=0\catcode`\<=1\catcode`\>=2%
+  \catcode`\\=12|catcode`|{=12|catcode`|}=12%
+  |gdef|markdownReadAndConvert@#1<%
+    |markdownReadAndConvert<\end{#1}>%
+                           <|end<#1>>>%
+|endgroup
+\ExplSyntaxOn
+\prop_new:N \g__markdown_latex_loaded_themes_linenos_prop
+\prop_new:N \g__markdown_latex_loaded_themes_versions_prop
+\cs_gset:Nn
+  \__markdown_load_theme:nnn
+  {
+    \ifmarkdownLaTeXLoaded
+      \ifx\@onlypreamble\@notprerr
+        \bool_if:nTF
+          {
+            \bool_lazy_or_p:nn
+              {
+                \prop_if_in_p:Nn
+                  \g__markdown_latex_built_in_themes_prop
+                  { #1 }
+              }
+              {
+                \file_if_exist_p:n
+                  { markdown theme #3.sty }
+              }
+          }
+          {
+            \msg_error:nn
+              { markdown }
+              { latex-theme-after-preamble }
+          }
+          {
+            \__markdown_plain_tex_load_theme:nnn
+              { #1 }
+              { #2 }
+              { #3 }
+          }
+      \else
+        \bool_if:nTF
+          {
+            \bool_lazy_or_p:nn
+              {
+                \prop_if_in_p:Nn
+                  \g__markdown_latex_built_in_themes_prop
+                  { #1 }
+              }
+              {
+                \file_if_exist_p:n
+                  { markdown theme #3.sty }
+              }
+          }
+          {
+            \prop_get:NnNTF
+              \g__markdown_latex_loaded_themes_linenos_prop
+              { #1 }
+              \l_tmpa_tl
+              {
+                \prop_get:NnN
+                  \g__markdown_latex_loaded_themes_versions_prop
+                  { #1 }
+                  \l_tmpb_tl
+                \str_if_eq:nVTF
+                  { #2 }
+                  \l_tmpb_tl
+                  {
+                    \msg_warning:nnnVn
+                      { markdown }
+                      { repeatedly-loaded-latex-theme }
+                      { #1 }
+                      \l_tmpa_tl
+                      { #2 }
+                  }
+                  {
+                    \msg_error:nnnnVV
+                      { markdown }
+                      { different-versions-of-latex-theme }
+                      { #1 }
+                      { #2 }
+                      \l_tmpb_tl
+                      \l_tmpa_tl
+                  }
+              }
+              {
+                \prop_gput:Nnx
+                  \g__markdown_latex_loaded_themes_linenos_prop
+                  { #1 }
+                  { \tex_the:D \tex_inputlineno:D }  % noqa: W200
+                \prop_gput:Nnn
+                  \g__markdown_latex_loaded_themes_versions_prop
+                  { #1 }
+                  { #2 }
+                \prop_if_in:NnTF
+                  \g__markdown_latex_built_in_themes_prop
+                  { #1 }
+                  {
+                    \msg_info:nnnn
+                      { markdown }
+                      { loading-built-in-latex-theme }
+                      { #1 }
+                      { #2 }
+                    \prop_item:Nn
+                      \g__markdown_latex_built_in_themes_prop
+                      { #1 }
+                  }
+                  {
+                    \msg_info:nnnn
+                      { markdown }
+                      { loading-latex-theme }
+                      { #1 }
+                      { #2 }
+                    \RequirePackage
+                      { markdown theme #3 }
+                  }
+              }
+          }
+          {
+            \__markdown_plain_tex_load_theme:nnn
+              { #1 }
+              { #2 }
+              { #3 }
+          }
+      \fi
+    \else
+      \msg_info:nnnn
+        { markdown }
+        { theme-loading-postponed }
+        { #1 }
+        { #2 }
+      \AtEndOfPackage
+        {
+          \__markdown_set_theme:n
+            { #1 @ #2 }
+        }
+    \fi
+  }
+\msg_new:nnn
+  { markdown }
+  { theme-loading-postponed }
+  {
+    Postponing~loading~version~#2~of~Markdown~theme~#1~until~
+    Markdown~package~has~finished~loading
+  }
+\msg_new:nnn
+  { markdown }
+  { loading-built-in-latex-theme }
+  { Loading~version~#2~of~built-in~LaTeX~Markdown~theme~#1 }
+\msg_new:nnn
+  { markdown }
+  { loading-latex-theme }
+  { Loading~version~#2~of~LaTeX~Markdown~theme~#1 }
+\msg_new:nnn
+  { markdown }
+  { repeatedly-loaded-latex-theme }
+  {
+    Version~#3~of~LaTeX~Markdown~theme~#1~was~previously~
+    loaded~on~line~#2,~not~loading~it~again
+  }
+\msg_new:nnn
+  { markdown }
+  { different-versions-of-latex-theme }
+  {
+    Tried~to~load~version~#2~of~LaTeX~Markdown~theme~#1~
+    but~version~#3~has~already~been~loaded~on~line~#4
+  }
+\cs_generate_variant:Nn
+  \msg_new:nnnn
+  { nnVV }
+\tl_set:Nn
+  \l_tmpa_tl
+  { Cannot~load~LaTeX~Markdown~theme~#1~after~ }
+\tl_put_right:NV
+  \l_tmpa_tl
+  \c_backslash_str
+\tl_put_right:Nn
+  \l_tmpa_tl
+  { begin { document } }
+\tl_set:Nn
+  \l_tmpb_tl
+  { Load~Markdown~theme~#1~before~ }
+\tl_put_right:NV
+  \l_tmpb_tl
+  \c_backslash_str
+\tl_put_right:Nn
+  \l_tmpb_tl
+  { begin { document } }
+\msg_new:nnVV
+  { markdown }
+  { latex-theme-after-preamble }
+  \l_tmpa_tl
+  \l_tmpb_tl
+\tl_set:Nn
+  \l_tmpa_tl
+  {
+    \RequirePackage
+      { graphicx }
+    \markdownLoadPlainTeXTheme
+  }
+\prop_gput:NnV
+  \g__markdown_latex_built_in_themes_prop
+  { witiko / dot }
+  \l_tmpa_tl
+\prop_gput:NnV
+  \g__markdown_latex_built_in_themes_prop
+  { witiko / graphicx / http }
+  \l_tmpa_tl
+\ExplSyntaxOff
+\DeclareOption*{%
+  \expandafter\markdownSetup\expandafter{\CurrentOption}}%
+\ProcessOptions\relax
+\newcommand\markdownMakeOther{%
+  \count0=128\relax
+  \loop
+    \catcode\count0=11\relax
+    \advance\count0 by 1\relax
+  \ifnum\count0<256\repeat}%
+\endinput
+%%
+%% End of file `markdown.sty'.

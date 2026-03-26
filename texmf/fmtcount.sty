@@ -1,0 +1,1116 @@
+%%
+%% This is file `fmtcount.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% fmtcount.dtx  (with options: `fmtcount.sty')
+%% 
+%%  fmtcount.dtx
+%%  Copyright 2025 Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis.
+%% 
+%%  This work consists of the files fmtcount.dtx and fmtcount.ins and the derived files fc-american.def, fc-brazilian.def, fc-british.def, fc-dutch.def, fc-english.def, fc-francais.def, fc-french.def, fc-frenchb.def, fc-german.def, fc-germanb.def, fc-italian.def, fc-ngerman.def, fc-ngermanb.def, fc-portuges.def, fc-portuguese.def, fc-spanish.def, fc-UKenglish.def, fc-USenglish.def, fcnumparser.sty, fcprefix.sty, fmtcount.sty.
+%% 
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fmtcount}[2025/12/02 v3.12 Displaying the values of LaTeX counters (NT,VB,NE)]
+\RequirePackage{ifthen}
+\RequirePackage{xkeyval}
+\RequirePackage{etoolbox}
+\RequirePackage{fcprefix}
+\RequirePackage{amsgen}
+\providecommand*{\fc@orddef@ult}[1]{\fc@textsuperscript{#1}}
+\providecommand*{\fc@ord@multiling}[1]{%
+  \ifcsundef{fc@\languagename @alias@of}{%
+  \fc@orddef@ult{#1}}{%
+  \expandafter\let\expandafter\@tempa\csname fc@\languagename @alias@of\endcsname
+  \ifcsundef{fc@ord@\@tempa}{%
+    \fc@orddef@ult{#1}}{%
+\csname fc@ord@\@tempa\endcsname{#1}}}}
+\newcount\c@padzeroesN
+\c@padzeroesN=1\relax
+\providecommand*{\padzeroes}[1][17]{\c@padzeroesN=#1}
+\newcount\fc@tmpcatcode
+\def\fc@languages{}%
+\def\fc@mainlang{}%
+\newcommand*{\FCloadlang}[1]{%
+  \@FC@iflangloaded{#1}{}%
+  {%
+    \fc@tmpcatcode=\catcode`\@\relax
+    \catcode `\@ 11\relax
+    \InputIfFileExists{fc-#1.def}%
+    {%
+      \ifdefempty{\fc@languages}%
+      {%
+        \gdef\fc@languages{#1}%
+      }%
+      {%
+         \gappto\fc@languages{,#1}%
+      }%
+      \gdef\fc@mainlang{#1}%
+    }%
+    {}%
+    \catcode `\@ \fc@tmpcatcode\relax
+  }%
+}
+\newcommand{\@FC@iflangloaded}[3]{%
+  \ifcsundef{ver@fc-#1.def}{#3}{#2}%
+}
+\newcommand*{\ProvidesFCLanguage}[1]{%
+  \ProvidesFile{fc-#1.def}%
+}
+\newif\iffmtcount@language@option
+\fmtcount@language@optionfalse
+\newcommand*\fc@supported@language@list{%
+english,%
+UKenglish,%
+brazilian,%
+british,%
+USenglish,%
+american,%
+spanish,%
+portuges,%
+portuguese,%
+french,%
+frenchb,%
+francais,%
+german,%
+germanb,%
+ngerman,%
+ngermanb,%
+italian,%
+dutch}
+\newcommand*\fc@iterate@on@languages[1]{%
+  \ifx\fc@supported@language@list\@empty
+    \PackageError{fmtcount}{Macro `\protect\@fc@iterate@on@languages' is empty}{You should never get here:
+      Something is broken within \texttt{fmtcount}, please report the issue on
+      \texttt{https://github.com/search?q=fmtcount\&ref=cmdform\&type=Issues}}%
+  \else
+    \let\fc@iterate@on@languages@body#1
+    \expandafter\@fc@iterate@on@languages\fc@supported@language@list,\@nil,%
+  \fi
+}
+\def\@fc@iterate@on@languages#1,{%
+    {%
+      \def\@tempa{#1}%
+      \ifx\@tempa\@nnil
+        \let\@tempa\@empty
+      \else
+        \def\@tempa{%
+          \fc@iterate@on@languages@body{#1}%
+          \@fc@iterate@on@languages
+        }%
+      \fi
+      \expandafter
+    }\@tempa
+}%
+\newcommand*\@fc@loadifbabelldf[1]{\ifcsundef{ver@#1.ldf}{}{\FCloadlang{#1}}}
+\newcommand*{\@fc@loadifbabelorpolyglossialdf}[1]{}
+\@ifpackageloaded{polyglossia}{%
+  \def\@fc@loadifbabelorpolyglossialdf#1{\IfFileExists{gloss-#1.ldf}{\iflanguageloaded{#1}{\FCloadlang{#1}}{}}{}%
+    \@fc@loadifbabelldf{#1}%
+  }%
+}{\@ifpackageloaded{babel}{%
+  \let\@fc@loadifbabelorpolyglossialdf\@fc@loadifbabelldf
+}{}}
+\fc@iterate@on@languages\@fc@loadifbabelorpolyglossialdf
+\def\fc@iterate@on@languages@body#1{%
+  \expandafter\def\csname fc@#1@alias@of\endcsname{#1}}
+\expandafter\@fc@iterate@on@languages\fc@supported@language@list,\@nil,%
+\def\@tempa#1#2{%
+  \expandafter\def\csname fc@#1@alias@of\endcsname{#2}%
+}%
+\@tempa{frenchb}{french}
+\@tempa{francais}{french}
+\@tempa{germanb}{german}
+\@tempa{ngermanb}{german}
+\@tempa{ngerman}{german}
+\@tempa{british}{english}
+\@tempa{american}{USenglish}
+\def\fc@iterate@on@languages@body#1{%
+  \define@key{fmtcount}{#1}[]{%
+    \@FC@iflangloaded{#1}%
+    {%
+      \setkeys{fc\csname fc@#1@alias@of\endcsname}{##1}%
+    }{%
+      \PackageError{fmtcount}%
+      {Language `#1' not defined}%
+      {You need to load \ifxetex polyglossia\else babel\fi\space before loading fmtcount}%
+    }%
+  }%
+  \ifthenelse{\equal{\csname fc@#1@alias@of\endcsname}{#1}}{%
+    \define@key{fc\csname fc@#1@alias@of\endcsname}{fmtord}{%
+      \ifthenelse{\equal{##1}{raise}\or\equal{##1}{level}}{%
+        \expandafter\let\expandafter\@tempa\csname fc@set@ord@as@##1\endcsname
+        \expandafter\@tempa\csname fc@ord@#1\endcsname
+      }{%
+        \ifthenelse{\equal{##1}{undefine}}{%
+          \expandafter\let\csname fc@ord@#1\endcsname\undefined
+        }{%
+          \PackageError{fmtcount}%
+          {Invalid value `##1' to fmtord key}%
+          {Option `fmtord' can only take the values `level', `raise'
+            or `undefine'}%
+        }}
+    }%
+  }{%
+    \expandafter\let\expandafter\@tempa\csname KV@\csname fc@#1@alias@of\endcsname @fmtord\endcsname
+    \expandafter\let\csname KV@#1@fmtord\endcsname\@tempa
+  }%
+}
+\expandafter\@fc@iterate@on@languages\fc@supported@language@list,\@nil,%
+\def\fc@set@ord@as@level#1{%
+  \def#1##1{##1}%
+}
+\def\fc@set@ord@as@raise#1{%
+  \let#1\fc@textsuperscript
+}
+\define@key{fmtcount}{fmtord}{%
+  \ifthenelse{\equal{#1}{level}
+           \or\equal{#1}{raise}}%
+  {%
+    \csname fc@set@ord@as@#1\endcsname\fc@orddef@ult
+    \def\fmtcount@fmtord{#1}%
+  }%
+  {%
+    \PackageError{fmtcount}%
+    {Invalid value `#1' to fmtord key}%
+    {Option `fmtord' can only take the values `level' or `raise'}%
+  }%
+}
+\newif\iffmtord@abbrv
+\fmtord@abbrvtrue
+\define@key{fmtcount}{abbrv}[true]{%
+  \ifthenelse{\equal{#1}{true}\or\equal{#1}{false}}%
+  {%
+    \csname fmtord@abbrv#1\endcsname
+  }%
+  {%
+    \PackageError{fmtcount}%
+    {Invalid value `#1' to fmtord key}%
+    {Option `abbrv' can only take the values `true' or
+     `false'}%
+  }%
+}
+\define@key{fmtcount}{prefix}[scale=long]{%
+  \RequirePackage{fmtprefix}%
+  \fmtprefixsetoption{#1}%
+}
+\def\fmtcountsetoptions{%
+  \def\fmtcount@fmtord{}%
+  \setkeys{fmtcount}}%
+\InputIfFileExists{fmtcount.cfg}%
+{%
+  \PackageInfo{fmtcount}{Using configuration file fmtcount.cfg}%
+}%
+{%
+}
+\newcommand*{\fmtcount@loaded@by@option@lang@list}{}
+\newcommand*\@fc@declare@language@option[1]{%
+  \DeclareOption{#1}{%
+    \ifx\fmtcount@loaded@by@option@lang@list\@empty
+       \def\fmtcount@loaded@by@option@lang@list{#1}%
+    \else
+       \edef\fmtcount@loaded@by@option@lang@list{\fmtcount@loaded@by@option@lang@list,#1}%
+    \fi
+  }}%
+\fc@iterate@on@languages\@fc@declare@language@option
+\DeclareOption{level}{\def\fmtcount@fmtord{level}%
+  \def\fc@orddef@ult#1{#1}}
+\DeclareOption{raise}{\def\fmtcount@fmtord{raise}%
+  \def\fc@orddef@ult#1{\fc@textsuperscript{#1}}}
+\ProcessOptions\relax
+\ifx\fmtcount@loaded@by@option@lang@list\@empty\else
+\def\fc@iterate@on@languages@body#1{%
+    \@FC@iflangloaded{#1}{}{%
+      \fmtcount@language@optiontrue
+      \FCloadlang{#1}%
+     }}
+\expandafter\@fc@iterate@on@languages\fmtcount@loaded@by@option@lang@list,\@nil,%
+\fi
+\newcount\@DT@modctr
+\newcommand*{\@FCmodulo}[2]{%
+  \@DT@modctr=#1\relax
+  \divide \@DT@modctr by #2\relax
+  \multiply \@DT@modctr by #2\relax
+  \advance #1 by -\@DT@modctr
+}
+\newcount\@ordinalctr
+\newcount\@orgargctr
+\newcount\@strctr
+\newcount\@tmpstrctr
+\newif\if@DT@padzeroes
+\newcount\@DT@loopN
+\newcount\@DT@X
+\newrobustcmd*{\@binary}[1]{%
+  \@DT@padzeroestrue
+  \@DT@loopN=17\relax
+  \@strctr=\@DT@loopN
+  \whiledo{\@strctr<\c@padzeroesN}{0\advance\@strctr by \@ne}%
+  \@strctr=65536\relax
+  \@DT@X=#1\relax
+  \loop
+    \@DT@modctr=\@DT@X
+    \divide\@DT@modctr by \@strctr
+    \ifthenelse{\boolean{@DT@padzeroes}
+       \and \(\@DT@modctr=0\)
+       \and \(\@DT@loopN>\c@padzeroesN\)}%
+    {}%
+    {\the\@DT@modctr}%
+    \ifnum\@DT@modctr=0\else\@DT@padzeroesfalse\fi
+    \multiply\@DT@modctr by \@strctr
+    \advance\@DT@X by -\@DT@modctr
+    \divide\@strctr by \tw@
+    \advance\@DT@loopN by \m@ne
+  \ifnum\@strctr>\@ne
+  \repeat
+  \the\@DT@X
+}
+
+\let\binarynum=\@binary
+\newrobustcmd*{\@octal}[1]{%
+  \@DT@X=#1\relax
+  \ifnum\@DT@X>32768
+    \PackageError{fmtcount}%
+    {Value of counter too large for \protect\@octal}
+    {Maximum value 32768}
+  \else
+  \@DT@padzeroestrue
+  \@DT@loopN=6\relax
+  \@strctr=\@DT@loopN
+  \whiledo{\@strctr<\c@padzeroesN}{0\advance\@strctr by \@ne}%
+  \@strctr=32768\relax
+  \loop
+    \@DT@modctr=\@DT@X
+    \divide\@DT@modctr by \@strctr
+    \ifthenelse{\boolean{@DT@padzeroes}
+       \and \(\@DT@modctr=0\)
+       \and \(\@DT@loopN>\c@padzeroesN\)}%
+    {}{\the\@DT@modctr}%
+    \ifnum\@DT@modctr=0\else\@DT@padzeroesfalse\fi
+    \multiply\@DT@modctr by \@strctr
+    \advance\@DT@X by -\@DT@modctr
+    \divide\@strctr by \@viiipt
+    \advance\@DT@loopN by \m@ne
+  \ifnum\@strctr>\@ne
+  \repeat
+  \the\@DT@X
+  \fi
+}
+\let\octalnum=\@octal
+\newcommand*{\@@hexadecimal}[1]{%
+  \ifcase#10\or1\or2\or3\or4\or5\or
+  6\or7\or8\or9\or a\or b\or c\or d\or e\or f\fi
+}
+\newrobustcmd*{\hexadecimalnum}{\@hexadecimalengine\@@hexadecimal}
+\newcommand*{\@@Hexadecimal}[1]{%
+  \ifcase#10\or1\or2\or3\or4\or5\or6\or
+  7\or8\or9\or A\or B\or C\or D\or E\or F\fi
+}
+\newrobustcmd*{\HEXADecimalnum}{\@hexadecimalengine\@@Hexadecimal}
+\newcommand*{\@hexadecimalengine}[2]{%
+  \@DT@padzeroestrue
+  \@DT@loopN=\@vpt
+  \@strctr=\@DT@loopN
+  \whiledo{\@strctr<\c@padzeroesN}{0\advance\@strctr by \@ne}%
+  \@strctr=65536\relax
+  \@DT@X=#2\relax
+  \loop
+    \@DT@modctr=\@DT@X
+    \divide\@DT@modctr by \@strctr
+    \ifthenelse{\boolean{@DT@padzeroes}
+      \and \(\@DT@modctr=0\)
+      \and \(\@DT@loopN>\c@padzeroesN\)}
+    {}{#1\@DT@modctr}%
+    \ifnum\@DT@modctr=0\else\@DT@padzeroesfalse\fi
+    \multiply\@DT@modctr by \@strctr
+    \advance\@DT@X by -\@DT@modctr
+    \divide\@strctr by 16\relax
+    \advance\@DT@loopN by \m@ne
+  \ifnum\@strctr>\@ne
+  \repeat
+  #1\@DT@X
+}
+\def\Hexadecimalnum{%
+  \PackageWarning{fmtcount}{\string\Hexadecimalnum\space is deprecated, use \string\HEXADecimalnum\space
+    instead. The \string\Hexadecimalnum\space control sequence name is confusing as it can mislead in thinking
+    that only the 1st letter is upper-cased.}%
+  \HEXADecimalnum}
+\newrobustcmd*{\@aaalph}{\fc@aaalph\@alph}
+\newcommand*\fc@aaalph[2]{%
+  \@DT@loopN=#2\relax
+  \@DT@X\@DT@loopN
+  \advance\@DT@loopN by \m@ne
+  \divide\@DT@loopN by 26\relax
+  \@DT@modctr=\@DT@loopN
+  \multiply\@DT@modctr by 26\relax
+  \advance\@DT@X by \m@ne
+  \advance\@DT@X by -\@DT@modctr
+  \advance\@DT@loopN by \@ne
+  \advance\@DT@X by \@ne
+  \edef\@tempa{#1\@DT@X}%
+  \loop
+    \@tempa
+    \advance\@DT@loopN by \m@ne
+  \ifnum\@DT@loopN>0
+  \repeat
+}
+
+\let\aaalphnum=\@aaalph
+\newrobustcmd*{\@AAAlph}{\fc@aaalph\@Alph}%
+
+\let\AAAlphnum=\@AAAlph
+\newrobustcmd*{\@abalph}{\fc@abalph\@alph}%
+\newcommand*\fc@abalph[2]{%
+  \@DT@X=#2\relax
+  \ifnum\@DT@X>17576\relax
+    \ifx#1\@alph\def\@tempa{\@abalph}%
+    \else\def\@tempa{\@ABAlph}\fi
+    \PackageError{fmtcount}%
+    {Value of counter too large for \expandafter\protect\@tempa}%
+    {Maximum value 17576}%
+  \else
+    \@DT@padzeroestrue
+    \@strctr=17576\relax
+    \advance\@DT@X by \m@ne
+    \loop
+      \@DT@modctr=\@DT@X
+      \divide\@DT@modctr by \@strctr
+      \ifthenelse{\boolean{@DT@padzeroes}
+        \and \(\@DT@modctr=1\)}%
+      {}{#1\@DT@modctr}%
+      \ifnum\@DT@modctr=\@ne\else\@DT@padzeroesfalse\fi
+      \multiply\@DT@modctr by \@strctr
+      \advance\@DT@X by -\@DT@modctr
+      \divide\@strctr by 26\relax
+    \ifnum\@strctr>\@ne
+    \repeat
+    \advance\@DT@X by \@ne
+    #1\@DT@X
+  \fi
+}
+
+\let\abalphnum=\@abalph
+\newrobustcmd*{\@ABAlph}{\fc@abalph\@Alph}%
+\let\ABAlphnum=\@ABAlph
+\def\@fmtc@count#1#2\relax{%
+  \if\relax#1%
+  \else
+    \advance\@strctr by 1\relax
+    \@fmtc@count#2\relax
+  \fi
+}
+\newrobustcmd*{\@decimal}[1]{%
+  \@strctr=0\relax
+  \expandafter\@fmtc@count\number#1\relax
+  \@DT@loopN=\c@padzeroesN
+  \advance\@DT@loopN by -\@strctr
+  \ifnum\@DT@loopN>0\relax
+    \@strctr=0\relax
+    \whiledo{\@strctr < \@DT@loopN}{0\advance\@strctr by 1\relax}%
+  \fi
+  \number#1\relax
+}
+
+\let\decimalnum=\@decimal
+\newcommand{\FCordinal}[1]{%
+  \ordinalnum{%
+    \the\value{#1}}%
+}
+\ifcsundef{ordinal}
+ {\let\ordinal\FCordinal}%
+ {%
+   \PackageWarning{fmtcount}%
+   {\protect\ordinal \space already defined use
+    \protect\FCordinal \space instead.}
+ }
+\newrobustcmd*{\ordinalnum}[1]{%
+  \new@ifnextchar[%
+  {\@ordinalnum{#1}}%
+  {\@ordinalnum{#1}[m]}%
+}
+\def\@ordinalnum#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@ordinalF{#1}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+        \protect\@ordinalN{#1}{\@fc@ordstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+           {Invalid gender option `#2'}%
+           {Available options are m, f or n}%
+        }%
+        \protect\@ordinalM{#1}{\@fc@ordstr}%
+      }%
+    }%
+    \@fc@ordstr
+  }%
+}
+\newcommand*{\storeordinal}[2]{%
+  {%
+    \toks0{\storeordinalnum{#1}}%
+    \expandafter
+   }\the\toks0\expandafter{%
+    \the\value{#2}}%
+}
+\newrobustcmd*{\storeordinalnum}[2]{%
+  \@ifnextchar[%
+  {\@storeordinalnum{#1}{#2}}%
+  {\@storeordinalnum{#1}{#2}[m]}%
+}
+\def\@storeordinalnum#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@ordinalF{#2}{\@fc@ord}
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@ordinalN{#2}{\@fc@ord}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}%
+        {Invalid gender option `#3'}%
+        {Available options are m or f}%
+      }%
+      \protect\@ordinalM{#2}{\@fc@ord}%
+    }%
+  }%
+  \expandafter\let\csname @fcs@#1\endcsname\@fc@ord
+}
+\newcommand*{\FMCuse}[1]{\csname @fcs@#1\endcsname}
+\newcommand*{\ordinalstring}[1]{%
+  \ordinalstringnum{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\newrobustcmd*{\ordinalstringnum}[1]{%
+  \new@ifnextchar[%
+  {\@ordinal@string{#1}}%
+  {\@ordinal@string{#1}[m]}%
+}
+\def\@ordinal@string#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@ordinalstringF{#1}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+        \protect\@ordinalstringN{#1}{\@fc@ordstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+          {Invalid gender option `#2' to \protect\ordinalstring}%
+          {Available options are m, f or n}%
+        }%
+        \protect\@ordinalstringM{#1}{\@fc@ordstr}%
+      }%
+    }%
+    \@fc@ordstr
+  }%
+}
+\newcommand*{\storeordinalstring}[2]{%
+  {%
+    \toks0{\storeordinalstringnum{#1}}%
+    \expandafter
+  }\the\toks0\expandafter{\the\value{#2}}%
+}
+\newrobustcmd*{\storeordinalstringnum}[2]{%
+  \@ifnextchar[%
+  {\@store@ordinal@string{#1}{#2}}%
+  {\@store@ordinal@string{#1}{#2}[m]}%
+}
+\def\@store@ordinal@string#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@ordinalstringF{#2}{\@fc@ordstr}%
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@ordinalstringN{#2}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}%
+        {Invalid gender option `#3' to \protect\ordinalstring}%
+        {Available options are m, f or n}%
+      }%
+      \protect\@ordinalstringM{#2}{\@fc@ordstr}%
+    }%
+  }%
+  \expandafter\let\csname @fcs@#1\endcsname\@fc@ordstr
+}
+\newcommand*{\Ordinalstring}[1]{%
+  \Ordinalstringnum{\expandafter\expandafter\expandafter\the\value{#1}}%
+}
+\newrobustcmd*{\Ordinalstringnum}[1]{%
+  \new@ifnextchar[%
+  {\@Ordinal@string{#1}}%
+  {\@Ordinal@string{#1}[m]}%
+}
+\def\@Ordinal@string#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@OrdinalstringF{#1}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+        \protect\@OrdinalstringN{#1}{\@fc@ordstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+          {Invalid gender option `#2'}%
+          {Available options are m, f or n}%
+        }%
+        \protect\@OrdinalstringM{#1}{\@fc@ordstr}%
+      }%
+    }%
+    \@fc@ordstr
+  }%
+}
+\newcommand*{\storeOrdinalstring}[2]{%
+  {%
+    \toks0{\storeOrdinalstringnum{#1}}%
+    \expandafter
+  }\the\toks0\expandafter{\the\value{#2}}%
+}
+\newrobustcmd*{\storeOrdinalstringnum}[2]{%
+  \@ifnextchar[%
+  {\@store@Ordinal@string{#1}{#2}}%
+  {\@store@Ordinal@string{#1}{#2}[m]}%
+}
+\def\@store@Ordinal@string#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@OrdinalstringF{#2}{\@fc@ordstr}%
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@OrdinalstringN{#2}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}%
+        {Invalid gender option `#3'}%
+        {Available options are m or f}%
+      }%
+      \protect\@OrdinalstringM{#2}{\@fc@ordstr}%
+    }%
+  }%
+  \expandafter\let\csname @fcs@#1\endcsname\@fc@ordstr
+}
+\newcommand*{\storeORDINALstring}[2]{%
+  {%
+    \toks0{\storeORDINALstringnum{#1}}%
+    \expandafter
+  }\the\toks0\expandafter{\the\value{#2}}%
+}
+\newrobustcmd*{\storeORDINALstringnum}[2]{%
+  \@ifnextchar[%
+  {\@store@ORDINAL@string{#1}{#2}}%
+  {\@store@ORDINAL@string{#1}{#2}[m]}%
+}
+\def\@store@ORDINAL@string#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@ordinalstringF{#2}{\@fc@ordstr}%
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@ordinalstringN{#2}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}%
+        {Invalid gender option `#3'}%
+        {Available options are m or f}%
+      }%
+      \protect\@ordinalstringM{#2}{\@fc@ordstr}%
+    }%
+  }%
+  \expandafter\protected@edef\csname @fcs@#1\endcsname{%
+    \noexpand\MakeUppercase{\@fc@ordstr}%
+  }%
+}
+\newcommand*{\ORDINALstring}[1]{%
+  \ORDINALstringnum{\expandafter\expandafter\expandafter
+    \the\value{#1}%
+  }%
+}
+\newrobustcmd*{\ORDINALstringnum}[1]{%
+  \new@ifnextchar[%
+  {\@ORDINAL@string{#1}}%
+  {\@ORDINAL@string{#1}[m]}%
+}
+\def\@ORDINAL@string#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@ordinalstringF{#1}{\@fc@ordstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+        \protect\@ordinalstringN{#1}{\@fc@ordstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+          {Invalid gender option `#2'}%
+          {Available options are m, f or n}%
+        }%
+        \protect\@ordinalstringM{#1}{\@fc@ordstr}%
+      }%
+    }%
+    \MakeUppercase{\@fc@ordstr}%
+  }%
+}
+\newcommand*{\storenumberstring}[2]{%
+  \expandafter\protect\expandafter\storenumberstringnum{#1}{%
+    \expandafter\the\value{#2}}%
+}
+\newcommand{\storenumberstringnum}[2]{%
+  \@ifnextchar[%
+  {\@store@number@string{#1}{#2}}%
+  {\@store@number@string{#1}{#2}[m]}%
+}
+\def\@store@number@string#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@numberstringF{#2}{\@fc@numstr}%
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@numberstringN{#2}{\@fc@numstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}
+        {Invalid gender option `#3'}%
+        {Available options are m, f or n}%
+      }%
+      \protect\@numberstringM{#2}{\@fc@numstr}%
+    }%
+  }%
+  \expandafter\let\csname @fcs@#1\endcsname\@fc@numstr
+}
+\newcommand*{\numberstring}[1]{%
+  \numberstringnum{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\newrobustcmd*{\numberstringnum}[1]{%
+  \new@ifnextchar[%
+  {\@number@string{#1}}%
+  {\@number@string{#1}[m]}%
+}
+\def\@number@string#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@numberstringF{#1}{\@fc@numstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+         \protect\@numberstringN{#1}{\@fc@numstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+          {Invalid gender option `#2'}%
+          {Available options are m, f or n}%
+        }%
+        \protect\@numberstringM{#1}{\@fc@numstr}%
+      }%
+    }%
+    \@fc@numstr
+  }%
+}
+\newcommand*{\storeNumberstring}[2]{%
+  {%
+    \toks0{\storeNumberstringnum{#1}}%
+    \expandafter
+  }\the\toks0\expandafter{\the\value{#2}}%
+}
+\newcommand{\storeNumberstringnum}[2]{%
+  \@ifnextchar[%
+  {\@store@Number@string{#1}{#2}}%
+  {\@store@Number@string{#1}{#2}[m]}%
+}
+\def\@store@Number@string#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@NumberstringF{#2}{\@fc@numstr}%
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@NumberstringN{#2}{\@fc@numstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}%
+        {Invalid gender option `#3'}%
+        {Available options are m, f or n}%
+      }%
+      \protect\@NumberstringM{#2}{\@fc@numstr}%
+    }%
+  }%
+  \expandafter\let\csname @fcs@#1\endcsname\@fc@numstr
+}
+\newcommand*{\Numberstring}[1]{%
+  \Numberstringnum{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\newrobustcmd*{\Numberstringnum}[1]{%
+  \new@ifnextchar[%
+  {\@Number@string{#1}}%
+  {\@Number@string{#1}[m]}%
+}
+\def\@Number@string#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@NumberstringF{#1}{\@fc@numstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+        \protect\@NumberstringN{#1}{\@fc@numstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+          {Invalid gender option `#2'}%
+          {Available options are m, f or n}%
+        }%
+        \protect\@NumberstringM{#1}{\@fc@numstr}%
+      }%
+    }%
+    \@fc@numstr
+  }%
+}
+\newcommand{\storeNUMBERstring}[2]{%
+  {%
+    \toks0{\storeNUMBERstringnum{#1}}%
+    \expandafter
+    }\the\toks0\expandafter{\the\value{#2}}%
+}
+\newcommand{\storeNUMBERstringnum}[2]{%
+  \@ifnextchar[%
+  {\@store@NUMBER@string{#1}{#2}}%
+  {\@store@NUMBER@string{#1}{#2}[m]}%
+}
+\def\@store@NUMBER@string#1#2[#3]{%
+  \ifthenelse{\equal{#3}{f}}%
+  {%
+    \protect\@numberstringF{#2}{\@fc@numstr}%
+  }%
+  {%
+    \ifthenelse{\equal{#3}{n}}%
+    {%
+      \protect\@numberstringN{#2}{\@fc@numstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#3}{m}}%
+      {}%
+      {%
+        \PackageError{fmtcount}%
+        {Invalid gender option `#3'}%
+        {Available options are m or f}%
+      }%
+      \protect\@numberstringM{#2}{\@fc@numstr}%
+    }%
+  }%
+  \expandafter\edef\csname @fcs@#1\endcsname{%
+    \noexpand\MakeUppercase{\@fc@numstr}%
+  }%
+}
+\newcommand*{\NUMBERstring}[1]{%
+  \NUMBERstringnum{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\newrobustcmd*{\NUMBERstringnum}[1]{%
+  \new@ifnextchar[%
+  {\@NUMBER@string{#1}}%
+  {\@NUMBER@string{#1}[m]}%
+}
+\def\@NUMBER@string#1[#2]{%
+  {%
+    \ifthenelse{\equal{#2}{f}}%
+    {%
+      \protect\@numberstringF{#1}{\@fc@numstr}%
+    }%
+    {%
+      \ifthenelse{\equal{#2}{n}}%
+      {%
+         \protect\@numberstringN{#1}{\@fc@numstr}%
+      }%
+      {%
+        \ifthenelse{\equal{#2}{m}}%
+        {}%
+        {%
+          \PackageError{fmtcount}%
+          {Invalid gender option `#2'}%
+          {Available options are m, f or n}%
+        }%
+        \protect\@numberstringM{#1}{\@fc@numstr}%
+      }%
+    }%
+    \protect\MakeUppercase{\@fc@numstr}%
+  }%
+}
+\providecommand*{\binary}[1]{%
+  \@binary{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\aaalph}[1]{%
+  \@aaalph{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\AAAlph}[1]{%
+  \@AAAlph{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\abalph}[1]{%
+  \@abalph{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\ABAlph}[1]{%
+  \@ABAlph{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\hexadecimal}[1]{%
+  \hexadecimalnum{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\HEXADecimal}[1]{%
+  \HEXADecimalnum{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\newrobustcmd*\FC@Hexadecimal@warning{%
+  \PackageWarning{fmtcount}{\string\Hexadecimal\space is deprecated, use \string\HEXADecimal\space
+    instead. The \string\Hexadecimal\space control sequence name is confusing as it can mislead in thinking
+    that only the 1st letter is upper-cased.}%
+}
+\def\Hexadecimal{%
+  \FC@Hexadecimal@warning
+  \HEXADecimal}
+\providecommand*{\octal}[1]{%
+  \@octal{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\providecommand*{\decimal}[1]{%
+  \@decimal{\expandafter\expandafter\expandafter
+    \the\value{#1}}%
+}
+\newif\iffc@languagemode@detected
+\fc@languagemode@detectedfalse
+\def\@setdef@ultfmtcount{%
+  \fc@languagemode@detectedtrue
+  \ifcsundef{@ordinalMenglish}{\FCloadlang{english}}{}%
+  \def\@ordinalstringM{\@ordinalstringMenglish}%
+  \let\@ordinalstringF=\@ordinalstringMenglish
+  \let\@ordinalstringN=\@ordinalstringMenglish
+  \def\@OrdinalstringM{\@OrdinalstringMenglish}%
+  \let\@OrdinalstringF=\@OrdinalstringMenglish
+  \let\@OrdinalstringN=\@OrdinalstringMenglish
+  \def\@numberstringM{\@numberstringMenglish}%
+  \let\@numberstringF=\@numberstringMenglish
+  \let\@numberstringN=\@numberstringMenglish
+  \def\@NumberstringM{\@NumberstringMenglish}%
+  \let\@NumberstringF=\@NumberstringMenglish
+  \let\@NumberstringN=\@NumberstringMenglish
+  \def\@ordinalM{\@ordinalMenglish}%
+  \let\@ordinalF=\@ordinalM
+  \let\@ordinalN=\@ordinalM
+  \let\fmtord\fc@orddef@ult
+}
+\newcommand*{\fc@multiling}[2]{%
+  \ifcsundef{@#1#2\languagename}%
+  {% try loading it
+     \FCloadlang{\languagename}%
+  }%
+  {%
+  }%
+  \ifcsundef{@#1#2\languagename}%
+  {%
+    \PackageWarning{fmtcount}%
+    {No support for \expandafter\protect\csname #1\endcsname\space for
+     language '\languagename'}%
+    \ifthenelse{\equal{\languagename}{\fc@mainlang}}%
+    {%
+       \FCloadlang{english}%
+    }%
+    {%
+    }%
+    \ifcsdef{@#1#2\fc@mainlang}%
+    {%
+       \csuse{@#1#2\fc@mainlang}%
+    }%
+    {%
+       \PackageWarningNoLine{fmtcount}%
+       {No languages loaded at all! Loading english definitions}%
+       \FCloadlang{english}%
+       \def\fc@mainlang{english}%
+       \csuse{@#1#2english}%
+    }%
+  }%
+  {%
+    \csuse{@#1#2\languagename}%
+  }%
+}
+\def\@set@mulitling@fmtcount{%
+  \fc@languagemode@detectedtrue
+  \def\@numberstringM{%
+    \fc@multiling{numberstring}{M}%
+  }%
+  \def\@numberstringF{%
+    \fc@multiling{numberstring}{F}%
+  }%
+  \def\@numberstringN{%
+    \fc@multiling{numberstring}{N}%
+  }%
+  \def\@NumberstringM{%
+    \fc@multiling{Numberstring}{M}%
+  }%
+  \def\@NumberstringF{%
+    \fc@multiling{Numberstring}{F}%
+  }%
+  \def\@NumberstringN{%
+    \fc@multiling{Numberstring}{N}%
+  }%
+  \def\@ordinalM{%
+    \fc@multiling{ordinal}{M}%
+  }%
+  \def\@ordinalF{%
+    \fc@multiling{ordinal}{F}%
+  }%
+  \def\@ordinalN{%
+    \fc@multiling{ordinal}{N}%
+  }%
+  \def\@ordinalstringM{%
+    \fc@multiling{ordinalstring}{M}%
+  }%
+  \def\@ordinalstringF{%
+    \fc@multiling{ordinalstring}{F}%
+  }%
+  \def\@ordinalstringN{%
+    \fc@multiling{ordinalstring}{N}%
+  }%
+  \def\@OrdinalstringM{%
+    \fc@multiling{Ordinalstring}{M}%
+  }%
+  \def\@OrdinalstringF{%
+    \fc@multiling{Ordinalstring}{F}%
+  }%
+  \def\@OrdinalstringN{%
+    \fc@multiling{Ordinalstring}{N}%
+  }%
+  \let\fmtord\fc@ord@multiling
+}
+\def\fc@check@for@multiling#1:#2\@nil{%
+  \@ifpackageloaded{#1}{%
+    #2\@set@mulitling@fmtcount
+  }{}%
+}
+\def\fc@loop@on@multiling@pkg#1,{%
+  \def\@tempb{#1}%
+  \ifx\@tempb\@nnil
+     \let\fc@loop@on@multiling@pkg\@empty
+  \else
+     \fc@check@for@multiling#1\@nil
+     \iffc@languagemode@detected
+       \def\fc@loop@on@multiling@pkg##1\@nil,{}%
+     \fi
+  \fi
+  \fc@loop@on@multiling@pkg
+}
+\AtBeginDocument{%
+  \fc@loop@on@multiling@pkg babel:,polyglossia:,ngerman:\FCloadlang{ngerman},\@nil,
+   \unless\iffc@languagemode@detected\iffmtcount@language@option
+      \ifcsundef{languagename}%
+      {%
+         \PackageWarning{fmtcount}{%
+            `\protect\languagename' is undefined, you should use a language package such as babel/polyglossia
+             when loading a language via package option. Reverting to default language.
+         }%
+         \@setdef@ultfmtcount
+      }{%
+        \@set@mulitling@fmtcount
+
+        \@FC@iflangloaded{\languagename}{}{%
+            \PackageWarning{fmtcount}{%
+               Setting `\protect\languagename' to `\fc@mainlang'.\MessageBreak
+               Reason is that `\protect\languagename' was `\languagename',\MessageBreak
+               but `\languagename' was not loaded by fmtcount,\MessageBreak
+               whereas `\fc@mainlang' was the last language loaded by fmtcount ;
+            }%
+            \let\languagename\fc@mainlang
+         }%
+      }%
+   \else
+       \@setdef@ultfmtcount
+   \fi\fi
+   \ifcsundef{FBsupR}{\let\fc@textsuperscript\textsuperscript}{\let\fc@textsuperscript\fup}%
+}
+\let\@ordinal=\@ordinalM
+\let\@ordinalstring=\@ordinalstringM
+\let\@Ordinalstring=\@OrdinalstringM
+\let\@numberstring=\@numberstringM
+\let\@Numberstring=\@NumberstringM
+\endinput
+%%
+%% End of file `fmtcount.sty'.

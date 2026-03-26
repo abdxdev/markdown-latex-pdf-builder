@@ -1,0 +1,485 @@
+%%
+%% This is file `fc-english.def',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% fmtcount.dtx  (with options: `fc-english.def')
+%% 
+%%  fmtcount.dtx
+%%  Copyright 2025 Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis.
+%% 
+%%  This work consists of the files fmtcount.dtx and fmtcount.ins and the derived files fc-american.def, fc-brazilian.def, fc-british.def, fc-dutch.def, fc-english.def, fc-francais.def, fc-french.def, fc-frenchb.def, fc-german.def, fc-germanb.def, fc-italian.def, fc-ngerman.def, fc-ngermanb.def, fc-portuges.def, fc-portuguese.def, fc-spanish.def, fc-UKenglish.def, fc-USenglish.def, fcnumparser.sty, fcprefix.sty, fmtcount.sty.
+%% 
+\ProvidesFCLanguage{english}[2016/01/12]%
+\newcommand*\@ordinalMenglish[2]{%
+\def\@fc@ord{}%
+\@orgargctr=#1\relax
+\@ordinalctr=#1%
+\@FCmodulo{\@ordinalctr}{100}%
+\ifnum\@ordinalctr=11\relax
+  \def\@fc@ord{th}%
+\else
+  \ifnum\@ordinalctr=12\relax
+    \def\@fc@ord{th}%
+  \else
+    \ifnum\@ordinalctr=13\relax
+      \def\@fc@ord{th}%
+    \else
+      \@FCmodulo{\@ordinalctr}{10}%
+      \ifcase\@ordinalctr
+        \def\@fc@ord{th}%      case 0
+        \or \def\@fc@ord{st}%  case 1
+        \or \def\@fc@ord{nd}%  case 2
+        \or \def\@fc@ord{rd}%  case 3
+      \else
+        \def\@fc@ord{th}%      default case
+      \fi
+    \fi
+  \fi
+\fi
+\edef#2{\number#1\relax\noexpand\fmtord{\@fc@ord}}%
+}%
+\global\let\@ordinalMenglish\@ordinalMenglish
+\global\let\@ordinalFenglish=\@ordinalMenglish
+\global\let\@ordinalNenglish=\@ordinalMenglish
+\newcommand*\@@unitstringenglish[1]{%
+  \ifcase#1\relax
+    zero%
+    \or one%
+    \or two%
+    \or three%
+    \or four%
+    \or five%
+    \or six%
+    \or seven%
+    \or eight%
+    \or nine%
+\fi
+}%
+\global\let\@@unitstringenglish\@@unitstringenglish
+\newcommand*\@@tenstringenglish[1]{%
+  \ifcase#1\relax
+    \or ten%
+    \or twenty%
+    \or thirty%
+    \or forty%
+    \or fifty%
+    \or sixty%
+    \or seventy%
+    \or eighty%
+    \or ninety%
+  \fi
+}%
+\global\let\@@tenstringenglish\@@tenstringenglish
+\newcommand*\@@teenstringenglish[1]{%
+  \ifcase#1\relax
+    ten%
+    \or eleven%
+    \or twelve%
+    \or thirteen%
+    \or fourteen%
+    \or fifteen%
+    \or sixteen%
+    \or seventeen%
+    \or eighteen%
+    \or nineteen%
+  \fi
+}%
+\global\let\@@teenstringenglish\@@teenstringenglish
+\newcommand*\@@Unitstringenglish[1]{%
+  \ifcase#1\relax
+    Zero%
+    \or One%
+    \or Two%
+    \or Three%
+    \or Four%
+    \or Five%
+    \or Six%
+    \or Seven%
+    \or Eight%
+    \or Nine%
+  \fi
+}%
+\global\let\@@Unitstringenglish\@@Unitstringenglish
+\newcommand*\@@Tenstringenglish[1]{%
+  \ifcase#1\relax
+    \or Ten%
+    \or Twenty%
+    \or Thirty%
+    \or Forty%
+    \or Fifty%
+    \or Sixty%
+    \or Seventy%
+    \or Eighty%
+    \or Ninety%
+  \fi
+}%
+\global\let\@@Tenstringenglish\@@Tenstringenglish
+\newcommand*\@@Teenstringenglish[1]{%
+  \ifcase#1\relax
+    Ten%
+    \or Eleven%
+    \or Twelve%
+    \or Thirteen%
+    \or Fourteen%
+    \or Fifteen%
+    \or Sixteen%
+    \or Seventeen%
+    \or Eighteen%
+    \or Nineteen%
+  \fi
+}%
+\global\let\@@Teenstringenglish\@@Teenstringenglish
+\newcommand*\@@numberstringenglish[2]{%
+\ifnum#1>99999
+\PackageError{fmtcount}{Out of range}%
+{This macro only works for values less than 100000}%
+\else
+\ifnum#1<0
+\PackageError{fmtcount}{Negative numbers not permitted}%
+{This macro does not work for negative numbers, however
+you can try typing "minus" first, and then pass the modulus of
+this number}%
+\fi
+\fi
+\def#2{}%
+\@strctr=#1\relax \divide\@strctr by 1000\relax
+\ifnum\@strctr>9
+  \divide\@strctr by 10
+  \ifnum\@strctr>1\relax
+    \let\@@fc@numstr#2\relax
+    \edef#2{\@@fc@numstr\@tenstring{\@strctr}}%
+    \@strctr=#1 \divide\@strctr by 1000\relax
+    \@FCmodulo{\@strctr}{10}%
+    \ifnum\@strctr>0\relax
+      \let\@@fc@numstr#2\relax
+      \edef#2{\@@fc@numstr-\@unitstring{\@strctr}}%
+    \fi
+  \else
+    \@strctr=#1\relax
+    \divide\@strctr by 1000\relax
+    \@FCmodulo{\@strctr}{10}%
+    \let\@@fc@numstr#2\relax
+    \edef#2{\@@fc@numstr\@teenstring{\@strctr}}%
+  \fi
+  \let\@@fc@numstr#2\relax
+  \edef#2{\@@fc@numstr\ \@thousand}%
+\else
+  \ifnum\@strctr>0\relax
+    \let\@@fc@numstr#2\relax
+    \edef#2{\@@fc@numstr\@unitstring{\@strctr}\ \@thousand}%
+  \fi
+\fi
+\@strctr=#1\relax \@FCmodulo{\@strctr}{1000}%
+\divide\@strctr by 100
+\ifnum\@strctr>0\relax
+   \ifnum#1>1000\relax
+      \let\@@fc@numstr#2\relax
+      \edef#2{\@@fc@numstr\ }%
+   \fi
+   \let\@@fc@numstr#2\relax
+   \edef#2{\@@fc@numstr\@unitstring{\@strctr}\ \@hundred}%
+\fi
+\@strctr=#1\relax \@FCmodulo{\@strctr}{100}%
+\ifnum#1>100\relax
+  \ifnum\@strctr>0\relax
+    \let\@@fc@numstr#2\relax
+    \edef#2{\@@fc@numstr\ \@andname\ }%
+  \fi
+\fi
+\ifnum\@strctr>19\relax
+  \divide\@strctr by 10\relax
+  \let\@@fc@numstr#2\relax
+  \edef#2{\@@fc@numstr\@tenstring{\@strctr}}%
+  \@strctr=#1\relax \@FCmodulo{\@strctr}{10}%
+  \ifnum\@strctr>0\relax
+    \let\@@fc@numstr#2\relax
+    \edef#2{\@@fc@numstr-\@unitstring{\@strctr}}%
+  \fi
+\else
+  \ifnum\@strctr<10\relax
+    \ifnum\@strctr=0\relax
+       \ifnum#1<100\relax
+          \let\@@fc@numstr#2\relax
+          \edef#2{\@@fc@numstr\@unitstring{\@strctr}}%
+       \fi
+    \else
+      \let\@@fc@numstr#2\relax
+      \edef#2{\@@fc@numstr\@unitstring{\@strctr}}%
+    \fi
+  \else
+    \@FCmodulo{\@strctr}{10}%
+    \let\@@fc@numstr#2\relax
+    \edef#2{\@@fc@numstr\@teenstring{\@strctr}}%
+  \fi
+\fi
+}%
+\global\let\@@numberstringenglish\@@numberstringenglish
+\newcommand*{\@numberstringMenglish}[2]{%
+  \let\@unitstring=\@@unitstringenglish
+  \let\@teenstring=\@@teenstringenglish
+  \let\@tenstring=\@@tenstringenglish
+  \def\@hundred{hundred}\def\@thousand{thousand}%
+  \def\@andname{and}%
+  \@@numberstringenglish{#1}{#2}%
+}%
+\global\let\@numberstringMenglish\@numberstringMenglish
+\global\let\@numberstringFenglish=\@numberstringMenglish
+\global\let\@numberstringNenglish=\@numberstringMenglish
+\newcommand*\@NumberstringMenglish[2]{%
+  \let\@unitstring=\@@Unitstringenglish
+  \let\@teenstring=\@@Teenstringenglish
+  \let\@tenstring=\@@Tenstringenglish
+  \def\@hundred{Hundred}\def\@thousand{Thousand}%
+  \def\@andname{and}%
+  \@@numberstringenglish{#1}{#2}%
+}%
+\global\let\@NumberstringMenglish\@NumberstringMenglish
+\global\let\@NumberstringFenglish=\@NumberstringMenglish
+\global\let\@NumberstringNenglish=\@NumberstringMenglish
+\newcommand*\@@unitthstringenglish[1]{%
+  \ifcase#1\relax
+    zeroth%
+    \or first%
+    \or second%
+    \or third%
+    \or fourth%
+    \or fifth%
+    \or sixth%
+    \or seventh%
+    \or eighth%
+    \or ninth%
+  \fi
+}%
+\global\let\@@unitthstringenglish\@@unitthstringenglish
+\newcommand*\@@tenthstringenglish[1]{%
+  \ifcase#1\relax
+    \or tenth%
+    \or twentieth%
+    \or thirtieth%
+    \or fortieth%
+    \or fiftieth%
+    \or sixtieth%
+    \or seventieth%
+    \or eightieth%
+    \or ninetieth%
+  \fi
+}%
+\global\let\@@tenthstringenglish\@@tenthstringenglish
+\newcommand*\@@teenthstringenglish[1]{%
+  \ifcase#1\relax
+    tenth%
+    \or eleventh%
+    \or twelfth%
+    \or thirteenth%
+    \or fourteenth%
+    \or fifteenth%
+    \or sixteenth%
+    \or seventeenth%
+    \or eighteenth%
+    \or nineteenth%
+  \fi
+}%
+\global\let\@@teenthstringenglish\@@teenthstringenglish
+\newcommand*\@@Unitthstringenglish[1]{%
+  \ifcase#1\relax
+    Zeroth%
+    \or First%
+    \or Second%
+    \or Third%
+    \or Fourth%
+    \or Fifth%
+    \or Sixth%
+    \or Seventh%
+    \or Eighth%
+    \or Ninth%
+  \fi
+}%
+\global\let\@@Unitthstringenglish\@@Unitthstringenglish
+\newcommand*\@@Tenthstringenglish[1]{%
+  \ifcase#1\relax
+    \or Tenth%
+    \or Twentieth%
+    \or Thirtieth%
+    \or Fortieth%
+    \or Fiftieth%
+    \or Sixtieth%
+    \or Seventieth%
+    \or Eightieth%
+    \or Ninetieth%
+  \fi
+}%
+\global\let\@@Tenthstringenglish\@@Tenthstringenglish
+\newcommand*\@@Teenthstringenglish[1]{%
+  \ifcase#1\relax
+    Tenth%
+    \or Eleventh%
+    \or Twelfth%
+    \or Thirteenth%
+    \or Fourteenth%
+    \or Fifteenth%
+    \or Sixteenth%
+    \or Seventeenth%
+    \or Eighteenth%
+    \or Nineteenth%
+  \fi
+}%
+\global\let\@@Teenthstringenglish\@@Teenthstringenglish
+\newcommand*\@@ordinalstringenglish[2]{%
+\@strctr=#1\relax
+\ifnum#1>99999
+\PackageError{fmtcount}{Out of range}%
+{This macro only works for values less than 100000 (value given: \number\@strctr)}%
+\else
+\ifnum#1<0
+\PackageError{fmtcount}{Negative numbers not permitted}%
+{This macro does not work for negative numbers, however
+you can try typing "minus" first, and then pass the modulus of
+this number}%
+\fi
+\def#2{}%
+\fi
+\@strctr=#1\relax \divide\@strctr by 1000\relax
+\ifnum\@strctr>9\relax
+  \divide\@strctr by 10
+  \ifnum\@strctr>1\relax
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\@tenstring{\@strctr}}%
+    \@strctr=#1\relax
+    \divide\@strctr by 1000\relax
+    \@FCmodulo{\@strctr}{10}%
+    \ifnum\@strctr>0\relax
+      \let\@@fc@ordstr#2\relax
+      \edef#2{\@@fc@ordstr-\@unitstring{\@strctr}}%
+    \fi
+  \else
+    \@strctr=#1\relax \divide\@strctr by 1000\relax
+    \@FCmodulo{\@strctr}{10}%
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\@teenstring{\@strctr}}%
+  \fi
+  \@strctr=#1\relax \@FCmodulo{\@strctr}{1000}%
+  \ifnum\@strctr=0\relax
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\ \@thousandth}%
+  \else
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\ \@thousand}%
+  \fi
+\else
+  \ifnum\@strctr>0\relax
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\@unitstring{\@strctr}}%
+    \@strctr=#1\relax \@FCmodulo{\@strctr}{1000}%
+    \let\@@fc@ordstr#2\relax
+    \ifnum\@strctr=0\relax
+      \edef#2{\@@fc@ordstr\ \@thousandth}%
+    \else
+      \edef#2{\@@fc@ordstr\ \@thousand}%
+    \fi
+  \fi
+\fi
+\@strctr=#1\relax \@FCmodulo{\@strctr}{1000}%
+\divide\@strctr by 100
+\ifnum\@strctr>0\relax
+  \ifnum#1>1000\relax
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\ }%
+  \fi
+  \let\@@fc@ordstr#2\relax
+  \edef#2{\@@fc@ordstr\@unitstring{\@strctr}}%
+  \@strctr=#1\relax \@FCmodulo{\@strctr}{100}%
+  \let\@@fc@ordstr#2\relax
+  \ifnum\@strctr=0\relax
+    \edef#2{\@@fc@ordstr\ \@hundredth}%
+  \else
+    \edef#2{\@@fc@ordstr\ \@hundred}%
+  \fi
+\fi
+\@strctr=#1\relax \@FCmodulo{\@strctr}{100}%
+\ifnum#1>100\relax
+  \ifnum\@strctr>0\relax
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\ \@andname\ }%
+  \fi
+\fi
+\ifnum\@strctr>19\relax
+  \@tmpstrctr=\@strctr
+  \divide\@strctr by 10\relax
+  \@FCmodulo{\@tmpstrctr}{10}%
+  \let\@@fc@ordstr#2\relax
+  \ifnum\@tmpstrctr=0\relax
+    \edef#2{\@@fc@ordstr\@tenthstring{\@strctr}}%
+  \else
+    \edef#2{\@@fc@ordstr\@tenstring{\@strctr}}%
+  \fi
+  \@strctr=#1\relax \@FCmodulo{\@strctr}{10}%
+  \ifnum\@strctr>0\relax
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr-\@unitthstring{\@strctr}}%
+  \fi
+\else
+  \ifnum\@strctr<10\relax
+    \ifnum\@strctr=0\relax
+      \ifnum#1<100\relax
+        \let\@@fc@ordstr#2\relax
+        \edef#2{\@@fc@ordstr\@unitthstring{\@strctr}}%
+      \fi
+    \else
+      \let\@@fc@ordstr#2\relax
+      \edef#2{\@@fc@ordstr\@unitthstring{\@strctr}}%
+    \fi
+  \else
+    \@FCmodulo{\@strctr}{10}%
+    \let\@@fc@ordstr#2\relax
+    \edef#2{\@@fc@ordstr\@teenthstring{\@strctr}}%
+  \fi
+\fi
+}%
+\global\let\@@ordinalstringenglish\@@ordinalstringenglish
+\newcommand*{\@ordinalstringMenglish}[2]{%
+  \let\@unitthstring=\@@unitthstringenglish
+  \let\@teenthstring=\@@teenthstringenglish
+  \let\@tenthstring=\@@tenthstringenglish
+  \let\@unitstring=\@@unitstringenglish
+  \let\@teenstring=\@@teenstringenglish
+  \let\@tenstring=\@@tenstringenglish
+  \def\@andname{and}%
+  \def\@hundred{hundred}\def\@thousand{thousand}%
+  \def\@hundredth{hundredth}\def\@thousandth{thousandth}%
+  \@@ordinalstringenglish{#1}{#2}%
+}%
+\global\let\@ordinalstringMenglish\@ordinalstringMenglish
+\global\let\@ordinalstringFenglish=\@ordinalstringMenglish
+\global\let\@ordinalstringNenglish=\@ordinalstringMenglish
+\newcommand*{\@OrdinalstringMenglish}[2]{%
+  \let\@unitthstring=\@@Unitthstringenglish
+  \let\@teenthstring=\@@Teenthstringenglish
+  \let\@tenthstring=\@@Tenthstringenglish
+  \let\@unitstring=\@@Unitstringenglish
+  \let\@teenstring=\@@Teenstringenglish
+  \let\@tenstring=\@@Tenstringenglish
+  \def\@andname{and}%
+  \def\@hundred{Hundred}\def\@thousand{Thousand}%
+  \def\@hundredth{Hundredth}\def\@thousandth{Thousandth}%
+  \@@ordinalstringenglish{#1}{#2}%
+}%
+\global\let\@OrdinalstringMenglish\@OrdinalstringMenglish
+\global\let\@OrdinalstringFenglish=\@OrdinalstringMenglish
+\global\let\@OrdinalstringNenglish=\@OrdinalstringMenglish
+\endinput
+%%
+%% End of file `fc-english.def'.

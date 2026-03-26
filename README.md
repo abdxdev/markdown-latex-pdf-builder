@@ -114,6 +114,22 @@ Install the Pygments syntax highlighter for code blocks:
 python -m pip install Pygments
 ```
 
+> [!NOTE]
+> After installation, make sure `pygmentize` is available on your system PATH. The executable is typically installed in your Python Scripts folder. You can verify by running:
+>
+> ```powershell
+> pygmentize -V
+> ```
+>
+> If the command is not found, add the Python Scripts directory to your PATH:
+>
+> ```powershell
+> $scriptsDir = python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
+> [Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path', 'User'));$scriptsDir", "User")
+> ```
+>
+> Restart your terminal after making PATH changes.
+
 #### Step 4: Download markdown-latex-pdf-builder
 
 Download markdown-latex-pdf-builder to your user AppData folder:
@@ -128,11 +144,20 @@ Copy-Item "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-ma
 
 #### Step 5 (Optional): Install Mermaid CLI for diagram support
 
-Install Mermaid CLI globally using npm:
+Install the Mermaid CLI and Chrome headless shell for rendering diagrams:
 
 ```powershell
 npm install -g @mermaid-js/mermaid-cli
+npx puppeteer browsers install chrome-headless-shell
 ```
+
+> [!NOTE]
+> If you are using **pnpm**:
+>
+> ```powershell
+> pnpm add -g @mermaid-js/mermaid-cli
+> pnpm -g exec puppeteer browsers install chrome-headless-shell
+> ```
 
 #### Step 6 (Optional): Install Python dependencies
 
@@ -142,7 +167,15 @@ Install required Python packages for plotting inside python execution blocks:
 python -m pip install numpy matplotlib
 ```
 
-#### Step 7: Verify installation
+#### Step 7 (Optional): Install SVG image support
+
+If your Markdown files reference SVG images:
+
+```powershell
+python -m pip install svglib reportlab
+```
+
+#### Step 8: Verify installation
 
 Run this command to test markdown-latex-pdf-builder with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
 

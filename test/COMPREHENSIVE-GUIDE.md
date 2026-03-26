@@ -49,26 +49,26 @@
 ### Bold
 
 ```markdown
-**bold text** or **bold text**
+**bold text**
 ```
 
-**bold text** or **bold text**
+**bold text**
 
 ### Italic
 
 ```markdown
-_italic text_ or _italic text_
+_italic text_
 ```
 
-_italic text_ or _italic text_
+_italic text_
 
 ### Bold + Italic
 
 ```markdown
-**_bold and italic_** or **_bold and italic_**
+**_bold and italic_**
 ```
 
-**_bold and italic_** or **_bold and italic_**
+**_bold and italic_**
 
 ### Strikethrough
 
@@ -363,18 +363,6 @@ Term 2
 : Sample Table with Caption
 
 ## Horizontal Rule
-
-```markdown
----
-```
-
----
-
-```markdown
----
-```
-
----
 
 ```markdown
 ---

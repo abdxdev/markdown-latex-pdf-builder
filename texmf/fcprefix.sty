@@ -1,0 +1,389 @@
+%%
+%% This is file `fcprefix.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% fmtcount.dtx  (with options: `fcprefix.sty')
+%% 
+%%  fmtcount.dtx
+%%  Copyright 2025 Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis.
+%% 
+%%  This work consists of the files fmtcount.dtx and fmtcount.ins and the derived files fc-american.def, fc-brazilian.def, fc-british.def, fc-dutch.def, fc-english.def, fc-francais.def, fc-french.def, fc-frenchb.def, fc-german.def, fc-germanb.def, fc-italian.def, fc-ngerman.def, fc-ngermanb.def, fc-portuges.def, fc-portuguese.def, fc-spanish.def, fc-UKenglish.def, fc-USenglish.def, fcnumparser.sty, fcprefix.sty, fmtcount.sty.
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fcprefix}[2012/09/28]
+\RequirePackage{ifthen}
+\RequirePackage{keyval}
+\RequirePackage{fcnumparser}
+\define@key{fcprefix}{use duode and unde}[below20]{%
+  \ifthenelse{\equal{#1}{below20}}{%
+    \def\fc@duodeandunde{2}%
+  }{%
+    \ifthenelse{\equal{#1}{never}}{%
+      \def\fc@duodeandunde{0}%
+    }{%
+      \PackageError{fcprefix}{Unexpected option}{%
+        Option `use duode and unde' expects `below 20' or `never' }%
+    }%
+  }%
+}
+\def\fc@duodeandunde{2}
+\define@key{fcprefix}{numeral u in duo}[false]{%
+  \ifthenelse{\equal{#1}{false}}{%
+    \let\fc@u@in@duo\@empty
+  }{%
+    \ifthenelse{\equal{#1}{true}}{%
+      \def\fc@u@in@duo{u}%
+    }{%
+      \PackageError{fcprefix}{Unexpected option}{%
+        Option `numeral u in duo' expects `true' or `false' }%
+    }%
+  }%
+}
+\define@key{fcprefix}{e accute}[false]{%
+  \ifthenelse{\equal{#1}{false}}{%
+    \let\fc@prefix@eaccute\@firstofone
+  }{%
+    \ifthenelse{\equal{#1}{true}}{%
+      \let\fc@prefix@eaccute\'%
+    }{%
+      \PackageError{fcprefix}{Unexpected option}{%
+        Option `e accute' expects `true' or `false' }%
+    }%
+  }%
+}
+\let\fc@prefix@eaccute\'%
+\define@key{fcprefix}{power of millia}[prefix]{%
+  \ifthenelse{\equal{#1}{prefix}}{%
+       \let\fc@power@of@millia@init\@gobbletwo
+       \let\fc@power@of@millia\fc@@prefix@millia
+  }{%
+    \ifthenelse{\equal{#1}{arabic}}{%
+       \let\fc@power@of@millia@init\@gobbletwo
+       \let\fc@power@of@millia\fc@@arabic@millia
+    }{%
+      \ifthenelse{\equal{#1}{recursive}}{%
+        \let\fc@power@of@millia@init\fc@@recurse@millia@init
+        \let\fc@power@of@millia\fc@@recurse@millia
+      }{%
+        \PackageError{fcprefix}{Unexpected option}{%
+          Option `power of millia' expects `recursive', `arabic', or `prefix' }%
+      }%
+    }%
+  }%
+}
+\def\fc@@recurse@millia#1#2{%
+  \let\@tempp#1%
+  \edef#1{millia\@tempp}%
+}
+\def\fc@@recurse@millia@init#1#2{%
+  {%
+    \edef\@tempb{\number#2}%
+    \count0=0 %
+    \let\@tempa\@empty
+    \loop
+       \ifnum\count0<\@tempb
+         \advance\count0 by 1 %
+         \expandafter\def
+           \expandafter\@tempa\expandafter{\@tempa millia}%
+    \repeat
+    \edef\@tempb{\def\noexpand#1{\@tempa}}%
+    \expandafter
+  }\@tempb
+}
+\def\fc@@arabic@millia#1#2{%
+  \ifnnum#2=0 %
+    \let#1\@empty
+  \else
+    \edef#1{millia\^{}\the#2}%
+  \fi
+}
+\def\fc@@prefix@millia#1#2{%
+  \fc@@latin@numeral@pefix{#2}{#1}%
+}
+\let\fc@power@of@millia@init\@gobbletwo
+\let\fc@power@of@millia\fc@@prefix@millia
+\ifcsundef{fc@@latin@cardinal@pefix}{}{%
+  \PackageError{fmtcount}{Duplicate definition}{Redefinition of macro `fc@@latin@cardinal@pefix'}}
+\def\fc@@latin@cardinal@pefix#1#2{%
+  {%
+    \edef\@tempa{\number#1}%
+    \expandafter\fc@number@parser\expandafter{\@tempa}%
+    \count2=0 %
+    \let\@tempt\@empty
+    \def\@tempu{t}%
+    \let\@tempm\@empty
+    \def\@templ{%
+      \ifnum\count2>\fc@max@weight
+        \let\next\relax
+      \else
+        \fc@read@unit{\count3}{\count2}%
+        \advance\count2 by 1 %
+        \fc@read@unit{\count4}{\count2}%
+        \advance\count2 by 1 %
+        \fc@read@unit{\count5}{\count2}%
+        \advance\count2 by 1 %
+        \edef\@tempn{%
+          \ifnum\count3=0\else 1\fi
+          \ifnum\count4=0\else 1\fi
+          \ifnum\count5=0\else 1\fi
+        }%
+        \ifx\@tempn\@empty\else
+          \let\@tempt\@tempu
+          \let\@tempu\@empty
+        \fi
+        \let\@tempp\@tempa
+        \edef\@tempa{%
+          \ifcase\count5 %
+          \or cen%
+          \or ducen%
+          \or trecen%
+          \or quadringen%
+          \or quingen%
+          \or sescen%
+          \or septigen%
+          \or octingen%
+          \or nongen%
+          \fi
+          \ifnum\count4=0 %
+            % x0(0..9)
+            \ifnum\count2=3 %
+              % Absolute weight zero
+              \ifcase\count3 \@tempt
+              \or m%
+              \or b%
+              \or tr%
+              \or quadr%
+              \or quin\@tempt
+              \or sex\@tempt
+              \or sep\@tempt
+              \or oc\@tempt
+              \or non%
+              \fi
+            \else
+              \ifcase\count3 %
+              \or \ifnum\count2>\fc@max@weight\else un\fi
+              \or d\fc@u@in@duo o%
+              \or tre%
+              \or quattuor%
+              \or quin%
+              \or sex%
+              \or septen%
+              \or octo%
+              \or novem%
+              \fi
+            \fi
+          \else
+             % x(10..99)
+             \ifcase\count3 %
+             \or un%
+             \or d\fc@u@in@duo o%
+             \or tre%
+             \or quattuor%
+             \or quin%
+             \or sex%
+             \or septen%
+             \or octo%
+             \or novem%
+             \fi
+             \ifcase\count4 %
+             \or dec%
+             \or vigin\@tempt
+             \or trigin\@tempt
+             \or quadragin\@tempt
+             \or quinquagin\@tempt
+             \or sexagin\@tempt
+             \or septuagin\@tempt
+             \or octogin\@tempt
+             \or nonagin\@tempt
+             \fi
+          \fi
+          \@tempm
+          \@tempp
+        }%
+        \fc@power@of@millia\@tempm{\count2}%
+      \fi
+      \next
+    }%
+    \let\@tempa\@empty
+    \let\next\@templ
+    \@templ
+    \def\@tempb##1{\def\@tempa{\def#2{##1}}}%
+    \expandafter\@tempb\expandafter{\@tempa}%
+    \expandafter
+  }\@tempa
+}
+\ifcsundef{fc@@latin@numeral@pefix}{}{%
+  \PackageError{fmtcount}{Duplicate definition}{Redefinition of macro
+    `fc@@latin@numeral@pefix'}}
+\def\fc@@latin@numeral@pefix#1#2{%
+  {%
+    \edef\@tempa{\number#1}%
+    \def\fc@unit@weight{0}%
+    \expandafter\fc@number@parser\expandafter{\@tempa}%
+    \count2=0 %
+    \let\@tempm\@empty
+    \def\@templ{%
+      \ifnum\count2>\fc@max@weight
+        \let\next\relax
+      \else
+        \fc@read@unit{\count3}{\count2}%
+        \advance\count2 by 1 %
+        \fc@read@unit{\count4}{\count2}%
+        \advance\count2 by 1 %
+        \fc@read@unit{\count5}{\count2}%
+        \advance\count2 by 1 %
+        \let\@tempn\@secondoftwo
+        \ifnum\count3>7 %
+          \ifnum\count4<\fc@duodeandunde
+            \ifnum\count4>0 %
+               \let\@tempn\@firstoftwo
+             \fi
+          \fi
+        \fi
+        \@tempn
+        {% use duodevicies for eighteen
+          \advance\count4 by 1 %
+          \let\@temps\@secondoftwo
+        }{%  do not use duodevicies for eighteen
+          \let\@temps\@firstoftwo
+        }%
+        \let\@tempp\@tempa
+        \edef\@tempa{%
+          % hundreds
+          \ifcase\count5 %
+          \expandafter\@gobble
+          \or c%
+          \or duc%
+          \or trec%
+          \or quadring%
+          \or quing%
+          \or sesc%
+          \or septing%
+          \or octing%
+          \or nong%
+          \fi
+          {enties}%
+          \ifnum\count4=0 %
+            \ifcase\count3 %
+            \or
+              \ifnum\count2=3 %
+                s\fc@prefix@eaccute emel%
+              \else
+                \ifnum\count2>\fc@max@weight\else un\fi
+              \fi
+            \or bis%
+            \or ter%
+            \or quater%
+            \or quinquies%
+            \or sexies%
+            \or septies%
+            \or octies%
+            \or novies%
+            \fi
+          \else
+             \ifcase\count3 %
+             \or un%
+             \or d\fc@u@in@duo o%
+             \or ter%
+             \or quater%
+             \or quin%
+             \or sex%
+             \or septen%
+             \or \@temps{octo}{duod\fc@prefix@eaccute e}% x8 = two before next (x+1)0
+             \or \@temps{novem}{und\fc@prefix@eaccute e}% x9 = one before next (x+1)0
+             \fi
+             \ifcase\count4 %
+             % can't get here
+             \or d\fc@prefix@eaccute ec%
+             \or vic%
+             \or tric%
+             \or quadrag%
+             \or quinquag%
+             \or sexag%
+             \or septuag%
+             \or octog%
+             \or nonag%
+             \fi
+             ies%
+          \fi
+          % Insert the millies^(n/3) only if one of \count3 \count4 \count5 is non zero
+          \@tempm
+          % add up previous version of \@tempa
+          \@tempp
+        }%
+        \let\@tempp\@tempp
+        \edef\@tempm{millies\@tempp}%
+      \fi
+      \next
+    }%
+    \let\@tempa\@empty
+    \let\next\@templ
+    \@templ
+    \def\@tempb##1{\def\@tempa{\def#2{##1}}}%
+    \expandafter\@tempb\expandafter{\@tempa}%
+    \expandafter
+  }\@tempa
+}
+\def\fc@call@opt@arg@second#1#2{%
+  \def\@tempb{%
+    \ifx[\@tempa
+      \def\@tempc[####1]{%
+            {#1{####1}{#2}}%
+          }%
+    \else
+      \def\@tempc{{#1{}{#2}}}%
+    \fi
+    \@tempc
+  }%
+  \futurelet\@tempa
+  \@tempb
+}
+\def\fc@call@opt@arg@first#1{%
+  \def\@tempb{%
+    \ifx[\@tempa
+      \def\@tempc[####1]####2{{#1{####1}{####2}}}%
+    \else
+      \def\@tempc####1{{#1{}{####1}}}%
+    \fi
+    \@tempc
+  }%
+  \futurelet\@tempa
+  \@tempb
+}
+
+\let\fc@call\fc@call@opt@arg@first
+\newcommand*{\@latinnumeralstringnum}[2]{%
+  \setkeys{fcprefix}{#1}%
+  \fc@@latin@numeral@pefix{#2}\@tempa
+  \@tempa
+}
+\newcommand*{\@latinnumeralstring}[2]{%
+  \setkeys{fcprefix}{#1}%
+  \expandafter\let\expandafter
+     \@tempa\expandafter\csname c@#2\endcsname
+  \expandafter\fc@@latin@numeral@pefix\expandafter{\the\@tempa}\@tempa
+  \@tempa
+}
+\newcommand*{\latinnumeralstring}{%
+  \fc@call\@latinnumeralstring
+}
+\newcommand*{\latinnumeralstringnum}{%
+  \fc@call\@latinnumeralstringnum
+}
+\endinput
+%%
+%% End of file `fcprefix.sty'.

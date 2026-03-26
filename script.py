@@ -1,4 +1,3 @@
-from __future__ import annotations
 import argparse
 import json
 import shutil
@@ -13,7 +12,12 @@ import os
 import urllib.request
 import urllib.parse
 
-ROOT = Path(__file__).parent.resolve()
+def get_root() -> Path:
+    if getattr(sys, 'frozen', False):
+        return Path(sys._MEIPASS)
+    return Path(__file__).parent.resolve()
+
+ROOT = get_root()
 
 PLACEHOLDERS = [
     "@@TITLE@@",
@@ -195,9 +199,9 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
         "header-title": 2,
         "separate-page-title": 3,
     }
-    
+
     title_template_value = meta.get("titleTemplate", "no-title")
-    
+
     # Support both old numeric format and new string format for backward compatibility
     if isinstance(title_template_value, int):
         title_template = title_template_value
@@ -205,7 +209,7 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
             title_template = 0
     else:
         title_template = title_template_map.get(title_template_value, 0)
-    
+
     title_template_cmd = f"\\renewcommand{{\\titleTemplate}}{{{title_template}}}"
     enable_content = bool(meta.get("enableContentPage"))
     content_page_toggle = "\\enablecontentpagetrue" if enable_content else "\\enablecontentpagefalse"
@@ -256,6 +260,11 @@ def replace_placeholders(md_path: Path, tex_path: Path, meta: dict):
 
 
 def run_lualatex(build_dir: Path):
+    env = os.environ.copy()
+    texmf = ROOT / "texmf"
+    if texmf.exists():
+        env["TEXMFHOME"] = str(texmf)
+
     cmd = [
         "lualatex",
         "--shell-escape",
@@ -270,6 +279,7 @@ def run_lualatex(build_dir: Path):
         proc = subprocess.run(
             cmd,
             cwd=build_dir,
+            env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -509,8 +519,9 @@ def process_code_blocks(content: str, build_dir: Path) -> str:
                 else:
                     clean_code_content = code_content
                     code_hash = hashlib.md5(clean_code_content.encode("utf-8")).hexdigest()
-                    code_filename = f"code_{code_hash}.txt"
-                    code_filepath = build_dir / code_filename
+                    code_dir = build_dir / "_code_build"
+                    code_dir.mkdir(exist_ok=True)
+                    code_filepath = code_dir / code_hash
                     code_filepath.write_text(clean_code_content, encoding="utf-8")
 
                     highlight_match = re.search(r"\.highlightlines=([\d,-]+)", header)
@@ -534,7 +545,7 @@ enhanced, colback=black!3, colframe=black!10, boxrule=0.5pt, arc=3pt,
 left=5pt, right=5pt, top={top_padding}, bottom=5pt, breakable,
 overlay={{\\ifstrequal{{{show_label}}}{{true}}{{\\node[anchor=north east, font=\\scriptsize\\ttfamily, text=black!50, fill=black!7, rounded corners=1pt] at ([xshift=-5pt,yshift=-5pt]frame.north east) {{{lang}}};}}{{}} }}
 ]
-\\inputminted[{minted_options}]{{{pygments_lang if pygments_lang else 'text'}}}{{{code_filename}}}
+\\inputminted[{minted_options}]{{{pygments_lang if pygments_lang else 'text'}}}{{_code_build/{code_hash}}}
 \\end{{tcolorbox}}"""
                     raw_latex_block = f"```{{=latex}}\n{latex_command}\n```"
                     processed_lines.append(raw_latex_block)
@@ -875,6 +886,42 @@ def apply_markdown_formatting_math_safe(content: str) -> str:
     return content
 
 
+def convert_svg_to_pdf(svg_path: Path, pdf_path: Path) -> bool:
+    """Convert an SVG file to PDF using svglib+reportlab. Returns True on success."""
+    try:
+        from svglib.svglib import svg2rlg
+        from reportlab.graphics import renderPDF
+
+        drawing = svg2rlg(str(svg_path))
+        if drawing is None:
+            Logger.warning(f"svglib could not parse {svg_path}")
+            return False
+        renderPDF.drawToFile(drawing, str(pdf_path), fmt="PDF")
+        return True
+    except ImportError:
+        Logger.warning("svglib/reportlab not installed – SVG images will not render. " "Install with: pip install svglib reportlab")
+        return False
+    except Exception as e:
+        Logger.warning(f"SVG-to-PDF conversion failed for {svg_path}: {e}")
+        return False
+
+
+def rewrite_svg_refs_to_pdf(md_content: str) -> str:
+    """Replace .svg image references with .pdf so LaTeX can include them."""
+    md_content = re.sub(
+        r'(!\[[^\]]*\]\([^)]*)\.svg(\s*(?:"[^"]*")?\s*\))',
+        r"\1.pdf\2",
+        md_content,
+    )
+    md_content = re.sub(
+        r'(<img[^>]*?src=["\'])([^"\']*)(\.svg)(["\'])',
+        r"\1\2.pdf\4",
+        md_content,
+        flags=re.IGNORECASE,
+    )
+    return md_content
+
+
 def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
     images = find_markdown_images(md_path)
     if not images:
@@ -885,13 +932,22 @@ def copy_image_assets(md_path: Path, build_dir: Path, root_md_dir: Path):
         except ValueError:
             rel = Path(img.name)
 
-        dest = build_dir / rel
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        if not dest.exists():
-            try:
-                shutil.copy(img, dest)
-            except Exception as e:
-                Logger.error(f"Failed to copy image {img}: {e}")
+        # Convert SVGs to PDF for LaTeX compatibility
+        if img.suffix.lower() == ".svg":
+            pdf_rel = rel.with_suffix(".pdf")
+            dest = build_dir / pdf_rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if not dest.exists():
+                if not convert_svg_to_pdf(img, dest):
+                    Logger.error(f"Failed to convert SVG {img}")
+        else:
+            dest = build_dir / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if not dest.exists():
+                try:
+                    shutil.copy(img, dest)
+                except Exception as e:
+                    Logger.error(f"Failed to copy image {img}: {e}")
 
 
 def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = None) -> str:
@@ -969,7 +1025,7 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
         show_code = ".show-code" in properties and ".hide-code" not in properties
         show_output = ".hide-output" not in properties
         use_cache = ".no-cache" not in properties
-        
+
         # Extract plot format
         plot_format = config.get("default_format", "pdf")
         for prop in properties:
@@ -1018,11 +1074,7 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                 # Use persistent state for Python
                 if config.get("persistent", False):
                     dpi_param = ", dpi=300" if plot_format == "png" else ""
-                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(
-                        plot_path=plot_path, 
-                        format=plot_format,
-                        dpi_param=dpi_param
-                    )
+                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path, format=plot_format, dpi_param=dpi_param)
 
                     # Simple exec-based persistent execution
                     from io import StringIO
@@ -1063,11 +1115,7 @@ def process_executable_blocks(content: str, build_dir: Path, source_dir: Path = 
                     result = MockResult(result_returncode, result_stdout, result_stderr)
                 else:
                     dpi_param = ", dpi=300" if plot_format == "png" else ""
-                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(
-                        plot_path=plot_path,
-                        format=plot_format,
-                        dpi_param=dpi_param
-                    )
+                    wrapped_code = code.replace("plt.show()", "") + config["plot_code"].format(plot_path=plot_path, format=plot_format, dpi_param=dpi_param)
                     result = subprocess.run(config["command"] + ["-c", wrapped_code], capture_output=True, text=True, timeout=30, check=False)
 
                 if result.returncode == 0 and plot_path.exists():
@@ -1350,6 +1398,7 @@ Steps:
     md_content = process_emojis(md_content)
     md_content = post_process_alerts(md_content)
     md_content = download_remote_images_from_markdown(md_content, build_dir)
+    md_content = rewrite_svg_refs_to_pdf(md_content)
     md_content = escape_signs(md_content, ["%", "&"])
 
     (build_dir / md_path.name).write_text(md_content, encoding="utf-8")

@@ -1,0 +1,370 @@
+%%
+%% This is file `fcnumparser.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% fmtcount.dtx  (with options: `fcnumparser.sty')
+%% 
+%%  fmtcount.dtx
+%%  Copyright 2025 Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis
+%% 
+%%  This work may be distributed and/or modified under the
+%%  conditions of the LaTeX Project Public License, either version 1.3
+%%  of this license or (at your option) any later version.
+%%  The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%%  and version 1.3 or later is part of all distributions of LaTeX
+%%  version 2005/12/01 or later.
+%% 
+%%  This work has the LPPL maintenance status `maintained'.
+%% 
+%%  The Current Maintainer of this work is Nicola Talbot (inactive), Vincent Belaïche and Erik Nijenhuis.
+%% 
+%%  This work consists of the files fmtcount.dtx and fmtcount.ins and the derived files fc-american.def, fc-brazilian.def, fc-british.def, fc-dutch.def, fc-english.def, fc-francais.def, fc-french.def, fc-frenchb.def, fc-german.def, fc-germanb.def, fc-italian.def, fc-ngerman.def, fc-ngermanb.def, fc-portuges.def, fc-portuguese.def, fc-spanish.def, fc-UKenglish.def, fc-USenglish.def, fcnumparser.sty, fcprefix.sty, fmtcount.sty.
+%% 
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fcnumparser}[2017/06/15]
+\def\fc@counter@parser#1{%
+  \expandafter\fc@number@parser\expandafter{\the#1.}%
+}
+\newcount\fc@digit@counter
+
+\def\fc@end@{\fc@end}
+\def\fc@number@analysis#1\fc@nil{%
+  \def\@tempb##1.##2\fc@nil{\def\fc@integer@part{##1}\def\@tempa{##2}}%
+  \@tempb#1.\fc@end\fc@nil
+  \ifx\@tempa\fc@end@
+    \def\@tempb##1,##2\fc@nil{\def\fc@integer@part{##1}\def\@tempa{##2}}%
+    \@tempb#1,\fc@end\fc@nil
+    \ifx\@tempa\fc@end@
+       \def\fc@fractional@part{}%
+    \else
+       \def\@tempb##1,\fc@end{\def\fc@fractional@part{##1}}%
+       \expandafter\@tempb\@tempa
+    \fi
+  \else
+       \def\@tempb##1.\fc@end{\def\fc@fractional@part{##1}}%
+       \expandafter\@tempb\@tempa
+  \fi
+}
+\def\fc@number@parser#1{%
+  \let\@tempa\@empty
+  \def\@tempb##1##2\fc@nil{%
+    \def\@tempc{##1}%
+    \ifx\@tempc\space
+    \else
+      \expandafter\def\expandafter\@tempa\expandafter{\@tempa ##1}%
+    \fi
+    \def\@tempc{##2}%
+    \ifx\@tempc\@empty
+      \expandafter\@gobble
+    \else
+      \expandafter\@tempb
+    \fi
+    ##2\fc@nil
+  }%
+  \@tempb#1\fc@nil
+  \def\@tempb##1##2\fc@nil{\def\fc@sign{##1}\def\fc@number{##2}}%
+  \expandafter\@tempb\@tempa\fc@nil
+  \expandafter\if\fc@sign+%
+    \def\fc@sign@case{1}%
+  \else
+    \expandafter\if\fc@sign-%
+      \def\fc@sign@case{2}%
+    \else
+      \def\fc@sign{}%
+      \def\fc@sign@case{0}%
+      \let\fc@number\@tempa
+    \fi
+  \fi
+  \ifx\fc@number\@empty
+    \PackageError{fcnumparser}{Invalid number}{Number must contain at least one non blank
+      character after sign}%
+  \fi
+  \expandafter\fc@number@analysis\fc@number\fc@nil
+  \expandafter\fc@digit@counter\fc@unit@weight
+  \expandafter\fc@parse@integer@digits\fc@integer@part\fc@end\fc@nil
+  \fc@digit@counter -\fc@digit@counter
+  \advance\fc@digit@counter by \fc@unit@weight
+  \advance\fc@digit@counter by \fc@unit@weight
+  \advance\fc@digit@counter by -1 %
+  \edef\fc@max@weight{\the\fc@digit@counter}%
+  {%
+    \count0 \fc@unit@weight\relax
+    \count1 \fc@max@weight\relax
+    \advance\count0 by -\count1 %
+    \advance\count0 by -1 %
+    \def\@tempa##1{\def\@tempb{\def\@tempi{##1}}}%
+    \expandafter\@tempa\expandafter{\the\count0}%
+    \expandafter
+  }\@tempb
+  \expandafter\fc@digit@counter\fc@unit@weight
+  \def\@templ{%
+     \ifnum\fc@digit@counter>\fc@max@weight
+        \let\next\relax
+     \else
+        {%
+          \count0 \@tempi
+          \advance\count0 by \fc@digit@counter
+          \expandafter\def\expandafter\@tempd\expandafter{\csname fc@digit@\the\count0\endcsname}%
+          \expandafter\def\expandafter\@tempe\expandafter{\csname fc@digit@\the\fc@digit@counter\endcsname}%
+          \def\@tempa####1####2{\def\@tempb{\let####1####2}}%
+          \expandafter\expandafter\expandafter\@tempa\expandafter\@tempe\@tempd
+          \expandafter
+        }\@tempb
+        \advance\fc@digit@counter by 1 %
+     \fi
+     \next
+  }%
+  \let\next\@templ
+  \@templ
+  \expandafter\fc@digit@counter\fc@unit@weight
+  \expandafter\fc@parse@integer@digits\fc@fractional@part\fc@end\fc@nil
+  \edef\fc@min@weight{\the\fc@digit@counter}%
+}
+\ifcsundef{fc@parse@integer@digits}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of
+    macro `fc@parse@integer@digits'}}
+\def\fc@parse@integer@digits#1#2\fc@nil{%
+  \def\@tempa{#1}%
+  \ifx\@tempa\fc@end@
+     \def\next##1\fc@nil{}%
+  \else
+  \let\next\fc@parse@integer@digits
+  \advance\fc@digit@counter by -1
+  \expandafter\def\csname fc@digit@\the\fc@digit@counter\endcsname{#1}%
+  \fi
+  \next#2\fc@nil
+}
+
+\newcommand*{\fc@unit@weight}{0}
+
+\ifcsundef{fc@read@unit}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of macro `fc@read@unit'}}
+\def\fc@read@unit#1#2{%
+  \ifnum#2>\fc@max@weight
+     #1=0\relax
+  \else
+     \ifnum#2<\fc@min@weight
+        #1=0\relax
+     \else
+         {%
+           \edef\@tempa{\number#2}%
+           \count0=\@tempa
+           \edef\@tempa{\csname fc@digit@\the\count0\endcsname}%
+           \def\@tempb##1{\def\@tempa{#1=##1\relax}}%
+           \expandafter\@tempb\expandafter{\@tempa}%
+           \expandafter
+         }\@tempa
+     \fi
+  \fi
+}
+\ifcsundef{fc@read@hundred}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of macro `fc@read@hundred'}}
+\def\fc@read@hundred#1#2{%
+  {%
+    \fc@read@unit{\count0}{#2}%
+    \def\@tempa##1{\fc@read@unit{\count1}{##1}}%
+    \count2=#2%
+    \advance\count2 by 1 %
+    \expandafter\@tempa{\the\count2}%
+    \multiply\count1 by 10 %
+    \advance\count1 by \count0 %
+    \def\@tempa##1{\def\@tempb{#1=##1\relax}}
+    \expandafter\@tempa\expandafter{\the\count1}%
+    \expandafter
+  }\@tempb
+}
+\ifcsundef{fc@read@thousand}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of macro
+    `fc@read@thousand'}}
+\def\fc@read@thousand#1#2{%
+  {%
+    \fc@read@unit{\count0}{#2}%
+    \def\@tempa##1{\fc@read@hundred{\count1}{##1}}%
+    \count2=#2%
+    \advance\count2 by 1 %
+    \expandafter\@tempa{\the\count2}%
+    \multiply\count1 by 10 %
+    \advance\count1 by \count0 %
+    \def\@tempa##1{\def\@tempb{#1=##1\relax}}
+    \expandafter\@tempa\expandafter{\the\count1}%
+    \expandafter
+  }\@tempb
+}
+\ifcsundef{fc@read@myriad}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of macro
+    `fc@read@myriad'}}
+\def\fc@read@myriad#1#2{%
+  {%
+    \fc@read@hundred{\count0}{#2}%
+    \def\@tempa##1{\fc@read@hundred{\count1}{##1}}%
+    \count2=#2
+    \advance\count2 by 2
+    \expandafter\@tempa{\the\count2}%
+    \multiply\count1 by 100 %
+    \advance\count1 by \count0 %
+    \def\@tempa##1{\def\@tempb{#1=##1\relax}}%
+    \expandafter\@tempa\expandafter{\the\count1}%
+    \expandafter
+  }\@tempb
+}
+\ifcsundef{fc@check@nonzeros}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of macro
+    `fc@check@nonzeros'}}
+\def\fc@check@nonzeros#1#2#3{%
+  {%
+    \edef\@@tempa{\number#1}%
+    \edef\@tempb{\number#2}%
+    \count0=\@@tempa
+    \count1=\@tempb\relax
+   \fc@@check@nonzeros@inner
+   \def\@tempd##1{\def\@tempa{\def#3{##1}}}%
+   \expandafter\@tempd\expandafter{\@tempc}%
+   \expandafter
+  }\@tempa
+}
+\def\fc@@check@nonzeros@inner{%
+   \ifnum\count0<\fc@min@weight
+      \count0=\fc@min@weight\relax
+   \fi
+   \ifnum\count1>\fc@max@weight\relax
+      \count1=\fc@max@weight
+   \fi
+   \count2\count0 %
+   \advance\count2 by 1 %
+   \ifnum\count0>\count1 %
+     \PackageError{fcnumparser}{Unexpected arguments}{Number in argument 2 of macro
+       `fc@check@nonzeros' must be at least equal to number in argument 1}%
+   \else
+     \fc@@check@nonzeros@inner@loopbody
+     \ifnum\@tempc>0 %
+       \ifnum\@tempc<9 %
+         \ifnum\count0>\count1 %
+         \else
+           \let\@tempd\@tempc
+           \fc@@check@nonzeros@inner@loopbody
+           \ifnum\@tempc=0 %
+             \let\@tempc\@tempd
+           \else
+             \def\@tempc{9}%
+           \fi
+         \fi
+       \fi
+     \fi
+   \fi
+}
+\def\fc@@check@nonzeros@inner@loopbody{%
+   % \@tempc <-  digit of weight \count0
+   \expandafter\let\expandafter\@tempc\csname fc@digit@\the\count0\endcsname
+   \advance\count0 by 1 %
+   \ifnum\@tempc=0 %
+      \ifnum\count0>\count1 %
+        \let\next\relax
+      \else
+        \let\next\fc@@check@nonzeros@inner@loopbody
+      \fi
+   \else
+      \ifnum\count0>\count2 %
+        \def\@tempc{9}%
+      \fi
+      \let\next\relax
+   \fi
+   \next
+}
+\ifcsundef{fc@intpart@find@last}{}{%
+  \PackageError{fcnumparser}{Duplicate definition}{Redefinition of macro
+    `fc@intpart@find@last'}}
+\def\fc@intpart@find@last#1{%
+  {%
+    \count0=\fc@unit@weight\space
+    \ifnum\count0<\fc@min@weight\space
+      \count0=\fc@min@weight\space
+    \fi
+    \def\@templ{%
+      \ifnum\csname fc@digit@\the\count0\endcsname=0 %
+        \advance\count0 by 1 %
+        \ifnum\count0>\fc@max@weight\space
+          \let\next\relax
+        \fi
+      \else
+        \let\next\relax
+      \fi
+      \next
+    }%
+    \let\next\@templ
+    \@templ
+     \toks0{#1}%
+     \edef\@tempa{\the\toks0=\the\count0}%
+     \expandafter
+  }\@tempa\space
+}
+\ifcsundef{fc@get@last@word}{}{\PackageError{fcnumparser}{Duplicate definition}{Redefinition
+    of macro `fc@get@last@word'}}%
+\def\fc@get@last@word#1#2#3{%
+  {%
+    \def\@tempa##1\fc@wcase##2\@nil\fc@end{%
+      \toks0{##1}%
+      \toks1{##2\fc@wcase}%
+    }%
+    \@tempa#1\fc@end
+    \def\@tempa##1\fc@wcase##2\fc@end{%
+      \toks2{##1}%
+      \def\@tempb{##2}%
+      \toks3{##2}%
+    }%
+    \toksdef\@tempt0 %
+    \def\@templ{%
+      \expandafter\@tempa\the\toks1 \fc@end
+      \ifx\@tempb\@empty
+        \let\next\relax
+      \else
+         \expandafter\expandafter\expandafter\@tempt
+         \expandafter\expandafter\expandafter{%
+           \expandafter\the\expandafter\@tempt
+           \expandafter\fc@wcase\the\toks2}%
+         \toks1\toks3 %
+      \fi
+      \next
+    }%
+    \let\next\@templ
+    \@templ
+    \edef\@tempa{\def\noexpand#2{\the\toks0}\def\noexpand#3{\the\toks2}}%
+    \expandafter
+  }\@tempa
+}
+\ifcsundef{fc@get@last@letter}{}{\PackageError{fcnumparser}{Duplicate definition}{Redefinition
+    of macro `fc@get@last@letter'}}%
+\def\fc@get@last@letter#1#2#3{%
+  {%
+    \toks1{#1}%
+    \toks0{}%
+    \toksdef\@tempt0 %
+    \def\@tempa##1##2\fc@nil{%
+      \toks2{##1}%
+      \toks3{##2}%
+      \def\@tempb{##2}%
+    }%
+    \def\@templ{%
+      \expandafter\@tempa\the\toks1 \fc@nil
+      \ifx\@tempb\@empty
+        \let\next\relax
+      \else
+         \expandafter\expandafter\expandafter\@tempt
+         \expandafter\expandafter\expandafter{%
+           \expandafter\the\expandafter\@tempt
+           \the\toks2}%
+        \toks1\toks3 %
+      \fi
+      \next
+    }%
+    \let\next\@templ
+    \next
+    \edef\@tempa{\def\noexpand#2{\the\toks0}\def\noexpand#3{\the\toks1}}%
+    \expandafter
+  }\@tempa
+}%
+\endinput
+%%
+%% End of file `fcnumparser.sty'.
