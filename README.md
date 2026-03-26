@@ -80,33 +80,10 @@ Expand-Archive -Force -Path "$env:TEMP\TinyTeX.zip" -DestinationPath $env:APPDAT
 Remove-Item "$env:TEMP\TinyTeX.zip"
 $env:PATH += ";$env:APPDATA\TinyTeX\bin\windows"
 tlmgr path add
-tlmgr option repository ctan
 tlmgr postaction install script xetex
-
 ```
 
-#### Step 2: Install LaTeX packages
-
-Install required LaTeX packages using `tlmgr`:
-
-```powershell
-tlmgr update --self
-tlmgr install adjustbox colortbl csvsimple datetime emoji endnotes fancyhdr fmtcount footmisc grfext hyphenat ifplatform lineno listings lua-ul markdown minted paralist pdfcol soul tcolorbox tikzfill titlesec titling tocloft todonotes ulem upquote xstring
-
-```
-
-> [!NOTE]
->
-> 1. If you encounter "The term 'tlmgr' is not recognized" errors, try running the following command to get the correct path:
->
->    ```powershell
->    "$env:APPDATA\TinyTeX\bin\windows\"
->    ```
->
-> 2. Then manually add the output path to your system PATH variable.
-> 3. Restart your terminal
-
-#### Step 3: Install Pygments
+#### Step 2: Install Pygments
 
 Install the Pygments syntax highlighter for code blocks:
 
@@ -130,7 +107,7 @@ python -m pip install Pygments
 >
 > Restart your terminal after making PATH changes.
 
-#### Step 4: Download markdown-latex-pdf-builder
+#### Step 3: Download markdown-latex-pdf-builder
 
 Download markdown-latex-pdf-builder to your user AppData folder:
 
@@ -139,10 +116,9 @@ wget https://github.com/abdxdev/markdown-latex-pdf-builder/archive/refs/heads/ma
 Expand-Archive -Force -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\markdown-latex-pdf-builder"
 Remove-Item "$env:TEMP\main.zip"
 Copy-Item "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-main\default.json" "$env:APPDATA\markdown-latex-pdf-builder\default.json"
-
 ```
 
-#### Step 5 (Optional): Install Mermaid CLI for diagram support
+#### Step 4 (Optional): Install Mermaid CLI for diagram support
 
 Install the Mermaid CLI and Chrome headless shell for rendering diagrams:
 
@@ -159,7 +135,7 @@ npx puppeteer browsers install chrome-headless-shell
 > pnpm -g exec puppeteer browsers install chrome-headless-shell
 > ```
 
-#### Step 6 (Optional): Install Python dependencies
+#### Step 5 (Optional): Install Python dependencies
 
 Install required Python packages for plotting inside python execution blocks:
 
@@ -167,7 +143,7 @@ Install required Python packages for plotting inside python execution blocks:
 python -m pip install numpy matplotlib
 ```
 
-#### Step 7 (Optional): Install SVG image support
+#### Step 6 (Optional): Install SVG image support
 
 If your Markdown files reference SVG images:
 
@@ -175,7 +151,7 @@ If your Markdown files reference SVG images:
 python -m pip install svglib reportlab
 ```
 
-#### Step 8: Verify installation
+#### Step 7: Verify installation
 
 Run this command to test markdown-latex-pdf-builder with the comprehensive guide example. If everything is set up correctly, a PDF document should be generated and opened automatically.
 
@@ -246,12 +222,7 @@ Remove-Item "$env:APPDATA\markdown-latex-pdf-builder\markdown-latex-pdf-builder-
 wget https://github.com/abdxdev/markdown-latex-pdf-builder/archive/refs/heads/main.zip -OutFile "$env:TEMP\main.zip"
 Expand-Archive -Path "$env:TEMP\main.zip" -DestinationPath "$env:APPDATA\markdown-latex-pdf-builder"
 Remove-Item "$env:TEMP\main.zip"
-
 ```
-
-#### Step 2: Reinstall LaTeX packages
-
-Install latex packages from [step 2](#step-2-install-latex-packages) of the installation section.
 
 ## Uninstallation
 
@@ -260,7 +231,6 @@ Install latex packages from [step 2](#step-2-install-latex-packages) of the inst
 ```powershell
 tlmgr path remove
 Remove-Item "$env:APPDATA\TinyTeX" -Recurse -Force
-
 ```
 
 > [!NOTE]
@@ -277,8 +247,8 @@ Remove-Item "$env:APPDATA\markdown-latex-pdf-builder" -Recurse -Force
 
 This tool was tested on:
 
-- Windows 11.
-- Command runner v0.0.124
+- Windows 11
+- Command Runner v0.0.124
 - Python 3.13.3
 - TinyTeX 0.57
 - tlmgr 76773
